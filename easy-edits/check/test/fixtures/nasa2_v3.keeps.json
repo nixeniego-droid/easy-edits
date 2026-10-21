@@ -1,0 +1,23 @@
+{
+ "source": "video-projects/gen-nasa2-v3/assets/edit-decisions.json (gen_nasa2_v3 final)",
+ "keeps": [
+  {
+   "sourceStart": 0,
+   "sourceEnd": 8.4,
+   "start": 0,
+   "end": 8.4
+  },
+  {
+   "sourceStart": 10.9,
+   "sourceEnd": 22.8,
+   "start": 8.4,
+   "end": 20.3
+  },
+  {
+   "sourceStart": 25.433,
+   "sourceEnd": 34.3,
+   "start": 20.3,
+   "end": 29.167
+  }
+ ]
+}

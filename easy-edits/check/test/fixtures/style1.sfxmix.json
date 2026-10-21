@@ -1,0 +1,402 @@
+{
+ "source": "sfx-mix measureCues on renders/gen_th_style1.mp4 + video-projects/gen-th-style1/assets/plan.json",
+ "voicePeakDb": 7,
+ "rows": [
+  {
+   "time": 0.193,
+   "sfx": "click2",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.96,
+   "offset": 0,
+   "level": -19.8,
+   "duck": -0.6
+  },
+  {
+   "time": 0.733,
+   "sfx": "click2",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.9,
+   "offset": 0,
+   "level": -20.6,
+   "duck": 0.1
+  },
+  {
+   "time": 3.176,
+   "sfx": "tap",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.98,
+   "offset": 0,
+   "level": -20.9,
+   "duck": 1.7
+  },
+  {
+   "time": 4.233,
+   "sfx": "click2",
+   "type": "icon-pop",
+   "detected": true,
+   "ncc": 0.99,
+   "offset": 0,
+   "level": -23.7,
+   "duck": -0.9
+  },
+  {
+   "time": 5.857,
+   "sfx": "tap",
+   "type": "icon-pop",
+   "detected": true,
+   "ncc": 0.87,
+   "offset": 0,
+   "level": -25.2,
+   "duck": -1.4
+  },
+  {
+   "time": 8.017,
+   "sfx": "whoosh_low",
+   "type": "diagram-draw",
+   "detected": true,
+   "ncc": 0.78,
+   "offset": 0,
+   "level": -29.4,
+   "duck": 0.8
+  },
+  {
+   "time": 9.637,
+   "sfx": "tap",
+   "type": "chip-pop",
+   "detected": true,
+   "ncc": 0.95,
+   "offset": -0.001,
+   "level": -21,
+   "duck": 0.9
+  },
+  {
+   "time": 11.89,
+   "sfx": "shimmer",
+   "type": "glyph-pop",
+   "detected": true,
+   "ncc": 0.96,
+   "offset": 0.003,
+   "level": -23.4,
+   "duck": -0.8
+  },
+  {
+   "time": 13.364,
+   "sfx": "click2",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.99,
+   "offset": 0,
+   "level": -20.4,
+   "duck": -0.6
+  },
+  {
+   "time": 13.604,
+   "sfx": "click2",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.72,
+   "offset": 0,
+   "level": -25.8,
+   "duck": -1.4
+  },
+  {
+   "time": 13.924,
+   "sfx": "click",
+   "type": "diagram-draw",
+   "detected": true,
+   "ncc": 0.53,
+   "offset": 0,
+   "level": -26.1,
+   "duck": -0.9
+  },
+  {
+   "time": 15.857,
+   "sfx": "click2",
+   "type": "chip-pop",
+   "detected": true,
+   "ncc": 0.94,
+   "offset": 0,
+   "level": -24.3,
+   "duck": -0.7
+  },
+  {
+   "time": 17.217,
+   "sfx": "click2",
+   "type": "chip-pop",
+   "detected": true,
+   "ncc": 0.99,
+   "offset": 0,
+   "level": -23.3,
+   "duck": -0.2
+  },
+  {
+   "time": 18.167,
+   "sfx": "whoosh",
+   "type": "card-in",
+   "detected": true,
+   "ncc": 0.68,
+   "offset": 0,
+   "level": -26.3,
+   "duck": 1.4
+  },
+  {
+   "time": 18.383,
+   "sfx": "tap",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.71,
+   "offset": 0,
+   "level": -22.7,
+   "duck": 1.7
+  },
+  {
+   "time": 19.723,
+   "sfx": "click",
+   "type": "diagram-draw",
+   "detected": true,
+   "ncc": 0.51,
+   "offset": 0,
+   "level": -28.9,
+   "duck": -0.7
+  },
+  {
+   "time": 22.3,
+   "sfx": "click2",
+   "type": "arrow-draw",
+   "detected": true,
+   "ncc": 0.91,
+   "offset": 0,
+   "level": -21,
+   "duck": -0.8
+  },
+  {
+   "time": 22.84,
+   "sfx": "tap",
+   "type": "icon-pop",
+   "detected": true,
+   "ncc": 0.8,
+   "offset": -0.001,
+   "level": -21.6,
+   "duck": -1.8
+  },
+  {
+   "time": 24.023,
+   "sfx": "click2",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.93,
+   "offset": 0,
+   "level": -25.4,
+   "duck": -1.6
+  },
+  {
+   "time": 25.403,
+   "sfx": "tap",
+   "type": "kinetic-word",
+   "detected": true,
+   "ncc": 0.92,
+   "offset": 0,
+   "level": -24.7,
+   "duck": -0.8
+  }
+ ],
+ "plan": {
+  "scenes": [
+   {
+    "start": 0,
+    "layout": "face"
+   },
+   {
+    "start": 2.7333333333333334,
+    "layout": "punch"
+   },
+   {
+    "start": 4.533333333333333,
+    "layout": "face"
+   },
+   {
+    "start": 9.566666666666666,
+    "layout": "punch"
+   },
+   {
+    "start": 12.366666666666667,
+    "layout": "face"
+   },
+   {
+    "start": 13.533333333333333,
+    "layout": "punch"
+   },
+   {
+    "start": 15.3,
+    "layout": "face"
+   },
+   {
+    "start": 18.166666666666668,
+    "layout": "paper"
+   },
+   {
+    "start": 20.5,
+    "layout": "face"
+   },
+   {
+    "start": 22.766666666666666,
+    "layout": "punch"
+   }
+  ],
+  "events": [
+   {
+    "time": 0.193,
+    "type": "kinetic-word",
+    "sfx": "click2"
+   },
+   {
+    "time": 0.733,
+    "type": "kinetic-word",
+    "sfx": "click2"
+   },
+   {
+    "time": 2.733,
+    "type": "punch-in",
+    "sfx": null
+   },
+   {
+    "time": 2.813,
+    "type": "punch-in",
+    "sfx": null
+   },
+   {
+    "time": 3.176,
+    "type": "kinetic-word",
+    "sfx": "tap"
+   },
+   {
+    "time": 4.233,
+    "type": "icon-pop",
+    "sfx": "click2"
+   },
+   {
+    "time": 4.533,
+    "type": "cut-to-face",
+    "sfx": null
+   },
+   {
+    "time": 5.857,
+    "type": "icon-pop",
+    "sfx": "tap"
+   },
+   {
+    "time": 8.017,
+    "type": "diagram-draw",
+    "sfx": "whoosh_low"
+   },
+   {
+    "time": 8.737,
+    "type": "icon-in",
+    "sfx": null
+   },
+   {
+    "time": 9.567,
+    "type": "punch-in",
+    "sfx": null
+   },
+   {
+    "time": 9.637,
+    "type": "chip-pop",
+    "sfx": "tap"
+   },
+   {
+    "time": 11.89,
+    "type": "glyph-pop",
+    "sfx": "shimmer"
+   },
+   {
+    "time": 12.367,
+    "type": "cut-to-face",
+    "sfx": null
+   },
+   {
+    "time": 13.364,
+    "type": "kinetic-word",
+    "sfx": "click2"
+   },
+   {
+    "time": 13.533,
+    "type": "punch-in",
+    "sfx": null
+   },
+   {
+    "time": 13.604,
+    "type": "kinetic-word",
+    "sfx": "click2"
+   },
+   {
+    "time": 13.924,
+    "type": "diagram-draw",
+    "sfx": "click"
+   },
+   {
+    "time": 15.3,
+    "type": "cut-to-face",
+    "sfx": null
+   },
+   {
+    "time": 15.857,
+    "type": "chip-pop",
+    "sfx": "click2"
+   },
+   {
+    "time": 17.217,
+    "type": "chip-pop",
+    "sfx": "click2"
+   },
+   {
+    "time": 18.167,
+    "type": "card-in",
+    "sfx": "whoosh"
+   },
+   {
+    "time": 18.383,
+    "type": "kinetic-word",
+    "sfx": "tap"
+   },
+   {
+    "time": 19.723,
+    "type": "diagram-draw",
+    "sfx": "click"
+   },
+   {
+    "time": 20.5,
+    "type": "cut-to-face",
+    "sfx": null
+   },
+   {
+    "time": 22.3,
+    "type": "arrow-draw",
+    "sfx": "click2"
+   },
+   {
+    "time": 22.767,
+    "type": "punch-in",
+    "sfx": null
+   },
+   {
+    "time": 22.84,
+    "type": "icon-pop",
+    "sfx": "tap"
+   },
+   {
+    "time": 24.023,
+    "type": "kinetic-word",
+    "sfx": "click2"
+   },
+   {
+    "time": 25.403,
+    "type": "kinetic-word",
+    "sfx": "tap"
+   }
+  ]
+ }
+}

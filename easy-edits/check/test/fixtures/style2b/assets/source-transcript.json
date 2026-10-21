@@ -1,0 +1,640 @@
+{
+ "language_code": "en",
+ "audio_duration_secs": 35.201,
+ "produced_by": "faster-whisper small vad",
+ "text": "Relationship building is really a very large importance for our group because we're from another nation. We're from another area of the world and we get to come to the Philippines and be able to be a part of that culture with our guys. Very few of them have ever been to the Philippines so we've got Americans and we've got Filipinos and bridging that relationship builds not only a greater trusted us to go outside of our nation.",
+ "words": [
+  {
+   "text": "Relationship",
+   "start": 0.07,
+   "end": 0.91,
+   "type": "word",
+   "probability": 0.532,
+   "cr": 1.67
+  },
+  {
+   "text": "building",
+   "start": 0.91,
+   "end": 1.19,
+   "type": "word",
+   "probability": 0.915,
+   "cr": 1.67
+  },
+  {
+   "text": "is",
+   "start": 1.19,
+   "end": 2.35,
+   "type": "word",
+   "probability": 0.969,
+   "cr": 1.67
+  },
+  {
+   "text": "really",
+   "start": 2.35,
+   "end": 3.19,
+   "type": "word",
+   "probability": 0.881,
+   "cr": 1.67
+  },
+  {
+   "text": "a",
+   "start": 3.19,
+   "end": 3.87,
+   "type": "word",
+   "probability": 0.962,
+   "cr": 1.67
+  },
+  {
+   "text": "very",
+   "start": 3.87,
+   "end": 4.83,
+   "type": "word",
+   "probability": 0.679,
+   "cr": 1.67
+  },
+  {
+   "text": "large",
+   "start": 4.83,
+   "end": 5.47,
+   "type": "word",
+   "probability": 0.997,
+   "cr": 1.67
+  },
+  {
+   "text": "importance",
+   "start": 5.47,
+   "end": 7.59,
+   "type": "word",
+   "probability": 0.444,
+   "cr": 1.67
+  },
+  {
+   "text": "for",
+   "start": 7.59,
+   "end": 9.03,
+   "type": "word",
+   "probability": 0.967,
+   "cr": 1.67
+  },
+  {
+   "text": "our",
+   "start": 9.03,
+   "end": 9.17,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.67
+  },
+  {
+   "text": "group",
+   "start": 9.17,
+   "end": 9.47,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.67
+  },
+  {
+   "text": "because",
+   "start": 9.47,
+   "end": 10.51,
+   "type": "word",
+   "probability": 0.614,
+   "cr": 1.67
+  },
+  {
+   "text": "we're",
+   "start": 10.51,
+   "end": 11.25,
+   "type": "word",
+   "probability": 0.953,
+   "cr": 1.67
+  },
+  {
+   "text": "from",
+   "start": 11.25,
+   "end": 11.39,
+   "type": "word",
+   "probability": 0.997,
+   "cr": 1.67
+  },
+  {
+   "text": "another",
+   "start": 11.39,
+   "end": 11.59,
+   "type": "word",
+   "probability": 0.991,
+   "cr": 1.67
+  },
+  {
+   "text": "nation.",
+   "start": 11.59,
+   "end": 11.87,
+   "type": "word",
+   "probability": 0.983,
+   "cr": 1.67
+  },
+  {
+   "text": "We're",
+   "start": 12.19,
+   "end": 12.25,
+   "type": "word",
+   "probability": 0.986,
+   "cr": 1.67
+  },
+  {
+   "text": "from",
+   "start": 12.25,
+   "end": 12.37,
+   "type": "word",
+   "probability": 0.995,
+   "cr": 1.67
+  },
+  {
+   "text": "another",
+   "start": 12.37,
+   "end": 12.99,
+   "type": "word",
+   "probability": 0.977,
+   "cr": 1.67
+  },
+  {
+   "text": "area",
+   "start": 12.99,
+   "end": 13.37,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "of",
+   "start": 13.37,
+   "end": 13.67,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "the",
+   "start": 13.67,
+   "end": 13.75,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.67
+  },
+  {
+   "text": "world",
+   "start": 13.75,
+   "end": 14.01,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "and",
+   "start": 14.01,
+   "end": 14.17,
+   "type": "word",
+   "probability": 0.747,
+   "cr": 1.67
+  },
+  {
+   "text": "we",
+   "start": 14.17,
+   "end": 14.25,
+   "type": "word",
+   "probability": 0.997,
+   "cr": 1.67
+  },
+  {
+   "text": "get",
+   "start": 14.25,
+   "end": 14.37,
+   "type": "word",
+   "probability": 0.997,
+   "cr": 1.67
+  },
+  {
+   "text": "to",
+   "start": 14.37,
+   "end": 14.47,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "come",
+   "start": 14.47,
+   "end": 14.65,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "to",
+   "start": 14.65,
+   "end": 14.93,
+   "type": "word",
+   "probability": 0.997,
+   "cr": 1.67
+  },
+  {
+   "text": "the",
+   "start": 14.93,
+   "end": 15.37,
+   "type": "word",
+   "probability": 0.99,
+   "cr": 1.67
+  },
+  {
+   "text": "Philippines",
+   "start": 15.37,
+   "end": 15.69,
+   "type": "word",
+   "probability": 0.989,
+   "cr": 1.67
+  },
+  {
+   "text": "and",
+   "start": 15.69,
+   "end": 16.59,
+   "type": "word",
+   "probability": 0.937,
+   "cr": 1.67
+  },
+  {
+   "text": "be",
+   "start": 16.59,
+   "end": 16.83,
+   "type": "word",
+   "probability": 0.249,
+   "cr": 1.67
+  },
+  {
+   "text": "able",
+   "start": 16.83,
+   "end": 17.03,
+   "type": "word",
+   "probability": 0.972,
+   "cr": 1.67
+  },
+  {
+   "text": "to",
+   "start": 17.03,
+   "end": 17.29,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.67
+  },
+  {
+   "text": "be",
+   "start": 17.29,
+   "end": 17.49,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.67
+  },
+  {
+   "text": "a",
+   "start": 17.49,
+   "end": 17.57,
+   "type": "word",
+   "probability": 0.963,
+   "cr": 1.67
+  },
+  {
+   "text": "part",
+   "start": 17.57,
+   "end": 17.73,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.67
+  },
+  {
+   "text": "of",
+   "start": 17.73,
+   "end": 17.81,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "that",
+   "start": 17.81,
+   "end": 17.89,
+   "type": "word",
+   "probability": 0.995,
+   "cr": 1.67
+  },
+  {
+   "text": "culture",
+   "start": 17.89,
+   "end": 18.19,
+   "type": "word",
+   "probability": 0.997,
+   "cr": 1.67
+  },
+  {
+   "text": "with",
+   "start": 18.19,
+   "end": 19.01,
+   "type": "word",
+   "probability": 0.588,
+   "cr": 1.67
+  },
+  {
+   "text": "our",
+   "start": 19.01,
+   "end": 19.21,
+   "type": "word",
+   "probability": 0.995,
+   "cr": 1.67
+  },
+  {
+   "text": "guys.",
+   "start": 19.21,
+   "end": 19.51,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.67
+  },
+  {
+   "text": "Very",
+   "start": 19.83,
+   "end": 20.07,
+   "type": "word",
+   "probability": 0.994,
+   "cr": 1.67
+  },
+  {
+   "text": "few",
+   "start": 20.07,
+   "end": 20.27,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.67
+  },
+  {
+   "text": "of",
+   "start": 20.27,
+   "end": 20.39,
+   "type": "word",
+   "probability": 0.995,
+   "cr": 1.67
+  },
+  {
+   "text": "them",
+   "start": 20.39,
+   "end": 20.49,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.67
+  },
+  {
+   "text": "have",
+   "start": 20.49,
+   "end": 20.61,
+   "type": "word",
+   "probability": 0.99,
+   "cr": 1.67
+  },
+  {
+   "text": "ever",
+   "start": 20.61,
+   "end": 20.77,
+   "type": "word",
+   "probability": 0.98,
+   "cr": 1.67
+  },
+  {
+   "text": "been",
+   "start": 20.77,
+   "end": 20.95,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.67
+  },
+  {
+   "text": "to",
+   "start": 20.95,
+   "end": 21.05,
+   "type": "word",
+   "probability": 0.994,
+   "cr": 1.67
+  },
+  {
+   "text": "the",
+   "start": 21.05,
+   "end": 21.15,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "Philippines",
+   "start": 21.15,
+   "end": 21.49,
+   "type": "word",
+   "probability": 0.991,
+   "cr": 1.67
+  },
+  {
+   "text": "so",
+   "start": 21.49,
+   "end": 22.27,
+   "type": "word",
+   "probability": 0.259,
+   "cr": 1.67
+  },
+  {
+   "text": "we've",
+   "start": 22.27,
+   "end": 22.57,
+   "type": "word",
+   "probability": 0.976,
+   "cr": 1.67
+  },
+  {
+   "text": "got",
+   "start": 22.57,
+   "end": 22.69,
+   "type": "word",
+   "probability": 0.995,
+   "cr": 1.67
+  },
+  {
+   "text": "Americans",
+   "start": 22.69,
+   "end": 23.09,
+   "type": "word",
+   "probability": 0.987,
+   "cr": 1.67
+  },
+  {
+   "text": "and",
+   "start": 23.09,
+   "end": 23.53,
+   "type": "word",
+   "probability": 0.967,
+   "cr": 1.67
+  },
+  {
+   "text": "we've",
+   "start": 23.53,
+   "end": 23.79,
+   "type": "word",
+   "probability": 0.99,
+   "cr": 1.67
+  },
+  {
+   "text": "got",
+   "start": 23.79,
+   "end": 24.05,
+   "type": "word",
+   "probability": 0.998,
+   "cr": 1.67
+  },
+  {
+   "text": "Filipinos",
+   "start": 24.05,
+   "end": 24.75,
+   "type": "word",
+   "probability": 0.992,
+   "cr": 1.67
+  },
+  {
+   "text": "and",
+   "start": 24.75,
+   "end": 25.55,
+   "type": "word",
+   "probability": 0.791,
+   "cr": 1.19
+  },
+  {
+   "text": "bridging",
+   "start": 25.55,
+   "end": 26.47,
+   "type": "word",
+   "probability": 0.995,
+   "cr": 1.19
+  },
+  {
+   "text": "that",
+   "start": 26.47,
+   "end": 26.89,
+   "type": "word",
+   "probability": 0.994,
+   "cr": 1.19
+  },
+  {
+   "text": "relationship",
+   "start": 26.89,
+   "end": 27.55,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.19
+  },
+  {
+   "text": "builds",
+   "start": 27.55,
+   "end": 28.93,
+   "type": "word",
+   "probability": 0.963,
+   "cr": 1.19
+  },
+  {
+   "text": "not",
+   "start": 28.93,
+   "end": 29.27,
+   "type": "word",
+   "probability": 0.96,
+   "cr": 1.19
+  },
+  {
+   "text": "only",
+   "start": 29.27,
+   "end": 29.69,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.19
+  },
+  {
+   "text": "a",
+   "start": 29.69,
+   "end": 30.21,
+   "type": "word",
+   "probability": 0.988,
+   "cr": 1.19
+  },
+  {
+   "text": "greater",
+   "start": 30.21,
+   "end": 31.09,
+   "type": "word",
+   "probability": 0.827,
+   "cr": 1.19
+  },
+  {
+   "text": "trusted",
+   "start": 31.09,
+   "end": 32.11,
+   "type": "word",
+   "probability": 0.723,
+   "cr": 1.19
+  },
+  {
+   "text": "us",
+   "start": 32.11,
+   "end": 32.45,
+   "type": "word",
+   "probability": 0.926,
+   "cr": 1.19
+  },
+  {
+   "text": "to",
+   "start": 32.45,
+   "end": 33.01,
+   "type": "word",
+   "probability": 0.944,
+   "cr": 1.19
+  },
+  {
+   "text": "go",
+   "start": 33.01,
+   "end": 33.19,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.19
+  },
+  {
+   "text": "outside",
+   "start": 33.19,
+   "end": 33.67,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.19
+  },
+  {
+   "text": "of",
+   "start": 33.67,
+   "end": 34.19,
+   "type": "word",
+   "probability": 0.996,
+   "cr": 1.19
+  },
+  {
+   "text": "our",
+   "start": 34.19,
+   "end": 34.57,
+   "type": "word",
+   "probability": 0.999,
+   "cr": 1.19
+  },
+  {
+   "text": "nation.",
+   "start": 34.57,
+   "end": 35.05,
+   "type": "word",
+   "probability": 0.97,
+   "cr": 1.19
+  }
+ ]
+}

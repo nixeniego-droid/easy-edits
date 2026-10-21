@@ -1,0 +1,2 @@
+# frozen test fixture: keep its assets/ (the repo .gitignore drops **/assets/)
+!assets/

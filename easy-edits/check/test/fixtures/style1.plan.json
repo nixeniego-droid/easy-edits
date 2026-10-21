@@ -1,0 +1,1388 @@
+{
+ "duration": 26.233,
+ "fps": 30,
+ "style": "embedded",
+ "scenes": [
+  {
+   "id": "s1",
+   "start": 0,
+   "end": 2.7333333333333334,
+   "layout": "face",
+   "kind": "hook",
+   "anchor": "Relationship building is really",
+   "anchorTime": 0.193
+  },
+  {
+   "id": "s2",
+   "start": 2.7333333333333334,
+   "end": 4.533333333333333,
+   "layout": "punch",
+   "kind": "emphasis",
+   "anchor": "a very large importance",
+   "anchorTime": 2.813
+  },
+  {
+   "id": "s3",
+   "start": 4.533333333333333,
+   "end": 9.566666666666666,
+   "layout": "face",
+   "kind": "context",
+   "anchor": "because we're from another nation",
+   "anchorTime": 4.597,
+   "holdReason": "globe -> flight-arc story runs beside the head"
+  },
+  {
+   "id": "s4",
+   "start": 9.566666666666666,
+   "end": 12.366666666666667,
+   "layout": "punch",
+   "kind": "arrival",
+   "anchor": "the Philippines",
+   "anchorTime": 9.637,
+   "holdReason": "arrival beat: pin + chip hold over \"and be able to be a part of\", parol lands on \"culture\""
+  },
+  {
+   "id": "s5",
+   "start": 12.366666666666667,
+   "end": 13.533333333333333,
+   "layout": "face",
+   "kind": "setup",
+   "anchor": "with our guys",
+   "anchorTime": 12.444
+  },
+  {
+   "id": "s6",
+   "start": 13.533333333333333,
+   "end": 15.3,
+   "layout": "punch",
+   "kind": "emphasis",
+   "anchor": "few of them have ever been",
+   "anchorTime": 13.604
+  },
+  {
+   "id": "s7",
+   "start": 15.3,
+   "end": 18.166666666666668,
+   "layout": "face",
+   "kind": "two-sides",
+   "anchor": "so we've got Americans and we've got Filipinos",
+   "anchorTime": 15.357
+  },
+  {
+   "id": "s8",
+   "start": 18.166666666666668,
+   "end": 20.5,
+   "layout": "paper",
+   "kind": "payoff",
+   "anchor": "and bridging that relationship",
+   "anchorTime": 18.233
+  },
+  {
+   "id": "s9",
+   "start": 20.5,
+   "end": 22.766666666666666,
+   "layout": "face",
+   "kind": "consequence",
+   "anchor": "builds not only a greater",
+   "anchorTime": 20.567
+  },
+  {
+   "id": "s10",
+   "start": 22.766666666666666,
+   "end": 26.233,
+   "layout": "punch",
+   "kind": "close",
+   "anchor": "trusted us to go outside of our nation",
+   "anchorTime": 22.84
+  }
+ ],
+ "events": [
+  {
+   "time": 0.193,
+   "type": "kinetic-word",
+   "visual": "s1",
+   "anchor": "Relationship",
+   "sfx": "click2",
+   "element": "k1"
+  },
+  {
+   "time": 0.733,
+   "type": "kinetic-word",
+   "visual": "s1",
+   "anchor": "building",
+   "sfx": "click2",
+   "element": "k1"
+  },
+  {
+   "time": 2.733,
+   "sfx": null,
+   "visual": "s2",
+   "type": "punch-in",
+   "anchor": "a very large importance",
+   "element": "s2"
+  },
+  {
+   "time": 2.813,
+   "type": "punch-in",
+   "visual": "s2",
+   "anchor": "large",
+   "sfx": null,
+   "element": "s2"
+  },
+  {
+   "time": 3.176,
+   "type": "kinetic-word",
+   "visual": "s2",
+   "anchor": "importance",
+   "sfx": "tap",
+   "element": "k2"
+  },
+  {
+   "time": 4.233,
+   "type": "icon-pop",
+   "visual": "s2",
+   "anchor": "group",
+   "sfx": "click2",
+   "element": "ic-group"
+  },
+  {
+   "time": 4.533,
+   "sfx": null,
+   "visual": "s3",
+   "type": "cut-to-face",
+   "anchor": "because we're from another nation",
+   "element": "s3"
+  },
+  {
+   "time": 5.857,
+   "type": "icon-pop",
+   "visual": "s3",
+   "anchor": "nation.",
+   "sfx": "tap",
+   "element": "ic-globe"
+  },
+  {
+   "time": 8.017,
+   "type": "diagram-draw",
+   "visual": "s3",
+   "anchor": "world",
+   "sfx": "whoosh_low",
+   "element": "arc"
+  },
+  {
+   "time": 8.737,
+   "type": "icon-in",
+   "visual": "s3",
+   "anchor": "come",
+   "sfx": null,
+   "element": "plane"
+  },
+  {
+   "time": 9.567,
+   "sfx": null,
+   "visual": "s4",
+   "type": "punch-in",
+   "anchor": "the Philippines",
+   "element": "s4"
+  },
+  {
+   "time": 9.637,
+   "type": "chip-pop",
+   "visual": "s4",
+   "anchor": "Philippines",
+   "sfx": "tap",
+   "element": "chip-ph"
+  },
+  {
+   "time": 11.89,
+   "type": "glyph-pop",
+   "visual": "s4",
+   "anchor": "culture",
+   "sfx": "shimmer",
+   "element": "ic-parol"
+  },
+  {
+   "time": 12.367,
+   "sfx": null,
+   "visual": "s5",
+   "type": "cut-to-face",
+   "anchor": "with our guys",
+   "element": "s5"
+  },
+  {
+   "time": 13.364,
+   "type": "kinetic-word",
+   "visual": "s5",
+   "anchor": "Very",
+   "sfx": "click2",
+   "element": "k3"
+  },
+  {
+   "time": 13.533,
+   "sfx": null,
+   "visual": "s6",
+   "type": "punch-in",
+   "anchor": "few of them have ever been",
+   "element": "s6"
+  },
+  {
+   "time": 13.604,
+   "type": "kinetic-word",
+   "visual": "s6",
+   "anchor": "few",
+   "sfx": "click2",
+   "element": "k3"
+  },
+  {
+   "time": 13.924,
+   "type": "diagram-draw",
+   "visual": "s6",
+   "anchor": "them",
+   "sfx": "click",
+   "element": "few-row"
+  },
+  {
+   "time": 15.3,
+   "sfx": null,
+   "visual": "s7",
+   "type": "cut-to-face",
+   "anchor": "so we've got Americans and we've got Filipinos",
+   "element": "s7"
+  },
+  {
+   "time": 15.857,
+   "type": "chip-pop",
+   "visual": "s7",
+   "anchor": "Americans",
+   "sfx": "click2",
+   "element": "chip-am"
+  },
+  {
+   "time": 17.217,
+   "type": "chip-pop",
+   "visual": "s7",
+   "anchor": "Filipinos",
+   "sfx": "click2",
+   "element": "chip-fil"
+  },
+  {
+   "time": 18.167,
+   "type": "card-in",
+   "visual": "s8",
+   "anchor": "and bridging",
+   "sfx": "whoosh",
+   "element": "s8"
+  },
+  {
+   "time": 18.383,
+   "type": "kinetic-word",
+   "visual": "s8",
+   "anchor": "bridging",
+   "sfx": "tap",
+   "element": "card"
+  },
+  {
+   "time": 19.723,
+   "type": "diagram-draw",
+   "visual": "s8",
+   "anchor": "relationship",
+   "sfx": "click",
+   "element": "card"
+  },
+  {
+   "time": 20.5,
+   "sfx": null,
+   "visual": "s9",
+   "type": "cut-to-face",
+   "anchor": "builds not only a greater",
+   "element": "s9"
+  },
+  {
+   "time": 22.3,
+   "type": "arrow-draw",
+   "visual": "s9",
+   "anchor": "greater",
+   "sfx": "click2",
+   "element": "k4"
+  },
+  {
+   "time": 22.767,
+   "sfx": null,
+   "visual": "s10",
+   "type": "punch-in",
+   "anchor": "trusted us to go outside of our nation",
+   "element": "s10"
+  },
+  {
+   "time": 22.84,
+   "type": "icon-pop",
+   "visual": "s10",
+   "anchor": "trusted",
+   "sfx": "tap",
+   "element": "ic-shield"
+  },
+  {
+   "time": 24.023,
+   "type": "kinetic-word",
+   "visual": "s10",
+   "anchor": "outside",
+   "sfx": "click2",
+   "element": "k5"
+  },
+  {
+   "time": 25.403,
+   "type": "kinetic-word",
+   "visual": "s10",
+   "anchor": "nation.",
+   "sfx": "tap",
+   "element": "k5"
+  }
+ ],
+ "captions": [
+  {
+   "start": 0.126,
+   "end": 0.666,
+   "layout": "face",
+   "y": 1450,
+   "text": "Relationship",
+   "words": [
+    {
+     "text": "Relationship",
+     "start": 0.193,
+     "end": 0.666,
+     "sourceStart": 0.46,
+     "sourceEnd": 0.97,
+     "type": "word",
+     "asrEnd": 0.703
+    }
+   ]
+  },
+  {
+   "start": 0.666,
+   "end": 1.277,
+   "layout": "face",
+   "y": 1450,
+   "text": "building",
+   "words": [
+    {
+     "text": "building",
+     "start": 0.733,
+     "end": 1.173,
+     "sourceStart": 1,
+     "sourceEnd": 1.44,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 1.277,
+   "end": 2.396,
+   "layout": "face",
+   "y": 1290,
+   "text": "is really",
+   "words": [
+    {
+     "text": "is",
+     "start": 1.344,
+     "end": 1.854,
+     "sourceStart": 2.01,
+     "sourceEnd": 2.52,
+     "type": "word"
+    },
+    {
+     "text": "really",
+     "start": 2,
+     "end": 2.38,
+     "sourceStart": 2.9,
+     "sourceEnd": 3.28,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 2.396,
+   "end": 3.109,
+   "layout": "face",
+   "y": 1450,
+   "text": "a very large",
+   "words": [
+    {
+     "text": "a",
+     "start": 2.463,
+     "end": 2.503,
+     "sourceStart": 6.03,
+     "sourceEnd": 6.1,
+     "type": "word",
+     "asrEnd": 2.533
+    },
+    {
+     "text": "very",
+     "start": 2.553,
+     "end": 2.746,
+     "sourceStart": 6.12,
+     "sourceEnd": 6.38,
+     "type": "word",
+     "asrEnd": 2.813
+    },
+    {
+     "text": "large",
+     "start": 2.813,
+     "end": 3.053,
+     "sourceStart": 6.38,
+     "sourceEnd": 6.62,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 3.109,
+   "end": 3.936,
+   "layout": "punch",
+   "y": 1450,
+   "text": "importance",
+   "words": [
+    {
+     "text": "importance",
+     "start": 3.176,
+     "end": 3.846,
+     "sourceStart": 7.21,
+     "sourceEnd": 7.88,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 3.936,
+   "end": 4.53,
+   "layout": "punch",
+   "y": 1450,
+   "text": "for our group",
+   "words": [
+    {
+     "text": "for",
+     "start": 4.003,
+     "end": 4.066,
+     "sourceStart": 8.97,
+     "sourceEnd": 9.1,
+     "type": "word",
+     "asrEnd": 4.133
+    },
+    {
+     "text": "our",
+     "start": 4.133,
+     "end": 4.173,
+     "sourceStart": 9.1,
+     "sourceEnd": 9.2,
+     "type": "word",
+     "asrEnd": 4.233
+    },
+    {
+     "text": "group",
+     "start": 4.233,
+     "end": 4.403,
+     "sourceStart": 9.2,
+     "sourceEnd": 9.37,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 4.53,
+   "end": 5.37,
+   "layout": "punch",
+   "y": 1450,
+   "text": "because we're",
+   "words": [
+    {
+     "text": "because",
+     "start": 4.597,
+     "end": 4.8,
+     "sourceStart": 10.33,
+     "sourceEnd": 10.55,
+     "type": "word",
+     "asrEnd": 4.817
+    },
+    {
+     "text": "we're",
+     "start": 4.867,
+     "end": 5.207,
+     "sourceStart": 10.6,
+     "sourceEnd": 10.94,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 5.37,
+   "end": 5.79,
+   "layout": "face",
+   "y": 1450,
+   "text": "from another",
+   "words": [
+    {
+     "text": "from",
+     "start": 5.437,
+     "end": 5.59,
+     "sourceStart": 11.17,
+     "sourceEnd": 11.39,
+     "type": "word",
+     "asrEnd": 5.657
+    },
+    {
+     "text": "another",
+     "start": 5.657,
+     "end": 5.79,
+     "sourceStart": 11.39,
+     "sourceEnd": 11.59,
+     "type": "word",
+     "asrEnd": 5.857
+    }
+   ]
+  },
+  {
+   "start": 5.79,
+   "end": 6.157,
+   "layout": "face",
+   "y": 1450,
+   "text": "nation.",
+   "words": [
+    {
+     "text": "nation.",
+     "start": 5.857,
+     "end": 6.137,
+     "sourceStart": 11.59,
+     "sourceEnd": 11.87,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 6.157,
+   "end": 6.497,
+   "layout": "face",
+   "y": 1450,
+   "text": "We're",
+   "words": [
+    {
+     "text": "We're",
+     "start": 6.457,
+     "end": 6.497,
+     "sourceStart": 12.19,
+     "sourceEnd": 12.25,
+     "type": "word",
+     "asrEnd": 6.517
+    }
+   ]
+  },
+  {
+   "start": 6.497,
+   "end": 7.19,
+   "layout": "face",
+   "y": 1450,
+   "text": "from another",
+   "words": [
+    {
+     "text": "from",
+     "start": 6.517,
+     "end": 6.57,
+     "sourceStart": 12.25,
+     "sourceEnd": 12.37,
+     "type": "word",
+     "asrEnd": 6.637
+    },
+    {
+     "text": "another",
+     "start": 6.637,
+     "end": 7.19,
+     "sourceStart": 12.37,
+     "sourceEnd": 12.99,
+     "type": "word",
+     "asrEnd": 7.257
+    }
+   ]
+  },
+  {
+   "start": 7.19,
+   "end": 7.977,
+   "layout": "face",
+   "y": 1450,
+   "text": "area of the",
+   "words": [
+    {
+     "text": "area",
+     "start": 7.257,
+     "end": 7.57,
+     "sourceStart": 12.99,
+     "sourceEnd": 13.37,
+     "type": "word",
+     "asrEnd": 7.637
+    },
+    {
+     "text": "of",
+     "start": 7.637,
+     "end": 7.87,
+     "sourceStart": 13.37,
+     "sourceEnd": 13.67,
+     "type": "word",
+     "asrEnd": 7.937
+    },
+    {
+     "text": "the",
+     "start": 7.937,
+     "end": 7.977,
+     "sourceStart": 13.67,
+     "sourceEnd": 13.75,
+     "type": "word",
+     "asrEnd": 8.017
+    }
+   ]
+  },
+  {
+   "start": 7.977,
+   "end": 8.477,
+   "layout": "face",
+   "y": 1450,
+   "text": "world and we",
+   "words": [
+    {
+     "text": "world",
+     "start": 8.017,
+     "end": 8.21,
+     "sourceStart": 13.75,
+     "sourceEnd": 14.01,
+     "type": "word",
+     "asrEnd": 8.277
+    },
+    {
+     "text": "and",
+     "start": 8.277,
+     "end": 8.37,
+     "sourceStart": 14.01,
+     "sourceEnd": 14.17,
+     "type": "word",
+     "asrEnd": 8.437
+    },
+    {
+     "text": "we",
+     "start": 8.437,
+     "end": 8.477,
+     "sourceStart": 14.17,
+     "sourceEnd": 14.25,
+     "type": "word",
+     "asrEnd": 8.517
+    }
+   ]
+  },
+  {
+   "start": 8.477,
+   "end": 8.85,
+   "layout": "face",
+   "y": 1450,
+   "text": "get to come",
+   "words": [
+    {
+     "text": "get",
+     "start": 8.517,
+     "end": 8.57,
+     "sourceStart": 14.25,
+     "sourceEnd": 14.37,
+     "type": "word",
+     "asrEnd": 8.637
+    },
+    {
+     "text": "to",
+     "start": 8.637,
+     "end": 8.677,
+     "sourceStart": 14.37,
+     "sourceEnd": 14.47,
+     "type": "word",
+     "asrEnd": 8.737
+    },
+    {
+     "text": "come",
+     "start": 8.737,
+     "end": 8.85,
+     "sourceStart": 14.47,
+     "sourceEnd": 14.65,
+     "type": "word",
+     "asrEnd": 8.917
+    }
+   ]
+  },
+  {
+   "start": 8.85,
+   "end": 9.57,
+   "layout": "face",
+   "y": 1450,
+   "text": "to the",
+   "words": [
+    {
+     "text": "to",
+     "start": 8.917,
+     "end": 9.13,
+     "sourceStart": 14.65,
+     "sourceEnd": 14.93,
+     "type": "word",
+     "asrEnd": 9.197
+    },
+    {
+     "text": "the",
+     "start": 9.197,
+     "end": 9.57,
+     "sourceStart": 14.93,
+     "sourceEnd": 15.37,
+     "type": "word",
+     "asrEnd": 9.637
+    }
+   ]
+  },
+  {
+   "start": 9.57,
+   "end": 10.293,
+   "layout": "punch",
+   "y": 1450,
+   "text": "Philippines",
+   "words": [
+    {
+     "text": "Philippines",
+     "start": 9.637,
+     "end": 10.107,
+     "sourceStart": 15.37,
+     "sourceEnd": 15.84,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 10.293,
+   "end": 10.763,
+   "layout": "punch",
+   "y": 1450,
+   "text": "and be",
+   "words": [
+    {
+     "text": "and",
+     "start": 10.36,
+     "end": 10.523,
+     "sourceStart": 16.36,
+     "sourceEnd": 16.59,
+     "type": "word",
+     "asrEnd": 10.59
+    },
+    {
+     "text": "be",
+     "start": 10.59,
+     "end": 10.763,
+     "sourceStart": 16.59,
+     "sourceEnd": 16.83,
+     "type": "word",
+     "asrEnd": 10.83
+    }
+   ]
+  },
+  {
+   "start": 10.763,
+   "end": 11.223,
+   "layout": "punch",
+   "y": 1450,
+   "text": "able to",
+   "words": [
+    {
+     "text": "able",
+     "start": 10.83,
+     "end": 10.963,
+     "sourceStart": 16.83,
+     "sourceEnd": 17.03,
+     "type": "word",
+     "asrEnd": 11.03
+    },
+    {
+     "text": "to",
+     "start": 11.03,
+     "end": 11.223,
+     "sourceStart": 17.03,
+     "sourceEnd": 17.29,
+     "type": "word",
+     "asrEnd": 11.29
+    }
+   ]
+  },
+  {
+   "start": 11.223,
+   "end": 11.77,
+   "layout": "punch",
+   "y": 1450,
+   "text": "be a part of",
+   "words": [
+    {
+     "text": "be",
+     "start": 11.29,
+     "end": 11.423,
+     "sourceStart": 17.29,
+     "sourceEnd": 17.49,
+     "type": "word",
+     "asrEnd": 11.49
+    },
+    {
+     "text": "a",
+     "start": 11.49,
+     "end": 11.53,
+     "sourceStart": 17.49,
+     "sourceEnd": 17.57,
+     "type": "word",
+     "asrEnd": 11.57
+    },
+    {
+     "text": "part",
+     "start": 11.57,
+     "end": 11.663,
+     "sourceStart": 17.57,
+     "sourceEnd": 17.73,
+     "type": "word",
+     "asrEnd": 11.73
+    },
+    {
+     "text": "of",
+     "start": 11.73,
+     "end": 11.77,
+     "sourceStart": 17.73,
+     "sourceEnd": 17.81,
+     "type": "word",
+     "asrEnd": 11.81
+    }
+   ]
+  },
+  {
+   "start": 11.77,
+   "end": 12.377,
+   "layout": "punch",
+   "y": 1450,
+   "text": "that culture",
+   "words": [
+    {
+     "text": "that",
+     "start": 11.81,
+     "end": 11.85,
+     "sourceStart": 17.81,
+     "sourceEnd": 17.89,
+     "type": "word",
+     "asrEnd": 11.89
+    },
+    {
+     "text": "culture",
+     "start": 11.89,
+     "end": 12.27,
+     "sourceStart": 17.89,
+     "sourceEnd": 18.27,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 12.377,
+   "end": 13.297,
+   "layout": "face",
+   "y": 1450,
+   "text": "with our guys.",
+   "words": [
+    {
+     "text": "with",
+     "start": 12.444,
+     "end": 12.484,
+     "sourceStart": 18.91,
+     "sourceEnd": 19.01,
+     "type": "word",
+     "asrEnd": 12.544
+    },
+    {
+     "text": "our",
+     "start": 12.544,
+     "end": 12.677,
+     "sourceStart": 19.01,
+     "sourceEnd": 19.21,
+     "type": "word",
+     "asrEnd": 12.744
+    },
+    {
+     "text": "guys.",
+     "start": 12.744,
+     "end": 13.044,
+     "sourceStart": 19.21,
+     "sourceEnd": 19.51,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 13.297,
+   "end": 13.857,
+   "layout": "face",
+   "y": 1450,
+   "text": "Very few of",
+   "words": [
+    {
+     "text": "Very",
+     "start": 13.364,
+     "end": 13.537,
+     "sourceStart": 19.83,
+     "sourceEnd": 20.07,
+     "type": "word",
+     "asrEnd": 13.604
+    },
+    {
+     "text": "few",
+     "start": 13.604,
+     "end": 13.737,
+     "sourceStart": 20.07,
+     "sourceEnd": 20.27,
+     "type": "word",
+     "asrEnd": 13.804
+    },
+    {
+     "text": "of",
+     "start": 13.804,
+     "end": 13.857,
+     "sourceStart": 20.27,
+     "sourceEnd": 20.39,
+     "type": "word",
+     "asrEnd": 13.924
+    }
+   ]
+  },
+  {
+   "start": 13.857,
+   "end": 14.237,
+   "layout": "punch",
+   "y": 1450,
+   "text": "them have ever",
+   "words": [
+    {
+     "text": "them",
+     "start": 13.924,
+     "end": 13.964,
+     "sourceStart": 20.39,
+     "sourceEnd": 20.49,
+     "type": "word",
+     "asrEnd": 14.024
+    },
+    {
+     "text": "have",
+     "start": 14.024,
+     "end": 14.077,
+     "sourceStart": 20.49,
+     "sourceEnd": 20.61,
+     "type": "word",
+     "asrEnd": 14.144
+    },
+    {
+     "text": "ever",
+     "start": 14.144,
+     "end": 14.237,
+     "sourceStart": 20.61,
+     "sourceEnd": 20.77,
+     "type": "word",
+     "asrEnd": 14.304
+    }
+   ]
+  },
+  {
+   "start": 14.237,
+   "end": 14.624,
+   "layout": "punch",
+   "y": 1450,
+   "text": "been to the",
+   "words": [
+    {
+     "text": "been",
+     "start": 14.304,
+     "end": 14.417,
+     "sourceStart": 20.77,
+     "sourceEnd": 20.95,
+     "type": "word",
+     "asrEnd": 14.484
+    },
+    {
+     "text": "to",
+     "start": 14.484,
+     "end": 14.524,
+     "sourceStart": 20.95,
+     "sourceEnd": 21.05,
+     "type": "word",
+     "asrEnd": 14.584
+    },
+    {
+     "text": "the",
+     "start": 14.584,
+     "end": 14.624,
+     "sourceStart": 21.05,
+     "sourceEnd": 21.15,
+     "type": "word",
+     "asrEnd": 14.684
+    }
+   ]
+  },
+  {
+   "start": 14.624,
+   "end": 15.29,
+   "layout": "punch",
+   "y": 1450,
+   "text": "Philippines",
+   "words": [
+    {
+     "text": "Philippines",
+     "start": 14.684,
+     "end": 15.114,
+     "sourceStart": 21.15,
+     "sourceEnd": 21.58,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 15.29,
+   "end": 15.67,
+   "layout": "punch",
+   "y": 1450,
+   "text": "so we've",
+   "words": [
+    {
+     "text": "so",
+     "start": 15.357,
+     "end": 15.397,
+     "sourceStart": 22.19,
+     "sourceEnd": 22.27,
+     "type": "word",
+     "asrEnd": 15.437
+    },
+    {
+     "text": "we've",
+     "start": 15.437,
+     "end": 15.67,
+     "sourceStart": 22.27,
+     "sourceEnd": 22.57,
+     "type": "word",
+     "asrEnd": 15.737
+    }
+   ]
+  },
+  {
+   "start": 15.67,
+   "end": 16.19,
+   "layout": "face",
+   "y": 1450,
+   "text": "got Americans",
+   "words": [
+    {
+     "text": "got",
+     "start": 15.737,
+     "end": 15.79,
+     "sourceStart": 22.57,
+     "sourceEnd": 22.69,
+     "type": "word",
+     "asrEnd": 15.857
+    },
+    {
+     "text": "Americans",
+     "start": 15.857,
+     "end": 16.19,
+     "sourceStart": 22.69,
+     "sourceEnd": 23.09,
+     "type": "word",
+     "asrEnd": 16.257
+    }
+   ]
+  },
+  {
+   "start": 16.19,
+   "end": 17.15,
+   "layout": "face",
+   "y": 1450,
+   "text": "and we've got",
+   "words": [
+    {
+     "text": "and",
+     "start": 16.257,
+     "end": 16.63,
+     "sourceStart": 23.09,
+     "sourceEnd": 23.53,
+     "type": "word",
+     "asrEnd": 16.697
+    },
+    {
+     "text": "we've",
+     "start": 16.697,
+     "end": 16.89,
+     "sourceStart": 23.53,
+     "sourceEnd": 23.79,
+     "type": "word",
+     "asrEnd": 16.957
+    },
+    {
+     "text": "got",
+     "start": 16.957,
+     "end": 17.15,
+     "sourceStart": 23.79,
+     "sourceEnd": 24.05,
+     "type": "word",
+     "asrEnd": 17.217
+    }
+   ]
+  },
+  {
+   "start": 17.15,
+   "end": 18.316,
+   "layout": "face",
+   "y": 1450,
+   "text": "Filipinos and",
+   "words": [
+    {
+     "text": "Filipinos",
+     "start": 17.217,
+     "end": 18.087,
+     "sourceStart": 24.05,
+     "sourceEnd": 24.92,
+     "type": "word"
+    },
+    {
+     "text": "and",
+     "start": 18.233,
+     "end": 18.316,
+     "sourceStart": 25.4,
+     "sourceEnd": 25.55,
+     "type": "word",
+     "asrEnd": 18.383
+    }
+   ]
+  },
+  {
+   "start": 18.316,
+   "end": 19.656,
+   "layout": "punch",
+   "y": 1450,
+   "text": "bridging that",
+   "words": [
+    {
+     "text": "bridging",
+     "start": 18.383,
+     "end": 19.236,
+     "sourceStart": 25.55,
+     "sourceEnd": 26.47,
+     "type": "word",
+     "asrEnd": 19.303
+    },
+    {
+     "text": "that",
+     "start": 19.303,
+     "end": 19.656,
+     "sourceStart": 26.47,
+     "sourceEnd": 26.89,
+     "type": "word",
+     "asrEnd": 19.723
+    }
+   ]
+  },
+  {
+   "start": 19.656,
+   "end": 20.5,
+   "layout": "punch",
+   "y": 1450,
+   "text": "relationship",
+   "words": [
+    {
+     "text": "relationship",
+     "start": 19.723,
+     "end": 20.413,
+     "sourceStart": 26.89,
+     "sourceEnd": 27.58,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 20.5,
+   "end": 21.21,
+   "layout": "face",
+   "y": 1420,
+   "text": "builds not",
+   "words": [
+    {
+     "text": "builds",
+     "start": 20.567,
+     "end": 20.897,
+     "sourceStart": 28.6,
+     "sourceEnd": 28.93,
+     "type": "word"
+    },
+    {
+     "text": "not",
+     "start": 21.117,
+     "end": 21.21,
+     "sourceStart": 29.15,
+     "sourceEnd": 29.28,
+     "type": "word",
+     "asrEnd": 21.247
+    }
+   ]
+  },
+  {
+   "start": 21.21,
+   "end": 22.773,
+   "layout": "face",
+   "y": 1450,
+   "text": "only a greater",
+   "words": [
+    {
+     "text": "only",
+     "start": 21.277,
+     "end": 21.827,
+     "sourceStart": 29.31,
+     "sourceEnd": 29.86,
+     "type": "word"
+    },
+    {
+     "text": "a",
+     "start": 22.03,
+     "end": 22.12,
+     "sourceStart": 30.63,
+     "sourceEnd": 30.72,
+     "type": "word"
+    },
+    {
+     "text": "greater",
+     "start": 22.3,
+     "end": 22.68,
+     "sourceStart": 30.9,
+     "sourceEnd": 31.28,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 22.773,
+   "end": 23.726,
+   "layout": "punch",
+   "y": 1450,
+   "text": "trusted us",
+   "words": [
+    {
+     "text": "trusted",
+     "start": 22.84,
+     "end": 23.143,
+     "sourceStart": 31.74,
+     "sourceEnd": 32.11,
+     "type": "word",
+     "asrEnd": 23.21
+    },
+    {
+     "text": "us",
+     "start": 23.21,
+     "end": 23.67,
+     "sourceStart": 32.11,
+     "sourceEnd": 32.57,
+     "type": "word"
+    }
+   ]
+  },
+  {
+   "start": 23.726,
+   "end": 24.436,
+   "layout": "punch",
+   "y": 1450,
+   "text": "to go outside",
+   "words": [
+    {
+     "text": "to",
+     "start": 23.793,
+     "end": 23.833,
+     "sourceStart": 32.96,
+     "sourceEnd": 33.01,
+     "type": "word",
+     "asrEnd": 23.843
+    },
+    {
+     "text": "go",
+     "start": 23.843,
+     "end": 23.956,
+     "sourceStart": 33.01,
+     "sourceEnd": 33.19,
+     "type": "word",
+     "asrEnd": 24.023
+    },
+    {
+     "text": "outside",
+     "start": 24.023,
+     "end": 24.436,
+     "sourceStart": 33.19,
+     "sourceEnd": 33.67,
+     "type": "word",
+     "asrEnd": 24.503
+    }
+   ]
+  },
+  {
+   "start": 24.436,
+   "end": 26.233,
+   "layout": "punch",
+   "y": 1450,
+   "text": "of our nation.",
+   "words": [
+    {
+     "text": "of",
+     "start": 24.503,
+     "end": 24.956,
+     "sourceStart": 33.67,
+     "sourceEnd": 34.19,
+     "type": "word",
+     "asrEnd": 25.023
+    },
+    {
+     "text": "our",
+     "start": 25.023,
+     "end": 25.336,
+     "sourceStart": 34.19,
+     "sourceEnd": 34.57,
+     "type": "word",
+     "asrEnd": 25.403
+    },
+    {
+     "text": "nation.",
+     "start": 25.403,
+     "end": 25.883,
+     "sourceStart": 34.57,
+     "sourceEnd": 35.05,
+     "type": "word"
+    }
+   ]
+  }
+ ],
+ "layouts": {
+  "cover": {
+   "s": 2.673,
+   "x": -1612
+  },
+  "punch": {
+   "ox": 540,
+   "oy": 640
+  },
+  "keepOut": {
+   "face": [
+    {
+     "name": "face",
+     "x0": 217.59999999999997,
+     "y0": 317.59999999999997,
+     "x1": 862.4000000000001,
+     "y1": 1149.6
+    }
+   ],
+   "punch": [
+    {
+     "name": "face",
+     "x0": 183.5,
+     "y0": 283.5,
+     "x1": 896.5,
+     "y1": 1203.5
+    }
+   ]
+  }
+ }
+}

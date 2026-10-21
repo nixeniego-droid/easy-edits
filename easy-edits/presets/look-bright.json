@@ -1,0 +1,51 @@
+{
+  "name": "look-bright",
+  "description": "Optional palette, grade and type guidance (bright, punchy, premium). Suggestions only: no layout, placement, pacing, rate or size-floor rules. Layout and pacing are the editor's call per the brief and the kit docs.",
+  "palette": {
+    "ink": "#0E1116",
+    "white": "#FFFFFF",
+    "yellow": "#FFD60A",
+    "coral": "#FF5A3C",
+    "note": "suggested palette: ink, white, yellow accent, coral sparingly"
+  },
+  "grade": {
+    "ffmpeg": "eq=brightness=0.03:gamma=1.04:contrast=1.14:saturation=1.05,curves=all='0/0 0.25/0.22 0.75/0.80 1/1',vibrance=intensity=0.15,colorbalance=rs=0.02:gs=0.0:bs=-0.04:rm=0.01:bm=-0.02,unsharp=5:5:0.6,vignette=PI/5",
+    "applyAt": "clip build: append grade.ffmpeg to the -vf of the single ffmpeg pass that renders assets/clip.mp4 from the raw source (after trim/concat and scale/crop), so the grade is baked into the clip. Do NOT also apply cssFilter in the composition. The SAME grade on every clip (one pass over the whole concatenated clip, or the identical string on each segment): no per-clip exposure jump.",
+    "once": "apply the grade once, from one place (the clip build), the same on every clip",
+    "cssFilter": "brightness(1.03) contrast(1.14) saturate(1.10)",
+    "cssVignette": "radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.22) 100%)",
+    "cssNote": "Fallback only, if the clip cannot be re-rendered: cssFilter on the video wrapper plus a non-interactive overlay div with cssVignette as background.",
+    "target": "skin bright and warm, highlights not clipped, shadows lifted (no crushed blacks)"
+  },
+  "type": {
+    "display": {
+      "fontFamily": "Montserrat",
+      "fontWeight": 900,
+      "transform": "uppercase",
+      "fill": "#FFFFFF",
+      "stroke": "-webkit-text-stroke: 6px #0E1116; paint-order: stroke fill",
+      "shadow": "0 4px 0 rgba(0,0,0,0.6)",
+      "keyWordFill": "#FFD60A"
+    },
+    "captions": {
+      "fontFamily": "Montserrat",
+      "fontWeight": 900,
+      "transform": "uppercase",
+      "fill": "#FFFFFF",
+      "stroke": "-webkit-text-stroke: 6px #0E1116; paint-order: stroke fill",
+      "shadow": "0 4px 0 rgba(0,0,0,0.6)",
+      "sizePx": 100,
+      "keyWordFill": "#FFD60A"
+    },
+    "cards": {
+      "background": "#FFFFFF",
+      "radius": "28px",
+      "shadow": "0 15px 35px rgba(0,0,0,0.18)",
+      "text": {
+        "color": "#0E1116",
+        "fontFamily": "Montserrat",
+        "fontWeight": 800
+      }
+    }
+  }
+}

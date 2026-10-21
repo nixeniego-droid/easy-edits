@@ -1,0 +1,21 @@
+Easy Edits credits
+===============
+
+Herk Edit Kit, by Nate Herk (MIT)
+  https://github.com/nateherkai/herk-edit-kit
+  Easy Edits is built on Herk's kit: its editing playbook and house style, the caption preset (from Herk's
+  porter-clipper-short project), the style library and templates in style-library/ and style-templates/,
+  and the HyperFrames render workflow. All credit for that work goes to Nate Herk.
+
+Everything else in this repository is Easy Edits' own work (MIT, see LICENSE). Easy Edits' icons
+(easy-edits/engine/icons.mjs) and sound effects (easy-edits/audio/sfx-synth.mjs) are original and generated locally.
+
+Third-party software that install.sh or npm installs on your machine (none of it is bundled in this repo) is
+listed with its licence in THIRD_PARTY_NOTICES.md.
+
+Music is never bundled. When a mode uses music, a CC0 or CC BY track is fetched from Openverse at render time
+and the CREDITS.txt written next to that export names the track, its author, its licence and its source. Ship
+that file with your video.
+
+Sample clip used in README.md (downloaded by you, not bundled): "The Numbers Are In: Where Does 2021 Rank for
+Global Temperatures" interview, NASA Scientific Visualization Studio, public domain.

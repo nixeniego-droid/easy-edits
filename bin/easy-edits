@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Easy Edits CLI: easy-edits <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--notes "..."]  (easy-edits --help)
+# Works from any terminal or agent: loads ~/.easy-edits/env.sh (Node 22, the venv python, the model dir) when present.
+set -euo pipefail
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+REPO="$(cd "$(dirname "$SELF")/.." && pwd)"
+[ -f "${EASY_EDITS_HOME:-$HOME/.easy-edits}/env.sh" ] && . "${EASY_EDITS_HOME:-$HOME/.easy-edits}/env.sh"
+exec node "$REPO/easy-edits/cli/main.mjs" "$@"

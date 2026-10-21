@@ -1,0 +1,8 @@
+{
+  "description": "Reviewer hearings for verbatim-final, read by clean-cut.sh / edit.sh. 'confirmed': phrases a human confirmed are said as captioned even when Whisper hears otherwise (verbatim-final --confirmed). 'heard': 'shown=heard' pairs where a human hearing overrides the ASR (--heard). Empty by default: put per-project hearings in your own file (edit.sh --heard-file FILE). Not style.",
+  "verbatim": {
+    "captions": "captions and kinetic words equal the transcript words in order, token for token, each mapped to a transcript word at that time (verbatim-guard caption tier); and the final audio must not hear an inflected word in their place (verbatim-final --swaps: BE vs being). It runs on the final audio: captions must match the spoken words (AND BEING ABLE); fix transcript mishearings the final ASR contradicts",
+    "confirmed": [],
+    "heard": []
+  }
+}

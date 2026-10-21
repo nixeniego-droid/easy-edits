@@ -1,0 +1,665 @@
+{
+ "text": "Relationship building is a very large, uh, importance for our group. We're from another area of the world and we get to come to the Philippines and be able to be a part of that culture. With our guys. Very few of them have ever been to the Philippines, so we've got Americans and we've got Filipinos. And bridging that relationship builds not only a greater trust in us to go outside of our nation.",
+ "words": [
+  {
+   "text": "Relationship",
+   "start": 0.193,
+   "end": 0.666,
+   "sourceStart": 0.46,
+   "sourceEnd": 1,
+   "type": "word",
+   "asrEnd": 0.733
+  },
+  {
+   "text": "building",
+   "start": 0.733,
+   "end": 1.153,
+   "sourceStart": 1,
+   "sourceEnd": 1.42,
+   "type": "word"
+  },
+  {
+   "text": "is",
+   "start": 1.453,
+   "end": 1.813,
+   "sourceStart": 2.02,
+   "sourceEnd": 2.38,
+   "type": "word"
+  },
+  {
+   "text": "a",
+   "start": 2.04,
+   "end": 2.08,
+   "sourceStart": 6.04,
+   "sourceEnd": 6.12,
+   "type": "word",
+   "asrEnd": 2.12
+  },
+  {
+   "text": "very",
+   "start": 2.12,
+   "end": 2.353,
+   "sourceStart": 6.12,
+   "sourceEnd": 6.42,
+   "type": "word",
+   "asrEnd": 2.42
+  },
+  {
+   "text": "large,",
+   "start": 2.42,
+   "end": 2.793,
+   "sourceStart": 6.42,
+   "sourceEnd": 6.86,
+   "type": "word",
+   "asrEnd": 2.86
+  },
+  {
+   "text": "uh,",
+   "start": 2.86,
+   "end": 3.3,
+   "sourceStart": 6.86,
+   "sourceEnd": 7.3,
+   "type": "word"
+  },
+  {
+   "text": "importance",
+   "start": 3.4,
+   "end": 3.92,
+   "sourceStart": 7.4,
+   "sourceEnd": 7.92,
+   "type": "word"
+  },
+  {
+   "text": "for",
+   "start": 4.36,
+   "end": 4.4,
+   "sourceStart": 8.96,
+   "sourceEnd": 9.06,
+   "type": "word",
+   "asrEnd": 4.46
+  },
+  {
+   "text": "our",
+   "start": 4.46,
+   "end": 4.533,
+   "sourceStart": 9.06,
+   "sourceEnd": 9.2,
+   "type": "word",
+   "asrEnd": 4.6
+  },
+  {
+   "text": "group.",
+   "start": 4.6,
+   "end": 4.76,
+   "sourceStart": 9.2,
+   "sourceEnd": 9.36,
+   "type": "word"
+  },
+  {
+   "text": "We're",
+   "start": 5.1,
+   "end": 5.14,
+   "sourceStart": 12.2,
+   "sourceEnd": 12.3,
+   "type": "word",
+   "asrEnd": 5.2
+  },
+  {
+   "text": "from",
+   "start": 5.2,
+   "end": 5.313,
+   "sourceStart": 12.3,
+   "sourceEnd": 12.48,
+   "type": "word",
+   "asrEnd": 5.38
+  },
+  {
+   "text": "another",
+   "start": 5.38,
+   "end": 5.913,
+   "sourceStart": 12.48,
+   "sourceEnd": 13.08,
+   "type": "word",
+   "asrEnd": 5.98
+  },
+  {
+   "text": "area",
+   "start": 5.98,
+   "end": 6.333,
+   "sourceStart": 13.08,
+   "sourceEnd": 13.5,
+   "type": "word",
+   "asrEnd": 6.4
+  },
+  {
+   "text": "of",
+   "start": 6.4,
+   "end": 6.573,
+   "sourceStart": 13.5,
+   "sourceEnd": 13.74,
+   "type": "word",
+   "asrEnd": 6.64
+  },
+  {
+   "text": "the",
+   "start": 6.64,
+   "end": 6.733,
+   "sourceStart": 13.74,
+   "sourceEnd": 13.9,
+   "type": "word",
+   "asrEnd": 6.8
+  },
+  {
+   "text": "world",
+   "start": 6.8,
+   "end": 6.933,
+   "sourceStart": 13.9,
+   "sourceEnd": 14.1,
+   "type": "word",
+   "asrEnd": 7
+  },
+  {
+   "text": "and",
+   "start": 7,
+   "end": 7.073,
+   "sourceStart": 14.1,
+   "sourceEnd": 14.24,
+   "type": "word",
+   "asrEnd": 7.14
+  },
+  {
+   "text": "we",
+   "start": 7.14,
+   "end": 7.18,
+   "sourceStart": 14.24,
+   "sourceEnd": 14.32,
+   "type": "word",
+   "asrEnd": 7.22
+  },
+  {
+   "text": "get",
+   "start": 7.22,
+   "end": 7.273,
+   "sourceStart": 14.32,
+   "sourceEnd": 14.44,
+   "type": "word",
+   "asrEnd": 7.34
+  },
+  {
+   "text": "to",
+   "start": 7.34,
+   "end": 7.433,
+   "sourceStart": 14.44,
+   "sourceEnd": 14.6,
+   "type": "word",
+   "asrEnd": 7.5
+  },
+  {
+   "text": "come",
+   "start": 7.5,
+   "end": 7.593,
+   "sourceStart": 14.6,
+   "sourceEnd": 14.76,
+   "type": "word",
+   "asrEnd": 7.66
+  },
+  {
+   "text": "to",
+   "start": 7.66,
+   "end": 8.153,
+   "sourceStart": 14.76,
+   "sourceEnd": 15.3,
+   "type": "word",
+   "asrEnd": 8.2
+  },
+  {
+   "text": "the",
+   "start": 8.22,
+   "end": 8.333,
+   "sourceStart": 15.32,
+   "sourceEnd": 15.5,
+   "type": "word",
+   "asrEnd": 8.4
+  },
+  {
+   "text": "Philippines",
+   "start": 8.4,
+   "end": 8.76,
+   "sourceStart": 15.5,
+   "sourceEnd": 15.86,
+   "type": "word"
+  },
+  {
+   "text": "and",
+   "start": 8.974,
+   "end": 9.367,
+   "sourceStart": 16.34,
+   "sourceEnd": 16.8,
+   "type": "word",
+   "asrEnd": 9.434
+  },
+  {
+   "text": "be",
+   "start": 9.434,
+   "end": 9.507,
+   "sourceStart": 16.8,
+   "sourceEnd": 16.94,
+   "type": "word",
+   "asrEnd": 9.574
+  },
+  {
+   "text": "able",
+   "start": 9.574,
+   "end": 9.727,
+   "sourceStart": 16.94,
+   "sourceEnd": 17.16,
+   "type": "word",
+   "asrEnd": 9.794
+  },
+  {
+   "text": "to",
+   "start": 9.794,
+   "end": 10.007,
+   "sourceStart": 17.16,
+   "sourceEnd": 17.44,
+   "type": "word",
+   "asrEnd": 10.074
+  },
+  {
+   "text": "be",
+   "start": 10.074,
+   "end": 10.167,
+   "sourceStart": 17.44,
+   "sourceEnd": 17.6,
+   "type": "word",
+   "asrEnd": 10.234
+  },
+  {
+   "text": "a",
+   "start": 10.234,
+   "end": 10.274,
+   "sourceStart": 17.6,
+   "sourceEnd": 17.7,
+   "type": "word",
+   "asrEnd": 10.334
+  },
+  {
+   "text": "part",
+   "start": 10.334,
+   "end": 10.374,
+   "sourceStart": 17.7,
+   "sourceEnd": 17.8,
+   "type": "word",
+   "asrEnd": 10.434
+  },
+  {
+   "text": "of",
+   "start": 10.434,
+   "end": 10.474,
+   "sourceStart": 17.8,
+   "sourceEnd": 17.88,
+   "type": "word",
+   "asrEnd": 10.514
+  },
+  {
+   "text": "that",
+   "start": 10.514,
+   "end": 10.567,
+   "sourceStart": 17.88,
+   "sourceEnd": 18,
+   "type": "word",
+   "asrEnd": 10.634
+  },
+  {
+   "text": "culture.",
+   "start": 10.634,
+   "end": 10.734,
+   "sourceStart": 18,
+   "sourceEnd": 18.1,
+   "type": "word"
+  },
+  {
+   "text": "With",
+   "start": 11.133,
+   "end": 11.206,
+   "sourceStart": 18.9,
+   "sourceEnd": 19.04,
+   "type": "word",
+   "asrEnd": 11.273
+  },
+  {
+   "text": "our",
+   "start": 11.273,
+   "end": 11.526,
+   "sourceStart": 19.04,
+   "sourceEnd": 19.36,
+   "type": "word",
+   "asrEnd": 11.593
+  },
+  {
+   "text": "guys.",
+   "start": 11.593,
+   "end": 11.813,
+   "sourceStart": 19.36,
+   "sourceEnd": 19.58,
+   "type": "word"
+  },
+  {
+   "text": "Very",
+   "start": 12.173,
+   "end": 12.346,
+   "sourceStart": 19.94,
+   "sourceEnd": 20.18,
+   "type": "word",
+   "asrEnd": 12.413
+  },
+  {
+   "text": "few",
+   "start": 12.413,
+   "end": 12.526,
+   "sourceStart": 20.18,
+   "sourceEnd": 20.36,
+   "type": "word",
+   "asrEnd": 12.593
+  },
+  {
+   "text": "of",
+   "start": 12.593,
+   "end": 12.633,
+   "sourceStart": 20.36,
+   "sourceEnd": 20.44,
+   "type": "word",
+   "asrEnd": 12.673
+  },
+  {
+   "text": "them",
+   "start": 12.673,
+   "end": 12.713,
+   "sourceStart": 20.44,
+   "sourceEnd": 20.54,
+   "type": "word",
+   "asrEnd": 12.773
+  },
+  {
+   "text": "have",
+   "start": 12.773,
+   "end": 12.846,
+   "sourceStart": 20.54,
+   "sourceEnd": 20.68,
+   "type": "word",
+   "asrEnd": 12.913
+  },
+  {
+   "text": "ever",
+   "start": 12.913,
+   "end": 13.006,
+   "sourceStart": 20.68,
+   "sourceEnd": 20.84,
+   "type": "word",
+   "asrEnd": 13.073
+  },
+  {
+   "text": "been",
+   "start": 13.073,
+   "end": 13.166,
+   "sourceStart": 20.84,
+   "sourceEnd": 21,
+   "type": "word",
+   "asrEnd": 13.233
+  },
+  {
+   "text": "to",
+   "start": 13.233,
+   "end": 13.306,
+   "sourceStart": 21,
+   "sourceEnd": 21.14,
+   "type": "word",
+   "asrEnd": 13.373
+  },
+  {
+   "text": "the",
+   "start": 13.373,
+   "end": 13.466,
+   "sourceStart": 21.14,
+   "sourceEnd": 21.3,
+   "type": "word",
+   "asrEnd": 13.533
+  },
+  {
+   "text": "Philippines,",
+   "start": 13.533,
+   "end": 13.813,
+   "sourceStart": 21.3,
+   "sourceEnd": 21.58,
+   "type": "word"
+  },
+  {
+   "text": "so",
+   "start": 14.114,
+   "end": 14.267,
+   "sourceStart": 22.18,
+   "sourceEnd": 22.4,
+   "type": "word",
+   "asrEnd": 14.334
+  },
+  {
+   "text": "we've",
+   "start": 14.334,
+   "end": 14.547,
+   "sourceStart": 22.4,
+   "sourceEnd": 22.68,
+   "type": "word",
+   "asrEnd": 14.614
+  },
+  {
+   "text": "got",
+   "start": 14.614,
+   "end": 14.747,
+   "sourceStart": 22.68,
+   "sourceEnd": 22.88,
+   "type": "word",
+   "asrEnd": 14.814
+  },
+  {
+   "text": "Americans",
+   "start": 14.814,
+   "end": 15.167,
+   "sourceStart": 22.88,
+   "sourceEnd": 23.3,
+   "type": "word",
+   "asrEnd": 15.234
+  },
+  {
+   "text": "and",
+   "start": 15.234,
+   "end": 15.507,
+   "sourceStart": 23.3,
+   "sourceEnd": 23.64,
+   "type": "word",
+   "asrEnd": 15.574
+  },
+  {
+   "text": "we've",
+   "start": 15.574,
+   "end": 15.827,
+   "sourceStart": 23.64,
+   "sourceEnd": 23.96,
+   "type": "word",
+   "asrEnd": 15.894
+  },
+  {
+   "text": "got",
+   "start": 15.894,
+   "end": 16.147,
+   "sourceStart": 23.96,
+   "sourceEnd": 24.28,
+   "type": "word",
+   "asrEnd": 16.214
+  },
+  {
+   "text": "Filipinos.",
+   "start": 16.214,
+   "end": 16.834,
+   "sourceStart": 24.28,
+   "sourceEnd": 24.9,
+   "type": "word"
+  },
+  {
+   "text": "And",
+   "start": 17.324,
+   "end": 17.527,
+   "sourceStart": 25.39,
+   "sourceEnd": 25.66,
+   "type": "word",
+   "asrEnd": 17.594
+  },
+  {
+   "text": "bridging",
+   "start": 17.594,
+   "end": 18.587,
+   "sourceStart": 25.66,
+   "sourceEnd": 26.72,
+   "type": "word",
+   "asrEnd": 18.654
+  },
+  {
+   "text": "that",
+   "start": 18.654,
+   "end": 18.907,
+   "sourceStart": 26.72,
+   "sourceEnd": 27.04,
+   "type": "word",
+   "asrEnd": 18.974
+  },
+  {
+   "text": "relationship",
+   "start": 18.974,
+   "end": 19.514,
+   "sourceStart": 27.04,
+   "sourceEnd": 27.58,
+   "type": "word"
+  },
+  {
+   "text": "builds",
+   "start": 19.8,
+   "end": 20.193,
+   "sourceStart": 28.6,
+   "sourceEnd": 29.06,
+   "type": "word",
+   "asrEnd": 20.26
+  },
+  {
+   "text": "not",
+   "start": 20.26,
+   "end": 20.533,
+   "sourceStart": 29.06,
+   "sourceEnd": 29.4,
+   "type": "word",
+   "asrEnd": 20.6
+  },
+  {
+   "text": "only",
+   "start": 20.6,
+   "end": 21.08,
+   "sourceStart": 29.4,
+   "sourceEnd": 29.88,
+   "type": "word"
+  },
+  {
+   "text": "a",
+   "start": 21.16,
+   "end": 21.46,
+   "sourceStart": 29.96,
+   "sourceEnd": 30.26,
+   "type": "word"
+  },
+  {
+   "text": "greater",
+   "start": 21.63,
+   "end": 22.443,
+   "sourceStart": 30.78,
+   "sourceEnd": 31.66,
+   "type": "word",
+   "asrEnd": 22.51
+  },
+  {
+   "text": "trust",
+   "start": 22.51,
+   "end": 22.803,
+   "sourceStart": 31.66,
+   "sourceEnd": 32.02,
+   "type": "word",
+   "asrEnd": 22.87
+  },
+  {
+   "text": "in",
+   "start": 22.87,
+   "end": 22.983,
+   "sourceStart": 32.02,
+   "sourceEnd": 32.2,
+   "type": "word",
+   "asrEnd": 23.05
+  },
+  {
+   "text": "us",
+   "start": 23.05,
+   "end": 23.25,
+   "sourceStart": 32.2,
+   "sourceEnd": 32.4,
+   "type": "word"
+  },
+  {
+   "text": "to",
+   "start": 23.674,
+   "end": 23.787,
+   "sourceStart": 32.94,
+   "sourceEnd": 33.12,
+   "type": "word",
+   "asrEnd": 23.854
+  },
+  {
+   "text": "go",
+   "start": 23.854,
+   "end": 23.987,
+   "sourceStart": 33.12,
+   "sourceEnd": 33.32,
+   "type": "word",
+   "asrEnd": 24.054
+  },
+  {
+   "text": "outside",
+   "start": 24.054,
+   "end": 24.547,
+   "sourceStart": 33.32,
+   "sourceEnd": 33.88,
+   "type": "word",
+   "asrEnd": 24.614
+  },
+  {
+   "text": "of",
+   "start": 24.614,
+   "end": 25.107,
+   "sourceStart": 33.88,
+   "sourceEnd": 34.44,
+   "type": "word",
+   "asrEnd": 25.174
+  },
+  {
+   "text": "our",
+   "start": 25.174,
+   "end": 25.567,
+   "sourceStart": 34.44,
+   "sourceEnd": 34.9,
+   "type": "word",
+   "asrEnd": 25.634
+  },
+  {
+   "text": "nation.",
+   "start": 25.634,
+   "end": 25.784,
+   "sourceStart": 34.9,
+   "sourceEnd": 35.05,
+   "type": "word"
+  }
+ ]
+}

@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="assets/gsap.min.js"></script><style>
+html,body{margin:0;width:1080px;height:640px;overflow:hidden;background:#000}
+#root{position:relative;width:1080px;height:640px;overflow:hidden}
+.v{position:absolute;left:0;top:0;width:1080px;height:640px;object-fit:cover}
+#vblur{filter:blur(8px) brightness(.8);clip-path:inset(0 0 0 540px);transform:scale(1.08);transform-origin:810px 320px}
+.col{position:absolute;top:0;height:640px;width:270px}
+#a{left:0;background:rgba(14,17,22,.70);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#b{left:270px;background:#0E1116}
+#c{left:540px;background:rgba(14,17,22,.72)}
+#d{left:810px;background:rgba(14,17,22,.62)}
+</style></head><body>
+<div id="root" data-composition-id="pt" data-start="0" data-duration="1" data-width="1080" data-height="640">
+<video id="vmain" class="v" src="assets/foot.mp4" muted playsinline data-start="0" data-duration="1" data-track-index="0"></video>
+<video id="vblur" class="v" src="assets/foot.mp4" muted playsinline data-start="0" data-duration="1" data-track-index="1"></video>
+<div id="a" class="clip col" data-start="0" data-duration="1" data-track-index="2"></div>
+<div id="b" class="clip col" data-start="0" data-duration="1" data-track-index="3"></div>
+<div id="c" class="clip col" data-start="0" data-duration="1" data-track-index="4"></div>
+<div id="d" class="clip col" data-start="0" data-duration="1" data-track-index="5"></div>
+</div>
+<script>window.__timelines=window.__timelines||{};const tl=gsap.timeline({paused:true});tl.set('#a',{opacity:1},0);tl.to({}, {duration:1},0);window.__timelines['pt']=tl;</script>
+</body></html>

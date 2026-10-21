@@ -1,0 +1,18 @@
+{
+  "name": "captions-default",
+  "description": "Easy Edits default caption style, taken from the stock porter-clipper-short project (Herk Edit Kit): Montserrat 900 100px white uppercase (raised from the stock 84px to read on a phone; one size for the whole video), 1-2 word spring pops, subtle shadow, inside the 9:16 safe zone, never over graphics or the face.",
+  "font": { "family": "Montserrat", "weight": 900, "size": 100, "lineHeight": 1.05, "letterSpacing": 1, "transform": "uppercase", "color": "#fff" },
+  "shadow": "0 2px 3px rgba(0,0,0,.85),0 0 8px rgba(0,0,0,.45)",
+  "box": { "left": 60, "width": 960 },
+  "grouping": { "maxWords": 2, "maxChars": 13, "maxGap": 0.25, "breakAfter": "[.,!?;:]$" },
+  "timing": { "leadFrames": 2, "holdAfterPause": 0.35, "pauseGap": 0.6, "tailHold": 0.5 },
+  "pop": { "overshoot": 1.1, "inDuration": 0.12, "inEase": "power2.out", "settleDuration": 0.08, "settleEase": "power1.inOut", "settleAt": 0.125 },
+  "safeY": { "face": 1290, "punch": 1330, "split": 862 },
+  "safeZone": { "top": 250, "bottom": 1500 },
+  "rules": [
+    "Caption centre stays inside safeZone (clear of platform UI top and bottom).",
+    "face/punch layouts: below the chin, on the jacket (never over the face).",
+    "split layout: on the seam between graphic panel and speaker (never over the graphic).",
+    "One settled size for every caption in every layout: font.size, pop settles at scale 1, no per-layout or per-caption scaling."
+  ]
+}

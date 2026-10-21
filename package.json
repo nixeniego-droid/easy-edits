@@ -1,0 +1,23 @@
+{
+  "name": "easy-edits",
+  "version": "1.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Easy Edits: one CLI for editing talking-head video (clean cuts, captions, motion design, explainers, shorts), built on Herk Edit Kit by Nate Herk.",
+  "scripts": {
+    "test": "node --test easy-edits/check/test/*.test.mjs easy-edits/bin/test/*.test.mjs easy-edits/tools/test/*.test.mjs easy-edits/engine/test/*.test.mjs easy-edits/styles/test/*.test.mjs",
+    "doctor": "./install.sh --doctor"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "hyperframes": "0.7.109",
+    "gsap": "3.14.2",
+    "playwright": "^1.59.1"
+  },
+  "license": "MIT",
+  "bin": {
+    "easy-edits": "bin/easy-edits"
+  }
+}

@@ -1,0 +1,62 @@
+Easy Edits v1.1.0: known issues
+============================
+
+Timing / formats
+- Motion renders can trail the voice by up to 1 frame on some sources. Fixed for 29.97 fps shorts; other modes
+  and frame rates are not fully verified.
+- 16:9 export from portrait footage is a soft upscale-crop (no pillarbox option yet).
+
+Modes
+- explainer: tested on only one public-domain screen recording.
+- talking-head: the motion graphics are planned again for each new source; a re-run of the same source reuses
+  the pinned plan (~/.easy-edits/plans/). Use --plan-only first if you want to review or fix the plan.
+- The legacy one-shot agent edit (easy-edits/bin/edit.sh without --style) is experimental and needs Herk Edit Kit's
+  skills and docs, which are not bundled (see easy-edits/README.md).
+
+Delivery check
+- no-repeat: a phrase the speaker says twice within 3 words ("so stop, stop it now. So stop, stop it now") FAILs
+  as a possible retake, even when it is deliberate. The CLI then exits 1 although the video may be fine: read the
+  check text before trusting a FAIL. (Fixed in 1.0.0: a phrase reused further apart, e.g. "the sixth warmest year
+  on record, which is slightly down from the warmest year on record", is now a NOTE, not a FAIL.)
+- Every export ends on a ~0.4 s held tail with silent audio. A source whose audio already ends in digital
+  silence can then FAIL dropout ("digital silence ... s" at the very end). Trim the source to its last sound.
+- captions mode has no caption-verify step: if the transcription comes out degenerate (seen once, on a machine
+  under heavy memory pressure: a few words with zero-length timings), the captions miss speech while the
+  delivery check still hears it (it then FAILs no-repeat / transcript checks). Delete <out>/.work and re-run.
+- Shorts can render with delivery PASS and still have cut / framing / hook faults (below). Check the contact
+  sheets and the start / end of every render by hand.
+
+Captions (seen on the README sample, delivery PASS)
+- Clean cut can open on a filler caption ("Uh" for the first frames) when a removed filler sits right at the
+  start of the source.
+- Whisper can mishear a short final word (caption "very clearly still Oh" for "still up"). Fix it with
+  --review-patch (text) or a corrected --transcript.
+- On a close-up where the face fills the 9:16 frame there is no free band: the captions go over the forehead and
+  the run prints "caption overlap(s) ... x face" WARNs.
+
+talking-head graphics
+- List card: a long item can wrap to 2 lines and overlap the next item.
+- Without --speaker, the lower third shows the title instead of a name. By design (names are never guessed):
+  pass --speaker for a real lower third.
+- Captions can split a domain name or a hyphenated word ("StopBullying.gov" -> "StopBullying .gov",
+  "long-term" -> "long -term"), in every mode.
+
+shorts (tested on a 30-min Taglish podcast)
+- The cut-candidates ASR can hear a deliberate repeat as a stutter, and the false-start rule can remove a
+  deliberate triple ("swish, swish, swish"). Workaround: pin review.keep in proposals.json.
+- The face-track speaker switch can jump to a laughing listener on wide shots. Workaround: retrack in the clip's
+  cached track.json.
+- 1:1 with a 3-line hook card and a high face: the card falls under the chin and covers captions and the lower
+  third. Workaround: skip 1:1 or use a shorter --hook text.
+- Captions can drift ~0.8 s early where the transcript has no words for short exclamations. Workaround: pinned
+  text fixes.
+- Rendering one format at a time (--pick N --format F) always writes short_N_slug.mp4, so each run overwrites
+  the last. Move the outputs between runs.
+- Fixed in 1.0.0: a short's window could open mid-word when the previous word was glued to the first one; the
+  render window's pads now stop at the neighbouring words.
+
+Tests
+- Tests that need media not shipped in the repo (source clips, renders, frame crops of test footage) are
+  reported as skipped.
+- A few ASR-dependent tests depend on what faster-whisper hears on a given machine and can fail on a correct
+  install (asr-disfluent, verbatim-final). They are skipped when their local test media is absent.

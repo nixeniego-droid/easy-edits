@@ -1,0 +1,343 @@
+{
+  "name": "look-strict",
+  "description": "Archived full look-bright spec (style2 era: layout, cadence, card, panel and motion rules). Used only with edit.sh --strict-look. Easy Edits talking-head style 2 (the reviewer's spec 2026-10-17 + style2b review notes): bright graded footage with hard cuts, ~85% ink idea panels (24 px backdrop blur) over the live footage (never a solid slate) with white + yellow elements, white UI cards at ~60% width, yellow key word / marker, coral arrows / pins only. Every look value lives here; the embedded brief follows it exactly. No top split or square for talking heads: cards float over the footage.",
+  "frame": {
+    "width": 1080,
+    "height": 1920
+  },
+  "palette": {
+    "ink": "#0E1116",
+    "white": "#FFFFFF",
+    "yellow": "#FFD60A",
+    "coral": "#FF5A3C",
+    "rules": [
+      "Only these four colors (plus the footage and transparent / rgba of ink or black for shadows).",
+      "yellow: ONLY the one key word per line, marker bars and the icon circles.",
+      "coral: ONLY arrows, pins, underlines; at most 1 coral element on screen at a time.",
+      "No cream, no navy, no other accents, no multicolour icons, no full-colour emoji or clipart, never a cream or navy full frame.",
+      "Idea beats are an INK (#0E1116) panel at ~85% opacity with a 24 px backdrop blur over the live footage (28 px top corners when not full-bleed; slides up from the bottom with an ease and exits with the same ease reversed, never a cut), white + yellow elements, pills white with ink text. Never a fully opaque full-frame graphic of any color (look-check.mjs OPAQUE FRAME, layout-jump.mjs SOLID JUMP), never a light (white, #F2F4F7, cream) full frame and never a white flash between clips (look-check.mjs: luminance >= 0.15 fails)."
+    ],
+    "sceneBackground": "#0E1116"
+  },
+  "grade": {
+    "ffmpeg": "eq=brightness=0.03:gamma=1.04:contrast=1.14:saturation=1.05,curves=all='0/0 0.25/0.22 0.75/0.80 1/1',vibrance=intensity=0.15,colorbalance=rs=0.02:gs=0.0:bs=-0.04:rm=0.01:bm=-0.02,unsharp=5:5:0.6,vignette=PI/5",
+    "applyAt": "clip build: append grade.ffmpeg to the -vf of the single ffmpeg pass that renders assets/clip.mp4 from the raw source (after trim/concat and scale/crop), so the grade is baked into the clip. Do NOT also apply cssFilter in the composition. The SAME grade on every clip (one pass over the whole concatenated clip, or the identical string on each segment): no per-clip exposure jump.",
+    "once": "the grade is applied EXACTLY ONCE, from one place (the clip build); no cssFilter on top, no per-segment grade, the shoulder-mask video copy uses the same graded clip unfiltered (check/grade-continuity.mjs: luma > 6%, sat > 12%, R-B > 0.025 jumps at keep / camera boundaries, 2 of 3 -> FAIL)",
+    "cuts": "hard cuts only on footage: no dissolve, crossfade or opacity fade between footage clips (the style2b draft had a ~1.5 s dissolve with an exposure jump)",
+    "cssFilter": "brightness(1.03) contrast(1.14) saturate(1.10)",
+    "cssVignette": "radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.22) 100%)",
+    "cssNote": "Fallback only, if the clip cannot be re-rendered: cssFilter on the video wrapper plus a non-interactive overlay div with cssVignette as background.",
+    "target": "skin bright and warm, highlights not clipped, shadows lifted (no crushed blacks)"
+  },
+  "punchIn": {
+    "scaleFrom": 1,
+    "scaleTo": [
+      1.15,
+      1.25
+    ],
+    "on": "the hook and every 3rd beat (and on jump cuts)",
+    "maxHoldS": 2.5,
+    "shotEveryS": [
+      1,
+      1.5
+    ],
+    "shot": "a new shot every 1-1.5 s, measured on the final frames (check/shot-length.mjs --max 1.5): a cut, a punch step of 115-125% (a 104% push or 108% punch is the same shot) or a card / panel / kinetic entry or exit; style2c held 8.80-11.29 and 16.49-18.69 s",
+    "linger": "no single shot / hold longer than ~2.5 s without a cut, punch-in / out or reframe (style2b lingered at 0:06-0:10 of talk)"
+  },
+  "kinetic": {
+    "fontFamily": "Montserrat",
+    "fontWeight": 900,
+    "size": {
+      "minPx": 120,
+      "keyWordMaxPx": 160,
+      "maxPx": 160,
+      "note": "every kinetic word >= 120 px, the key word up to 160 px, nothing above 160 (text-style.mjs --kinetic-free FAIL KINETIC SIZE)"
+    },
+    "transform": "uppercase",
+    "words": [
+      1,
+      3
+    ],
+    "fill": "#FFFFFF",
+    "keyWordFill": "#FFD60A",
+    "keyWordsPerLine": 1,
+    "stroke": {
+      "width": "6px",
+      "color": "#0E1116",
+      "css": "-webkit-text-stroke: 6px #0E1116; paint-order: stroke fill"
+    },
+    "shadow": "0 4px 0 rgba(0,0,0,0.6)",
+    "pop": {
+      "scaleFrom": 0.9,
+      "scaleTo": 1,
+      "duration": 0.133,
+      "frames": 4,
+      "ease": "power2.out",
+      "overshoot": false
+    },
+    "exit": "hard cut to the next word (no fade, no tween)",
+    "keyWordSfx": {
+      "sfx": "pop",
+      "planEventType": "keyword-pop",
+      "note": "the only SFX allowed on text: one pop per key word, logged in plan.json events[] as type keyword-pop"
+    },
+    "position": {
+      "yCenterPct": [
+        66,
+        70
+      ],
+      "whenCardLowYPct": [
+        0,
+        18
+      ],
+      "clearOfFace": "never inside the head zone (caption-face-final.mjs): punch-normalised median face box +45% upward (forehead / cap) + 35% chin + 4% margin, per scene through the #spk transform at punch scale; prefer the band below the chin, top band only if it clears the zone, else a side zone; never on the cap / forehead"
+    },
+    "hookTitle": "small white kicker over a BIG yellow key word, same stroke and shadow",
+    "treatment": "identical to the caption treatment (captions block: same family, weight, stroke, shadow); white + ONE yellow key word; over an idea panel too; never ink on a marker or unshadowed (text-style.mjs --one-caption KINETIC TREATMENT)"
+  },
+  "captions": {
+    "style": "ONE style for the whole video: the kinetic type minus the key-word colour",
+    "fontFamily": "Montserrat",
+    "fontWeight": 900,
+    "size": 100,
+    "transform": "uppercase",
+    "fill": "#FFFFFF",
+    "stroke": {
+      "width": "6px",
+      "color": "#0E1116",
+      "css": "-webkit-text-stroke: 6px #0E1116; paint-order: stroke fill",
+      "note": "6 px ink stroke at full res (1080x1920): verify on an extracted frame, not the scaled preview"
+    },
+    "shadow": "0 4px 0 rgba(0,0,0,0.6)",
+    "box": "none (no background, padding, radius or border)",
+    "words": [
+      2,
+      3
+    ],
+    "grouping": "2-3 words per caption group, never one word at a time; a single word only as the key-word hit or the lone remaining word of a sentence; never > 3 (readability.mjs --groups FAILs > 20% one-word groups or any group > 3 words; gen_th_style2c 9/30 = 30% FAIL)",
+    "verbatim": "FULL verbatim: every spoken word in exactly one caption chunk, in order; no keyword-only skipping, and a kinetic word (which may be a keyword) never replaces the caption; keep the caption up under it (caption-cover.mjs; gen_th_style2c hid captions under 6 kinetic hits, 11 words uncaptioned)",
+    "band": {
+      "yTopPct": 78,
+      "yBottomPct": 84,
+      "yTopPx": 1498,
+      "yBottomPx": 1613,
+      "note": "fixed band below the kinetic zone (66-70%); never moves per layout; hide the caption while a kinetic word for the same words is on screen"
+    },
+    "pop": {
+      "scaleFrom": 0.9,
+      "scaleTo": 1,
+      "duration": 0.133,
+      "ease": "power2.out",
+      "overshoot": false
+    },
+    "exit": "hard cut to the next group",
+    "chinClear": {
+      "rule": "Per scene (punch-ins included, at the punched scale): when face.box + 35% chin + 4% frame-width margin reaches the caption band, that scene's captions move to the top safe zone ONLY if it clears the head zone (face box +45% upward for forehead / cap, at that punch scale); otherwise a side zone. Never on the cap / forehead.",
+      "topZoneYPct": [
+        0,
+        18
+      ],
+      "note": "same style and size; only the position changes, for the whole scene"
+    },
+    "keyWord": "at most ONE yellow (#FFD60A) key word per caption line; every other word white",
+    "whenCardLow": {
+      "yPct": [
+        0,
+        18
+      ],
+      "rule": "while a UI card sits lower-middle, that scene's captions move to the top 18% (same style and size) ONLY if the top band clears the head zone (face box +45% up for forehead / cap, at the punch scale); otherwise a side zone (left / right of face + chin + margin)"
+    },
+    "contrast": "caption text never on a background of its own color (no white on white; look-check.mjs caption bg)"
+  },
+  "cards": {
+    "maxItems": 3,
+    "atOnce": 1,
+    "stack": "ONE card on screen at a time, at most 3 list rows / notification items per card; no notification or list stacks (card-items.mjs; style2c c4 MISSION READY 3 rows = the limit)",
+    "background": "#FFFFFF",
+    "radius": "28px",
+    "shadow": "0 15px 35px rgba(0,0,0,0.18)",
+    "padding": "40px",
+    "text": {
+      "color": "#0E1116",
+      "fontFamily": "Montserrat",
+      "fontWeight": 800
+    },
+    "keyWordMarker": {
+      "background": "#FFD60A",
+      "color": "#0E1116",
+      "rotate": "-2deg",
+      "note": "a yellow marker bar behind the key word"
+    },
+    "icon": {
+      "style": "mono ink (#0E1116) line icon, 3-4px stroke, no fill colours",
+      "circle": {
+        "size": "72px",
+        "background": "#FFD60A"
+      },
+      "note": "inside cards; for a full icon frame see iconFrame"
+    },
+    "pill": {
+      "background": "#0E1116",
+      "color": "#FFFFFF",
+      "transform": "uppercase",
+      "letterSpacing": "12px",
+      "radius": "999px",
+      "pinIcon": "coral #FF5A3C, the only icon allowed on a pill",
+      "size": "label pills (e.g. PHILIPPINES, AMERICANS) at caption size (Montserrat 900, captions.size) or inside a card; no small (~24 px) pills outside cards",
+      "note": "a pill or chip that shows SPOKEN words is a caption: the single captions style; ink pills are for labels",
+      "onScene": {
+        "background": "#FFFFFF",
+        "color": "#0E1116",
+        "note": "on ink full-screen scenes pills turn white with ink text"
+      }
+    },
+    "placement": "floating over the footage: lower-middle (above the caption band) or beside the face; the card's TOP edge sits BELOW THE CHIN LINE (Haar face bottom + 10% of its height + 2% of the frame width, at that scene's punch scale), never over the chin / mouth (gen_th_style2c 'BEEN HERE BEFORE?' 12.4 s FAIL); caption-face-final.mjs checks every card at its box measured on the final frame. When a card sits low-middle the captions move to the top 18% ONLY if that clears the head zone (+45% up), else to a side zone. NEVER in a top corner. NO top split, top square or full-frame light panel",
+    "enter": {
+      "ease": "back.out(1.7)",
+      "duration": 0.35,
+      "note": "spring overshoot ONLY for cards and icons"
+    },
+    "exit": {
+      "duration": 0.12,
+      "ease": "power2.in"
+    },
+    "sfx": "one SFX on EVERY card / icon entry: transient pop family from audio/sfx-synth.mjs (HOUSE.pop: click2, click, tap; stop for a heavier landing) at -12..-15 dB re the voice peak (house -13.5); NEVER a whoosh / whoosh_low / wrap noise sweep (masked under speech, sfx-mix cannot detect it)",
+    "width": {
+      "pct": [
+        55,
+        65
+      ],
+      "target": 60,
+      "px": [
+        594,
+        702
+      ],
+      "brief": "~60% of the frame width, 580-720 px",
+      "note": "UI cards only, width MEASURED ON THE FINAL FRAMES at 1080 wide (card-final.mjs: white card segmented at its settled time; card-fill.mjs <project> <final> / look-check.mjs --final FAIL outside 55-65%). Never measure a 720 x 1280 _mobile / _phone derivative against 1080: a 648 px card is 432 px there (= '40%'). gen_th_style2c cards measure 648-661 px = 60-61%."
+    },
+    "depth": "a visible depth cue on every UI card: a layered second card offset 12-16 px behind it (white, same radius and shadow), a slight offset / rotation, or the shoulder-overlap mask (card partly behind the speaker)",
+    "pushIn": {
+      "scaleFrom": 1,
+      "scaleTo": 1.04,
+      "on": "the footage under each card entrance, over the card's on-screen time",
+      "ease": "power1.out"
+    },
+    "textSize": {
+      "headlinePx": 44,
+      "bodyMinPx": 34,
+      "rule": "card headline (first text line) 44 px; EVERY other run on a card (labels, pills, checklist rows, chips) >= 34 px font size at 1080 wide; no 22 px pills / 32 px checklist rows (gen_th_style2c c1/c2/c4 FAIL)",
+      "check": "card-text.mjs <project> <final>: cap height measured on the final frame (minus 1 px anti-aliasing) / 0.70"
+    }
+  },
+  "motion": {
+    "maxOnScreen": {
+      "cards": 1,
+      "captions": 1
+    },
+    "overshoot": "cards and icons only; kinetic and caption words pop 0.90 -> 1.0 without overshoot",
+    "sfx": "on EVERY card / icon entry and key-word pops (keyword-pop), all transient pops (cards.sfx); never on plain kinetic words, captions, punch-ins or cuts",
+    "stagger": {
+      "order": [
+        "people pop (spring)",
+        "then the pills",
+        "then the bridge / connector draws left -> right"
+      ],
+      "gap": "0.15-0.25 s",
+      "sfx": "one transient pop per element entry (cards.sfx)",
+      "note": "diagram scenes such as the bridge"
+    },
+    "settledLife": {
+      "rule": "every card / icon, once settled, keeps subtle life until it exits: never a frozen overlay",
+      "how": [
+        "1-2% float or drift (y +-6-12 px, scale 1.00-1.02, sine.inOut yoyo)",
+        "bars rising",
+        "a counter rolling",
+        "a route drawing"
+      ],
+      "check": "overlay-life.mjs: card-box pixels on the final change by >= 1 level (mean abs) in every 0.5 s window of the settled hold",
+      "typingDots": "typing dots must resolve into a short reply bubble (2-4 words) inside the card's hold, else no typing bubble at all",
+      "routeCard": "a route card starts at an ink #0E1116 start dot or a home icon at its origin"
+    }
+  },
+  "passCheck": "freeze any 6 frames: one brand, faces bright, every word readable at phone size",
+  "text": {
+    "rule": "Every on-screen text that shows spoken words (captions, chips, pills, quotes) uses the single captions style; kinetic words use the kinetic block. Labels are pills per cards.pill (ink on footage / cards, white with ink text on ink scenes)."
+  },
+  "iconFrame": {
+    "circle": {
+      "size": "240px",
+      "background": "#FFD60A"
+    },
+    "icon": "ink (#0E1116) line icon inside the circle, 3-4px stroke",
+    "position": "centred under the headline",
+    "enter": {
+      "ease": "back.out(1.7)",
+      "duration": 0.35,
+      "how": "spring scale 0 -> 1"
+    },
+    "sfx": "one SFX on entry: transient pop family from audio/sfx-synth.mjs (HOUSE.pop: click2, click, tap; stop for a heavier landing) at -12..-15 dB re the voice peak (house -13.5); NEVER a whoosh / whoosh_low / wrap noise sweep (masked under speech, sfx-mix cannot detect it)",
+    "note": "e.g. the globe frame"
+  },
+  "scenes": {
+    "background": "rgba(14, 17, 22, 0.72) panel over a blurred (8 px), dimmed (0.8) copy of the live footage clipped to the panel; the footage texture must read through (panel-through.mjs)",
+    "elements": "white #FFFFFF + yellow #FFD60A only (coral per palette rules)",
+    "text": {
+      "color": "#FFFFFF",
+      "fontFamily": "Montserrat",
+      "fontWeight": 900,
+      "transform": "uppercase"
+    },
+    "keyWord": "one yellow #FFD60A key word in the caption treatment (no ink-on-marker kinetic text on panels)",
+    "pill": "white with ink text (cards.pill.onScene)",
+    "enter": {
+      "frames": [
+        8,
+        10
+      ],
+      "duration": 0.3,
+      "ease": "power2.out",
+      "how": "slides UP from the bottom edge (yPercent 100 -> 0, or translate 4-8% for a full-bleed panel) with power2.out, the blurred footage copy moving with it; never a cut"
+    },
+    "exit": {
+      "frames": [
+        8,
+        10
+      ],
+      "duration": 0.3,
+      "ease": "power2.in",
+      "how": "the same move reversed: slides back DOWN out of the bottom with power2.in (the enter ease mirrored) to the sharp footage; never a cut"
+    },
+    "never": "a fully opaque full-frame graphic (any color), a hard cut to a solid frame, a light (white / #F2F4F7 / cream) full frame, or a white flash between clips",
+    "panel": {
+      "fill": "#0E1116",
+      "opacity": 0.72,
+      "backdropBlurPx": 0,
+      "css": "no backdrop-filter. Inside the panel (overflow:hidden), under the fill: a second muted <video> of the same clip (own data-start / data-duration / data-track-index, same transform as #spk) with filter: blur(8px) brightness(.8) and transform: scale(1.08) (hides the blur's dark edge), clipped to the panel area (clip-path: inset(...) or the panel's overflow); then the fill: background: rgba(14, 17, 22, 0.72)",
+      "radius": "28px 28px 0 0 (top corners only) when the panel is not full-bleed; 0 when full-bleed",
+      "icons": {
+        "minPx": 100,
+        "defaultPx": 120,
+        "centreTolerance": 0.05,
+        "placement": "one icon row centred horizontally in the panel, above the panel's word; never a bare tiny icon in a corner",
+        "check": "panel-icons.mjs on the final frames: white / yellow non-text glyphs in the panel (connected components, head + body merged), size sqrt(w*h) >= 100 px, row centre within 5% of the panel width, row above the word"
+      },
+      "contrast": {
+        "min": 4.5,
+        "check": "panel-contrast.mjs on the final frames: each white / yellow text on the panel vs its local background ring (WCAG)",
+        "fix": "Reviewer: the panel stays 72% ink over the 8 px blur; when a text zone over bright footage drops below 4.5:1, add a soft ink gradient (rgba(14,17,22,0) -> up to 0.85) behind that text zone only; never raise the whole panel"
+      },
+      "under": {
+        "footage": "keeps playing (the same clip, not a freeze), a blurred dimmed copy clipped to the panel",
+        "blurPx": [
+          6,
+          10
+        ],
+        "dim": "brightness(0.8)"
+      },
+      "spec": "Reviewer spec: ink #0E1116 ~85%, backdrop blur 24 px over the live footage. NOT achievable with the footage visible (measured: reads opaque); default changed to 0.72 over an 8 px / 0.8 blurred copy pending the reviewer's approval. 28 px top corners when not full-bleed, slides up from the bottom with an ease, exits with the same ease reversed; never a cut",
+      "why": "supersedes the full-screen ink scene: an idea beat must let the footage through",
+      "measured": "1 s hyperframes renders of style2c footage (check/test/fixtures/style2c/panel-test-*.html/png), panel-through tile medians std / edge: flat #0E1116 0 / 0; rgba .85 + backdrop blur(24px) 1.51 / 0.14 (reads OPAQUE; gen_th_style2c final 1.2-1.5 / 0.12-0.15); .85 over a blur(24px) brightness(.6) copy 0.8 / 0.08; .72 over a blur(8px) brightness(.8) copy 3.51 / 0.48 (PASS); .70 + backdrop blur(8px) 5.75 / 0.89 (PASS). backdrop-filter DOES render in the hyperframes beginframe capture; the panel looked opaque because 85% ink over a 24 px blur leaves 15% of a featureless blur",
+      "check": "panel-through.mjs <project> <final>: text-free 60 px tiles in the panel need luma std >= 3 and mean |gradient| >= 0.35 and a mean colour off #0E1116"
+    }
+  }
+}

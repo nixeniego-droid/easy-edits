@@ -1,0 +1,561 @@
+{
+  "language_code": "en",
+  "source_audio_duration_secs": 35.201,
+  "audio_duration_secs": 35.201,
+  "produced_by": "cut-silences",
+  "words": [
+    {
+      "text": "Relationship",
+      "source_start": 0.07,
+      "source_end": 0.91,
+      "start": 0.07,
+      "end": 0.91
+    },
+    {
+      "text": "building",
+      "source_start": 0.91,
+      "source_end": 1.19,
+      "start": 0.91,
+      "end": 1.19
+    },
+    {
+      "text": "is",
+      "source_start": 1.19,
+      "source_end": 2.35,
+      "start": 1.19,
+      "end": 2.35
+    },
+    {
+      "text": "really",
+      "source_start": 2.35,
+      "source_end": 3.19,
+      "start": 2.35,
+      "end": 3.19
+    },
+    {
+      "text": "a",
+      "source_start": 3.19,
+      "source_end": 3.87,
+      "start": 3.19,
+      "end": 3.87
+    },
+    {
+      "text": "very",
+      "source_start": 3.87,
+      "source_end": 4.83,
+      "start": 3.87,
+      "end": 4.83
+    },
+    {
+      "text": "large",
+      "source_start": 4.83,
+      "source_end": 5.47,
+      "start": 4.83,
+      "end": 5.47
+    },
+    {
+      "text": "importance",
+      "source_start": 5.47,
+      "source_end": 7.59,
+      "start": 5.47,
+      "end": 7.59
+    },
+    {
+      "text": "for",
+      "source_start": 7.59,
+      "source_end": 9.03,
+      "start": 7.59,
+      "end": 9.03
+    },
+    {
+      "text": "our",
+      "source_start": 9.03,
+      "source_end": 9.17,
+      "start": 9.03,
+      "end": 9.17
+    },
+    {
+      "text": "group",
+      "source_start": 9.17,
+      "source_end": 9.47,
+      "start": 9.17,
+      "end": 9.47
+    },
+    {
+      "text": "because",
+      "source_start": 9.47,
+      "source_end": 10.51,
+      "start": 9.47,
+      "end": 10.51
+    },
+    {
+      "text": "we're",
+      "source_start": 10.51,
+      "source_end": 11.25,
+      "start": 10.51,
+      "end": 11.25
+    },
+    {
+      "text": "from",
+      "source_start": 11.25,
+      "source_end": 11.39,
+      "start": 11.25,
+      "end": 11.39
+    },
+    {
+      "text": "another",
+      "source_start": 11.39,
+      "source_end": 11.59,
+      "start": 11.39,
+      "end": 11.59
+    },
+    {
+      "text": "nation.",
+      "source_start": 11.59,
+      "source_end": 11.87,
+      "start": 11.59,
+      "end": 11.87
+    },
+    {
+      "text": "We're",
+      "source_start": 12.19,
+      "source_end": 12.25,
+      "start": 12.19,
+      "end": 12.25
+    },
+    {
+      "text": "from",
+      "source_start": 12.25,
+      "source_end": 12.37,
+      "start": 12.25,
+      "end": 12.37
+    },
+    {
+      "text": "another",
+      "source_start": 12.37,
+      "source_end": 12.99,
+      "start": 12.37,
+      "end": 12.99
+    },
+    {
+      "text": "area",
+      "source_start": 12.99,
+      "source_end": 13.37,
+      "start": 12.99,
+      "end": 13.37
+    },
+    {
+      "text": "of",
+      "source_start": 13.37,
+      "source_end": 13.67,
+      "start": 13.37,
+      "end": 13.67
+    },
+    {
+      "text": "the",
+      "source_start": 13.67,
+      "source_end": 13.75,
+      "start": 13.67,
+      "end": 13.75
+    },
+    {
+      "text": "world",
+      "source_start": 13.75,
+      "source_end": 14.01,
+      "start": 13.75,
+      "end": 14.01
+    },
+    {
+      "text": "and",
+      "source_start": 14.01,
+      "source_end": 14.17,
+      "start": 14.01,
+      "end": 14.17
+    },
+    {
+      "text": "we",
+      "source_start": 14.17,
+      "source_end": 14.25,
+      "start": 14.17,
+      "end": 14.25
+    },
+    {
+      "text": "get",
+      "source_start": 14.25,
+      "source_end": 14.37,
+      "start": 14.25,
+      "end": 14.37
+    },
+    {
+      "text": "to",
+      "source_start": 14.37,
+      "source_end": 14.47,
+      "start": 14.37,
+      "end": 14.47
+    },
+    {
+      "text": "come",
+      "source_start": 14.47,
+      "source_end": 14.65,
+      "start": 14.47,
+      "end": 14.65
+    },
+    {
+      "text": "to",
+      "source_start": 14.65,
+      "source_end": 14.93,
+      "start": 14.65,
+      "end": 14.93
+    },
+    {
+      "text": "the",
+      "source_start": 14.93,
+      "source_end": 15.37,
+      "start": 14.93,
+      "end": 15.37
+    },
+    {
+      "text": "Philippines",
+      "source_start": 15.37,
+      "source_end": 15.69,
+      "start": 15.37,
+      "end": 15.69
+    },
+    {
+      "text": "and",
+      "source_start": 15.69,
+      "source_end": 16.59,
+      "start": 15.69,
+      "end": 16.59
+    },
+    {
+      "text": "be",
+      "source_start": 16.59,
+      "source_end": 16.83,
+      "start": 16.59,
+      "end": 16.83
+    },
+    {
+      "text": "able",
+      "source_start": 16.83,
+      "source_end": 17.03,
+      "start": 16.83,
+      "end": 17.03
+    },
+    {
+      "text": "to",
+      "source_start": 17.03,
+      "source_end": 17.29,
+      "start": 17.03,
+      "end": 17.29
+    },
+    {
+      "text": "be",
+      "source_start": 17.29,
+      "source_end": 17.49,
+      "start": 17.29,
+      "end": 17.49
+    },
+    {
+      "text": "a",
+      "source_start": 17.49,
+      "source_end": 17.57,
+      "start": 17.49,
+      "end": 17.57
+    },
+    {
+      "text": "part",
+      "source_start": 17.57,
+      "source_end": 17.73,
+      "start": 17.57,
+      "end": 17.73
+    },
+    {
+      "text": "of",
+      "source_start": 17.73,
+      "source_end": 17.81,
+      "start": 17.73,
+      "end": 17.81
+    },
+    {
+      "text": "that",
+      "source_start": 17.81,
+      "source_end": 17.89,
+      "start": 17.81,
+      "end": 17.89
+    },
+    {
+      "text": "culture",
+      "source_start": 17.89,
+      "source_end": 18.19,
+      "start": 17.89,
+      "end": 18.19
+    },
+    {
+      "text": "with",
+      "source_start": 18.19,
+      "source_end": 19.01,
+      "start": 18.19,
+      "end": 19.01
+    },
+    {
+      "text": "our",
+      "source_start": 19.01,
+      "source_end": 19.21,
+      "start": 19.01,
+      "end": 19.21
+    },
+    {
+      "text": "guys.",
+      "source_start": 19.21,
+      "source_end": 19.51,
+      "start": 19.21,
+      "end": 19.51
+    },
+    {
+      "text": "Very",
+      "source_start": 19.83,
+      "source_end": 20.07,
+      "start": 19.83,
+      "end": 20.07
+    },
+    {
+      "text": "few",
+      "source_start": 20.07,
+      "source_end": 20.27,
+      "start": 20.07,
+      "end": 20.27
+    },
+    {
+      "text": "of",
+      "source_start": 20.27,
+      "source_end": 20.39,
+      "start": 20.27,
+      "end": 20.39
+    },
+    {
+      "text": "them",
+      "source_start": 20.39,
+      "source_end": 20.49,
+      "start": 20.39,
+      "end": 20.49
+    },
+    {
+      "text": "have",
+      "source_start": 20.49,
+      "source_end": 20.61,
+      "start": 20.49,
+      "end": 20.61
+    },
+    {
+      "text": "ever",
+      "source_start": 20.61,
+      "source_end": 20.77,
+      "start": 20.61,
+      "end": 20.77
+    },
+    {
+      "text": "been",
+      "source_start": 20.77,
+      "source_end": 20.95,
+      "start": 20.77,
+      "end": 20.95
+    },
+    {
+      "text": "to",
+      "source_start": 20.95,
+      "source_end": 21.05,
+      "start": 20.95,
+      "end": 21.05
+    },
+    {
+      "text": "the",
+      "source_start": 21.05,
+      "source_end": 21.15,
+      "start": 21.05,
+      "end": 21.15
+    },
+    {
+      "text": "Philippines",
+      "source_start": 21.15,
+      "source_end": 21.49,
+      "start": 21.15,
+      "end": 21.49
+    },
+    {
+      "text": "so",
+      "source_start": 21.49,
+      "source_end": 22.27,
+      "start": 21.49,
+      "end": 22.27
+    },
+    {
+      "text": "we've",
+      "source_start": 22.27,
+      "source_end": 22.57,
+      "start": 22.27,
+      "end": 22.57
+    },
+    {
+      "text": "got",
+      "source_start": 22.57,
+      "source_end": 22.69,
+      "start": 22.57,
+      "end": 22.69
+    },
+    {
+      "text": "Americans",
+      "source_start": 22.69,
+      "source_end": 23.09,
+      "start": 22.69,
+      "end": 23.09
+    },
+    {
+      "text": "and",
+      "source_start": 23.09,
+      "source_end": 23.53,
+      "start": 23.09,
+      "end": 23.53
+    },
+    {
+      "text": "we've",
+      "source_start": 23.53,
+      "source_end": 23.79,
+      "start": 23.53,
+      "end": 23.79
+    },
+    {
+      "text": "got",
+      "source_start": 23.79,
+      "source_end": 24.05,
+      "start": 23.79,
+      "end": 24.05
+    },
+    {
+      "text": "Filipinos",
+      "source_start": 24.05,
+      "source_end": 24.75,
+      "start": 24.05,
+      "end": 24.75
+    },
+    {
+      "text": "and",
+      "source_start": 24.75,
+      "source_end": 25.55,
+      "start": 24.75,
+      "end": 25.55
+    },
+    {
+      "text": "bridging",
+      "source_start": 25.55,
+      "source_end": 26.47,
+      "start": 25.55,
+      "end": 26.47
+    },
+    {
+      "text": "that",
+      "source_start": 26.47,
+      "source_end": 26.89,
+      "start": 26.47,
+      "end": 26.89
+    },
+    {
+      "text": "relationship",
+      "source_start": 26.89,
+      "source_end": 27.55,
+      "start": 26.89,
+      "end": 27.55
+    },
+    {
+      "text": "builds",
+      "source_start": 27.55,
+      "source_end": 28.93,
+      "start": 27.55,
+      "end": 28.93
+    },
+    {
+      "text": "not",
+      "source_start": 28.93,
+      "source_end": 29.27,
+      "start": 28.93,
+      "end": 29.27
+    },
+    {
+      "text": "only",
+      "source_start": 29.27,
+      "source_end": 29.69,
+      "start": 29.27,
+      "end": 29.69
+    },
+    {
+      "text": "a",
+      "source_start": 29.69,
+      "source_end": 30.21,
+      "start": 29.69,
+      "end": 30.21
+    },
+    {
+      "text": "greater",
+      "source_start": 30.21,
+      "source_end": 31.09,
+      "start": 30.21,
+      "end": 31.09
+    },
+    {
+      "text": "trusted",
+      "source_start": 31.09,
+      "source_end": 32.11,
+      "start": 31.09,
+      "end": 32.11
+    },
+    {
+      "text": "us",
+      "source_start": 32.11,
+      "source_end": 32.45,
+      "start": 32.11,
+      "end": 32.45
+    },
+    {
+      "text": "to",
+      "source_start": 32.45,
+      "source_end": 33.01,
+      "start": 32.45,
+      "end": 33.01
+    },
+    {
+      "text": "go",
+      "source_start": 33.01,
+      "source_end": 33.19,
+      "start": 33.01,
+      "end": 33.19
+    },
+    {
+      "text": "outside",
+      "source_start": 33.19,
+      "source_end": 33.67,
+      "start": 33.19,
+      "end": 33.67
+    },
+    {
+      "text": "of",
+      "source_start": 33.67,
+      "source_end": 34.19,
+      "start": 33.67,
+      "end": 34.19
+    },
+    {
+      "text": "our",
+      "source_start": 34.19,
+      "source_end": 34.57,
+      "start": 34.19,
+      "end": 34.57
+    },
+    {
+      "text": "nation.",
+      "source_start": 34.57,
+      "source_end": 35.05,
+      "start": 34.57,
+      "end": 35.05
+    }
+  ]
+}

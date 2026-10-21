@@ -1,0 +1,6 @@
+{
+  "name": "look-natural",
+  "description": "Clean cut grade: natural footage with at most a light normalise. No LUT, no vignette, no stylised colour.",
+  "ffmpeg": "eq=contrast=1.03:brightness=0.01:saturation=1.03",
+  "rules": ["Skin stays true; whites stay white.", "One grade for the whole video (no per-scene look)."]
+}

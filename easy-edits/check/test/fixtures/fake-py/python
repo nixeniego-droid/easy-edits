@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+# fake interpreter for final-asr-lang.test.mjs: asr_excerpts.py call -> one excerpt whose only word is the argv
+import json, sys
+print(json.dumps([[{"text": " ".join(sys.argv[1:]), "start": 0, "end": 1}]]))

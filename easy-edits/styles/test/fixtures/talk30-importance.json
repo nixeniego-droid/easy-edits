@@ -1,0 +1,139 @@
+{
+ "note": "talk_30s cut-candidates cache (fresh-user run 2026-10-19), source 0-9.3 s: the decode that dropped \"importance\"",
+ "whole": [
+  {
+   "text": "Relationship",
+   "start": 0.36,
+   "end": 1.02
+  },
+  {
+   "text": "building",
+   "start": 1.02,
+   "end": 1.38
+  },
+  {
+   "text": "is",
+   "start": 1.38,
+   "end": 2.98
+  },
+  {
+   "text": "really",
+   "start": 2.98,
+   "end": 3.46
+  },
+  {
+   "text": "a,",
+   "start": 3.46,
+   "end": 3.64
+  },
+  {
+   "text": "a,",
+   "start": 3.64,
+   "end": 3.64
+  },
+  {
+   "text": "a",
+   "start": 3.64,
+   "end": 4.1
+  },
+  {
+   "text": "gigantic,",
+   "start": 4.1,
+   "end": 4.4
+  },
+  {
+   "text": "a",
+   "start": 4.56,
+   "end": 4.76
+  },
+  {
+   "text": "very",
+   "start": 4.76,
+   "end": 5.06
+  },
+  {
+   "text": "large,",
+   "start": 5.08,
+   "end": 5.62
+  },
+  {
+   "text": "a",
+   "start": 6.04,
+   "end": 6.1
+  },
+  {
+   "text": "very",
+   "start": 6.1,
+   "end": 6.42
+  },
+  {
+   "text": "large,",
+   "start": 6.42,
+   "end": 6.86
+  },
+  {
+   "text": "uh,",
+   "start": 6.86,
+   "end": 7.38
+  },
+  {
+   "text": "uh,",
+   "start": 7.4,
+   "end": 7.64
+  },
+  {
+   "text": "importance",
+   "start": 8.1,
+   "end": 8.1
+  },
+  {
+   "text": "for",
+   "start": 8.1,
+   "end": 9.1
+  },
+  {
+   "text": "our",
+   "start": 9.1,
+   "end": 9.3
+  }
+ ],
+ "candidates": [
+  {
+   "kind": "false-start",
+   "text": "a gigantic, a very",
+   "removed": "a gigantic",
+   "cutStart": 3.46,
+   "cutEnd": 4.64,
+   "windows": 2
+  }
+ ],
+ "cuts": [
+  {
+   "start": 3.46,
+   "end": 4.64,
+   "because": [
+    "a gigantic, a very"
+   ]
+  },
+  {
+   "start": 6.9,
+   "end": 7.42,
+   "because": [
+    "uh"
+   ],
+   "from": "filler-windows",
+   "windows": 3
+  }
+ ],
+ "fillers": [
+  {
+   "start": 6.9,
+   "end": 7.42,
+   "because": [
+    "uh"
+   ],
+   "from": "filler-windows",
+   "windows": 3
+  }
+ ]
+}

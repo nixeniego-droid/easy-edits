@@ -1,0 +1,2 @@
+- a repeat that is intentional emphasis ("very, very", "no, no, no") or a rhetorical restart -> keep it;
+- a filler, false start or stutter the rules missed -> remove it;
