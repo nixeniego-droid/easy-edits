@@ -1,5 +1,23 @@
 # Easy Edits
 
+## Quickstart
+
+**Use with Claude Code**
+
+```sh
+git clone https://github.com/nixeniego-droid/easy-edits
+cd easy-edits
+claude
+```
+
+Then say: *"set up Easy Edits"*. Claude Code reads [CLAUDE.md](CLAUDE.md) and the repo skill
+(`.claude/skills/easy-edits/SKILL.md`), runs the install and the doctor, fixes what's missing, and makes a first
+edit of a video you give it. `/easy-edits [video]` runs the same getting-started flow.
+
+**Use with Grok Bot**
+
+A template is coming soon.
+
 **Zero-instruction video editing. Point it at a talking-head video and get a finished edit back: clean cuts,
 captions, motion design, explainers and shorts.**
 
@@ -20,7 +38,7 @@ playbook, house style, style library and HyperFrames (HTML-to-video) render work
 Needs `git`, `curl` and Linux (Debian/Ubuntu; `sudo` for apt) or macOS (Homebrew).
 
 ```sh
-git clone <repo-url> easy-edits
+git clone https://github.com/nixeniego-droid/easy-edits
 cd easy-edits
 ./install.sh              # one command, safe to re-run; ~2.5 GB (Whisper models, Chrome for rendering)
 . ~/.easy-edits/env.sh       # in every new shell: puts easy-edits, Node 22 and the Python venv on your PATH

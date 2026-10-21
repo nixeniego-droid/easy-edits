@@ -42,13 +42,14 @@ export async function exportFormats(o, spec) {
     buildSoundtrack({ voice: spec.voice, offset: c.offset, total: c.duration, speechEnd: c.offset + clip.duration, cues: c.cues, music, bedDb: spec.bedDb, work: path.join(o.work, `audio_${fmt}`), out: wav });
     const out = path.join(o.out, `${base}.mp4`);
     const m = muxMaster(silent, wav, out, { work: o.work, lead: spec.leadIn || 0 });
+    const duration = probe(out).duration;   // the delivered file (includes the lead-in), not the composition
     const chk = deliveryCheck(out, { logFile: o.logFile, lang: o.lang || 'auto', voice: music ? path.join(o.work, `audio_${fmt}`, 'voice.wav') : undefined, words: spec.words });
     contactSheet(out, path.join(o.out, `${base}_sheet.png`));
     writeSubtitles(spec.words, path.join(o.out, base), { offset: c.offset + (spec.leadIn || 0), duration: clip.duration });
     if (music) fs.writeFileSync(path.join(o.out, 'CREDITS.txt'), creditsFor(music.pick, `${exportName(o, '*')}`));
-    exports.push({ format: fmt, file: out, duration: c.duration, loudness: m.measured, pass: chk.pass, note: chk.note, check: chk.out.split('\n').slice(-12).join('\n'), captions: c.captions.length, overlaps: c.overlaps });
+    exports.push({ format: fmt, file: out, duration, loudness: m.measured, pass: chk.pass, note: chk.note, check: chk.out.split('\n').slice(-12).join('\n'), captions: c.captions.length, overlaps: c.overlaps });
     if (c.overlaps.length) log(`${fmt}: WARN ${c.overlaps.length} caption overlap(s): ${c.overlaps.slice(0, 4).map((x) => `${x.t}s "${x.caption}" x ${x.with}`).join('; ')}`);
-    log(`${fmt}: ${out} (${c.duration.toFixed(1)} s, ${chk.pass ? 'delivery PASS' : 'delivery FAIL'})`);
+    log(`${fmt}: ${out} (${duration.toFixed(1)} s, ${chk.pass ? 'delivery PASS' : 'delivery FAIL'})`);
   }
   return { exports, music: music ? { title: music.pick.title, creator: music.pick.creator, license: music.pick.license, url: music.pick.foreign_landing_url || music.pick.url } : null };
 }

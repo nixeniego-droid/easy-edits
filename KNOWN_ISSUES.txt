@@ -1,4 +1,4 @@
-Easy Edits v1.1.0: known issues
+Easy Edits v1.2.0: known issues
 ============================
 
 Timing / formats

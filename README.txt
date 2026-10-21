@@ -1,4 +1,4 @@
-Easy Edits v1.1.0
+Easy Edits v1.2.0
 ==============
 
 Zero-instruction video editing: point it at a talking-head video, get a finished edit back.
@@ -11,7 +11,7 @@ Known flaws: KNOWN_ISSUES.txt.
 
 INSTALL (Linux or macOS; needs git and curl)
 
-  git clone <repo-url> easy-edits
+  git clone https://github.com/nixeniego-droid/easy-edits
   cd easy-edits
   ./install.sh                     # Node 22, ffmpeg, faster-whisper + models, OpenCV, yt-dlp, npm deps, Chrome, font
   . ~/.easy-edits/env.sh              # in every new shell (puts easy-edits on your PATH)
