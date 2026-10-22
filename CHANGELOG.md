@@ -8,6 +8,11 @@
   `~/Library/Fonts` and `/Library/Fonts` (where Chrome finds them) before asking `fc-list`. Without `fc-list`, the
   doctor also needed the font in both folders at once; one is enough now.
 - The doctor's font FAIL lines say where they looked.
+- Fixed: on a machine whose `python3` is newer than faster-whisper supports (Python 3.15, e.g. a fresh Homebrew
+  python), the install died with "No matching distribution found for ctranslate2". `install.sh` now builds the venv
+  with a Python 3.9-3.14 (`python3`, else `python3.14` ... `python3.9`; on macOS it installs `python@3.13` with
+  Homebrew if there is none), rebuilds a venv an unsupported python left behind, and the doctor's `python3` line
+  checks the venv's Python.
 - CI (`.github/workflows/install.yml`): a fresh `./install.sh` + `./install.sh --doctor` on Linux and macOS
   (also with an `fc-list` that lists none of the fonts), and `npm test`, on every push and pull request.
 

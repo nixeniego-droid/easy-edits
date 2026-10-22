@@ -96,21 +96,42 @@ MSG
   fi
 }
 
+# faster-whisper needs ctranslate2, whose wheels cover CPython 3.$PY_MIN..3.$PY_MAX. A newer python3 (a fresh Homebrew
+# python, say) makes pip fail with "No matching distribution found for ctranslate2", so pick a supported interpreter.
+PY_MIN=9 PY_MAX=14
+py_ok() { "$1" -c "import sys, venv, ensurepip; sys.exit(not ((3, $PY_MIN) <= sys.version_info[:2] <= (3, $PY_MAX)))" >/dev/null 2>&1; }
+pick_python() {
+  local c m
+  for c in python3 $(m=$PY_MAX; while [ "$m" -ge "$PY_MIN" ]; do printf 'python3.%s ' "$m"; m=$((m - 1)); done); do
+    have "$c" && py_ok "$c" && { command -v "$c"; return 0; }
+  done
+  return 1
+}
 install_python() {
   if ! have python3; then
     if have apt-get && as_root true; then
       as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 python3-venv
-    else die "python3 missing; install python3 (+ python3-venv) and re-run"; fi
+    elif ! have brew; then die "python3 missing; install Python 3.$PY_MIN-3.$PY_MAX (+ python3-venv) and re-run"; fi
   fi
-  if ! python3 -c 'import venv, ensurepip' 2>/dev/null; then
-    if have apt-get && as_root true; then
-      as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv
-    else die "python3 venv/ensurepip missing; install python3-venv and re-run"; fi
+  if have python3 && ! python3 -c 'import venv, ensurepip' 2>/dev/null && have apt-get && as_root true; then
+    as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv
+  fi
+  # a venv left by an unsupported python (an earlier failed run) is rebuilt
+  if [ -x "$VENV/bin/python" ] && ! py_ok "$VENV/bin/python"; then
+    log "venv $VENV uses $("$VENV/bin/python" --version 2>&1), which faster-whisper can't install on; rebuilding it"
+    rm -rf "$VENV"
   fi
   if [ ! -x "$VENV/bin/python" ]; then
-    log "creating venv $VENV"
+    local py
+    if ! py="$(pick_python)"; then
+      if have brew; then
+        log "no Python 3.$PY_MIN-3.$PY_MAX found (python3 is $(python3 --version 2>&1)); installing python@3.13 with Homebrew"
+        brew install python@3.13 && py="$(brew --prefix python@3.13)/bin/python3.13" && py_ok "$py" || die "brew install python@3.13 failed"
+      else die "need Python 3.$PY_MIN-3.$PY_MAX with venv (python3 is $(python3 --version 2>&1)); install one (e.g. python3.12 python3.12-venv) and re-run"; fi
+    fi
+    log "creating venv $VENV ($("$py" --version 2>&1))"
     mkdir -p "$EASY_EDITS_HOME"
-    python3 -m venv "$VENV"
+    "$py" -m venv "$VENV"
   fi
   if "$VENV/bin/python" -c "import faster_whisper,sys; sys.exit(faster_whisper.__version__!='$FASTER_WHISPER_VERSION')" 2>/dev/null; then
     log "faster-whisper $FASTER_WHISPER_VERSION OK"
@@ -257,7 +278,7 @@ c_node()    { load_node || { echo "need node >= $NODE_MAJOR (have $(have node &&
 c_npm()     { load_node && npm -v; }
 c_ffmpeg()  { ffmpeg -hide_banner -version | head -n1; }
 c_ffprobe() { ffprobe -hide_banner -version | head -n1; }
-c_python()  { python3 --version; }
+c_python()  { [ -x "$VENV/bin/python" ] && py_ok "$VENV/bin/python" && { "$VENV/bin/python" --version; return; }; echo "venv python missing or not 3.$PY_MIN-3.$PY_MAX (run ./install.sh)"; return 1; }
 c_fw()      { "$VENV/bin/python" -c 'import faster_whisper,ctranslate2; print("faster-whisper", faster_whisper.__version__, "ctranslate2", ctranslate2.__version__)'; }
 c_yunet()   { f="$EASY_EDITS_HOME/models-cv/face_detection_yunet_2023mar.onnx"; [ -f "$f" ] && echo "$f"; }
 c_ytdlp()   { "$VENV/bin/yt-dlp" --version | sed 's/^/yt-dlp /'; }
