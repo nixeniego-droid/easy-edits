@@ -1,0 +1,70 @@
+# Fresh-machine install check: runs ./install.sh and ./install.sh --doctor on clean Linux and macOS runners, so a
+# broken install step or a doctor check that FAILs on a working install is caught before users hit it.
+name: install
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: install-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # the tiny Whisper model keeps the run short; the doctor checks whichever models EASY_EDITS_WHISPER names
+  EASY_EDITS_WHISPER: tiny
+
+jobs:
+  install:
+    name: install + doctor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install.sh
+        run: ./install.sh
+
+      - name: doctor
+        run: ./install.sh --doctor
+
+      - name: doctor again (re-run of install.sh is idempotent)
+        run: ./install.sh && ./install.sh --doctor
+
+      # Homebrew's fc-list may not index ~/Library/Fonts; the doctor must still find the fonts there.
+      - name: doctor with an fc-list that lists no installed fonts (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p "$RUNNER_TEMP/shim"
+          printf '#!/bin/sh\necho "Helvetica"\n' > "$RUNNER_TEMP/shim/fc-list"
+          chmod +x "$RUNNER_TEMP/shim/fc-list"
+          PATH="$RUNNER_TEMP/shim:$PATH" ./install.sh --doctor
+
+      - name: easy-edits CLI works from env.sh
+        run: |
+          . ~/.easy-edits/env.sh
+          easy-edits --help | head -n 5
+          easy-edits style list
+
+  test:
+    name: npm test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: ffmpeg (several tests build synthetic clips)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: npm ci
+      - run: npm test

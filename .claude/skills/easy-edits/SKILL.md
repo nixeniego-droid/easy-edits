@@ -63,7 +63,7 @@ every FAIL, then run `./install.sh` and `./install.sh --doctor` again.
 | `whisper-models`     | Whisper `small` + `medium`                          | `./install.sh` (needs ~2 GB of disk and network) |
 | `npm-deps`, `hyperframes`, `gsap` | the renderer and its packages          | `./install.sh` (runs `npm ci`) |
 | `hyperframes-chrome` | the headless Chrome the renderer uses               | `./install.sh`. If renders later fail with a missing `.so` library, install Chrome's system libraries; Debian/Ubuntu: `cd ~/easy-edits && sudo npx playwright install-deps chromium`. |
-| `caption-font`       | Montserrat for the captions                         | `./install.sh` (installs into `~/.local/share/fonts`; needs `fontconfig`, Debian/Ubuntu: `sudo apt-get install -y fontconfig`) |
+| `caption-font`       | Montserrat for the captions                         | `./install.sh` (Linux: installs into `~/.local/share/fonts`; needs `fontconfig`, Debian/Ubuntu: `sudo apt-get install -y fontconfig`. macOS: installs into `~/Library/Fonts`; if it still FAILs, check `ls ~/Library/Fonts \| grep Montserrat` and `git pull` for the latest checks) |
 | `style-fonts`        | Playfair Display + JetBrains Mono for the style packs | `./install.sh` (same place and needs as the caption font) |
 | `env.sh`, `easy-edits-cli` | the `easy-edits` command                     | `./install.sh`, then `. ~/.easy-edits/env.sh` |
 | `telemetry-off`      | env.sh opts out of HyperFrames telemetry            | `./install.sh` (rewrites env.sh), then `. ~/.easy-edits/env.sh` |
