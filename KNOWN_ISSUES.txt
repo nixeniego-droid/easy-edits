@@ -1,6 +1,12 @@
 Easy Edits v1.3.0: known issues
 ============================
 
+Install (macOS)
+- Before this fix, `./install.sh --doctor` could FAIL caption-font and style-fonts on a Mac with Homebrew ffmpeg
+  although the fonts were installed in ~/Library/Fonts (a Homebrew fc-list does not always index that folder),
+  and --style broadsheet / terminal were refused. The fonts were fine. Fix: `git pull` in the Easy Edits folder
+  (if it says your local changes would be overwritten: `git checkout install.sh && git pull`).
+
 Timing / formats
 - Motion renders can trail the voice by up to 1 frame on some sources. Fixed for 29.97 fps shorts; other modes
   and frame rates are not fully verified.

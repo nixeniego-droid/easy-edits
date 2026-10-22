@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SCHEMA, PACK_DIR, validatePack, loadPack, listPacks, resolvePack, checkRequest, stylePlan, missingFonts, builtinIds, StyleError } from '../../engine/style-pack.mjs';
+import { spawnSync } from 'node:child_process';
+import { SCHEMA, PACK_DIR, validatePack, loadPack, listPacks, resolvePack, checkRequest, stylePlan, missingFonts, installedFonts, fontsInDirs, FONT_FAMILIES, builtinIds, StyleError } from '../../engine/style-pack.mjs';
 import { contrastRatio } from '../../engine/contrast.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -165,4 +166,32 @@ test('install.sh installs the fonts the packs use (pinned, checksummed) and the 
   // under pipefail, `fc-list | grep -q` can report a found font as missing (SIGPIPE): the font checks read all input
   assert.doesNotMatch(sh, /fc-list[^\n]*\|[^\n]*grep -q/);
   assert.deepEqual([...SCHEMA.$defs.font.properties.family.enum].sort(), ['JetBrains Mono', 'Montserrat', 'Playfair Display']);
+});
+
+test('macOS: fonts in the font folders count as installed, even when fc-list does not list them', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-fonts-'));
+  for (const f of ['PlayfairDisplay[wght].ttf', 'Montserrat-Bold.otf', 'JetBrainsMono-OFL.txt']) fs.writeFileSync(path.join(dir, f), '');
+  assert.deepEqual([...fontsInDirs(FONT_FAMILIES, [dir, '/nonexistent'])].sort(), ['Montserrat', 'Playfair Display']);
+  const mac = installedFonts({ platform: 'darwin', dirs: [dir] });
+  assert.ok(mac.has('Playfair Display') && mac.has('Montserrat'));
+  assert.deepEqual(missingFonts(loadPack('terminal'), mac), ['JetBrains Mono']); // the licence .txt is not a font
+  assert.deepEqual(missingFonts(loadPack('broadsheet'), mac), []);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('install.sh doctor on macOS finds fonts in ~/Library/Fonts when fc-list does not list them', () => {
+  const sh = fs.readFileSync(path.join(HERE, '../../../install.sh'), 'utf8');
+  const fns = sh.split('\n').filter((l) => /^(have|font_file_present)\(\)/.test(l)).join('\n')
+    + '\n' + ['have_montserrat', 'have_family'].map((n) => sh.match(new RegExp(`^${n}\\(\\) \\{\\n[\\s\\S]*?\\n\\}`, 'm'))[0]).join('\n');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-doctor-'));
+  const bin = path.join(tmp, 'bin'), fonts = path.join(tmp, 'Library/Fonts');
+  fs.mkdirSync(bin); fs.mkdirSync(fonts, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'uname'), '#!/bin/sh\necho Darwin\n', { mode: 0o755 });
+  fs.writeFileSync(path.join(bin, 'fc-list'), '#!/bin/sh\necho "DejaVu Sans"\n', { mode: 0o755 }); // a Homebrew fc-list that skips ~/Library/Fonts
+  const run = () => spawnSync('bash', ['-c', `set -euo pipefail\n${fns}\nhave_montserrat && echo M=1 || echo M=0\nhave_family "Playfair Display" "PlayfairDisplay[wght].ttf" && echo P=1 || echo P=0`],
+    { encoding: 'utf8', env: { ...process.env, HOME: tmp, PATH: `${bin}:${process.env.PATH}` } }).stdout;
+  assert.match(run(), /M=0[\s\S]*P=0/);
+  for (const f of ['Montserrat[wght].ttf', 'PlayfairDisplay[wght].ttf']) fs.writeFileSync(path.join(fonts, f), '');
+  assert.match(run(), /M=1[\s\S]*P=1/);
+  fs.rmSync(tmp, { recursive: true, force: true });
 });

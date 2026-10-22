@@ -198,7 +198,13 @@ ENV
 # commit, sha256-checked); installed per user with its licence next to it.
 FONT_COMMIT=47d54ca1ebb14fd864695f1d39dc734f39017c33
 FONT_SHA=0f7b311b2f3279e4eef9b2f968bcdbab6e28f4daeb1f049f4f278a902bcd82f7
-have_montserrat() { if have fc-list; then fc-list : family | grep -x 'Montserrat\(,.*\)\{0,1\}' >/dev/null; else ls "$HOME/Library/Fonts"/Montserrat* /Library/Fonts/Montserrat* >/dev/null 2>&1; fi; }
+# macOS: Chrome finds fonts through CoreText (~/Library/Fonts, /Library/Fonts), so check those folders first; a
+# Homebrew fc-list may not index ~/Library/Fonts and would report an installed font as missing.
+font_file_present() { [ -e "$HOME/Library/Fonts/$1" ] || [ -e "/Library/Fonts/$1" ]; }
+have_montserrat() {
+  [ "$(uname)" = Darwin ] && font_file_present 'Montserrat[wght].ttf' && return 0
+  have fc-list && fc-list : family | grep -x 'Montserrat\(,.*\)\{0,1\}' >/dev/null
+}
 install_font() {
   if have_montserrat; then log "font Montserrat OK"; return 0; fi
   local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
@@ -218,7 +224,10 @@ install_font() {
 STYLE_FONTS="Playfair Display|playfairdisplay|PlayfairDisplay[wght].ttf|c40f2293766a503bc70cce9e512ef844a4ccb7cbcde792fe2ea31d191917d8d6
 JetBrains Mono|jetbrainsmono|JetBrainsMono[wght].ttf|48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda"
 # (grep >/dev/null, not grep -q: -q exits on the first match, fc-list gets SIGPIPE and pipefail calls it missing)
-have_family() { if have fc-list; then fc-list : family | tr ',' '\n' | grep -x "$1" >/dev/null; else ls "$HOME/Library/Fonts/$2" "/Library/Fonts/$2" >/dev/null 2>&1; fi; }
+have_family() {
+  [ "$(uname)" = Darwin ] && font_file_present "$2" && return 0
+  have fc-list && fc-list : family | tr ',' '\n' | grep -x "$1" >/dev/null
+}
 install_style_fonts() {
   local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
   local fam dir file sha url added=0
@@ -258,9 +267,10 @@ c_deps()    { load_node && cd "$REPO" && npm ls --depth=0 >/dev/null && echo "no
 c_hf()      { load_node && cd "$REPO" && node_modules/.bin/hyperframes --version; }
 c_gsap()    { load_node && cd "$REPO" && node -p 'require("gsap/package.json").version'; }
 c_chrome()  { load_node && cd "$REPO" && p="$(node_modules/.bin/hyperframes browser path 2>/dev/null | tail -n1)" && [ -x "$p" ] && echo "$p"; }
-c_font()    { have_montserrat && echo "Montserrat (Clean cut captions)" || { echo "Montserrat missing: captions would fall back (run ./install.sh)"; return 1; }; }
+font_where() { [ "$(uname)" = Darwin ] && echo "~/Library/Fonts, /Library/Fonts or fc-list" || echo "fc-list (fontconfig)"; }
+c_font()    { have_montserrat && echo "Montserrat (Clean cut captions)" || { echo "Montserrat not found in $(font_where): captions would fall back (run ./install.sh)"; return 1; }; }
 c_sfonts()  { local fam dir file sha miss=(); while IFS='|' read -r fam dir file sha; do have_family "$fam" "$file" || miss+=("$fam"); done <<< "$STYLE_FONTS"
-              [ ${#miss[@]} -eq 0 ] && echo "Playfair Display, JetBrains Mono (style packs)" || { echo "missing: ${miss[*]}: style packs that use them are refused (run ./install.sh)"; return 1; }; }
+              [ ${#miss[@]} -eq 0 ] && echo "Playfair Display, JetBrains Mono (style packs)" || { echo "not found in $(font_where): ${miss[*]}: style packs that use them are refused (run ./install.sh)"; return 1; }; }
 c_cli()     { load_node && "$REPO/bin/easy-edits" --help | head -n1; }
 c_env()     { [ -f "$EASY_EDITS_HOME/env.sh" ] && echo "$EASY_EDITS_HOME/env.sh"; }
 c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$EASY_EDITS_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }

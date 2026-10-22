@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Fixed (macOS): the doctor reported the installed fonts as missing (`caption-font` and `style-fonts` FAIL) when
+  a Homebrew `fc-list` (it comes with Homebrew's ffmpeg) doesn't index `~/Library/Fonts`, and the renderer refused
+  `--style broadsheet` / `terminal` for the same reason. On macOS both now look for the font files in
+  `~/Library/Fonts` and `/Library/Fonts` (where Chrome finds them) before asking `fc-list`. Without `fc-list`, the
+  doctor also needed the font in both folders at once; one is enough now.
+- The doctor's font FAIL lines say where they looked.
+- CI (`.github/workflows/install.yml`): a fresh `./install.sh` + `./install.sh --doctor` on Linux and macOS
+  (also with an `fc-list` that lists none of the fonts), and `npm test`, on every push and pull request.
+
 ## 1.3.0 (2026-10-22)
 
 Style packs, style skills, smarter captions.
