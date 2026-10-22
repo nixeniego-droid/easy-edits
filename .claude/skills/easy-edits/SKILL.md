@@ -35,6 +35,11 @@ cd ~/easy-edits
 ./install.sh --doctor   # must end with "doctor: all PASS"
 ```
 
+Run `./install.sh` in the foreground and wait for it to return before the doctor: don't start it in the
+background. A first install takes about 5-15 minutes, so give the command a long timeout (30 minutes). It ends
+with the line `[easy-edits] first edit: ...`. If your shell tool still times out, run `./install.sh` again: it
+skips what is already installed. Only call setup done after `./install.sh --doctor` prints "doctor: all PASS".
+
 `./install.sh` turns off the renderer's (HyperFrames) anonymous usage telemetry itself: it sets
 `HYPERFRAMES_NO_TELEMETRY=1` and `DO_NOT_TRACK=1` before anything runs and keeps them in `~/.easy-edits/env.sh`.
 
@@ -59,6 +64,7 @@ every FAIL, then run `./install.sh` and `./install.sh --doctor` again.
 | `npm-deps`, `hyperframes`, `gsap` | the renderer and its packages          | `./install.sh` (runs `npm ci`) |
 | `hyperframes-chrome` | the headless Chrome the renderer uses               | `./install.sh`. If renders later fail with a missing `.so` library, install Chrome's system libraries; Debian/Ubuntu: `cd ~/easy-edits && sudo npx playwright install-deps chromium`. |
 | `caption-font`       | Montserrat for the captions                         | `./install.sh` (installs into `~/.local/share/fonts`; needs `fontconfig`, Debian/Ubuntu: `sudo apt-get install -y fontconfig`) |
+| `style-fonts`        | Playfair Display + JetBrains Mono for the style packs | `./install.sh` (same place and needs as the caption font) |
 | `env.sh`, `easy-edits-cli` | the `easy-edits` command                     | `./install.sh`, then `. ~/.easy-edits/env.sh` |
 | `telemetry-off`      | env.sh opts out of HyperFrames telemetry            | `./install.sh` (rewrites env.sh), then `. ~/.easy-edits/env.sh` |
 | `agent`              | optional `claude` / `codex` CLI (always PASS)       | nothing to fix; see "Picker agent" below |
@@ -154,7 +160,33 @@ it isn't clear from the request.
 6. **More clips later:** run `--pick` with other numbers. Rendered clips are marked as used, so a new `--propose`
    skips them. Use `--reset-used` to start fresh.
 
+## 5. Styles, caption colour and face position
+
+Only when the user asks for a style or a look (or names one):
+
+```sh
+easy-edits style list                                   # punch, broadsheet, terminal + the user's own packs
+easy-edits talking-head VIDEO.mp4 -o OUT --style punch  # also captions / explainer / shorts; not clean-cut
+easy-edits style skill broadsheet                       # writes ~/.claude/skills/easy-edits-style-broadsheet/SKILL.md
+```
+
+- `punch`: loud creator shorts. `broadsheet`: calm editorial. `terminal`: dark tech. Each has its own captions,
+  transitions, number animation and signature move.
+- If the CLI refuses a style (exit 2, "style ... can't render this run"), tell the user the reason it printed and
+  fix the command (drop `--hook`, pick another mode or format, remove a plan beat). Don't edit a built-in pack.
+- A user's own pack: `easy-edits style validate their-pack.json` lists every problem; fix them before rendering.
+- `report.json` per export: `style`, `transitions`, `signatures`, `styleDropped` (beats the style left out).
+
+Captions pick white or dark text from the footage behind them on their own (`contrast` in `report.json`). Only if
+the user wants a fixed colour: `--caption-color white|black|#RRGGBB`.
+
+If a contact sheet shows the framing on the wrong thing (a poster, a second person, a dark shot), re-run with
+`--face top|center|bottom` or `--face X,Y` (fractions of the frame, e.g. `--face 0.3,0.4`).
+
 ## Troubleshooting
+
+- Waiting on a background run (`nohup ... > LOG 2>&1 &`): watch its log for the final line (`done in ... s` for
+  easy-edits). Don't wait with `pgrep -f NAME`: the wait loop's own command line contains NAME, so it never ends.
 
 - `easy-edits: command not found`: run `. ~/.easy-edits/env.sh` in this shell.
 - The run seems stuck on "ASR" or "transcribing": that's normal for long videos. Watch the log grow, and check

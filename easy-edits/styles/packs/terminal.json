@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "terminal",
+  "name": "Terminal",
+  "description": "Dark tech style: near-black navy, cyan and magenta, JetBrains Mono everywhere, lowercase captions that type on word by word with a cyan glow on key words. Layout changes glitch with an RGB split, numbers decode through random digits, and punch-ins lock HUD brackets onto the face.",
+  "useFor": "Software, AI and product walkthroughs, dev tutorials, screen-recording explainers, tech news.",
+  "modes": ["captions", "talking-head", "explainer", "shorts"],
+  "formats": ["9x16", "1x1", "16x9"],
+  "palette": { "background": "#05070D", "surface": "#0B1626", "text": "#E6F1FF", "accent": "#00E5FF", "accent2": "#FF2BD6", "onAccent": "#04121A" },
+  "fonts": {
+    "display": { "family": "JetBrains Mono", "weight": 800 },
+    "body": { "family": "JetBrains Mono", "weight": 500 },
+    "numbers": { "family": "JetBrains Mono", "weight": 800 }
+  },
+  "captions": {
+    "font": "body", "weight": 700, "size": 68, "letterSpacing": 0, "case": "lower", "maxWords": 3, "maxChars": 18,
+    "color": "auto", "highlight": "keywords", "highlightStyle": "glow", "animation": "type", "edge": 2, "shadow": "glow"
+  },
+  "motion": { "transition": "glitch", "transitionDuration": 0.16, "entrance": "flicker", "numbers": "scramble", "signature": "hud", "drift": 0 },
+  "pacing": { "minBeatGap": 3.5, "maxBeatsPerMinute": 14, "punchZoom": [1.2, 1.5] },
+  "scenes": ["punch", "icon", "stat", "list", "compare", "card", "lower-third", "hook", "progress", "intro", "outro"],
+  "sound": { "sfx": "soft", "music": "electronic ambient" }
+}

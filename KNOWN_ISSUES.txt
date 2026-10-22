@@ -1,4 +1,4 @@
-Easy Edits v1.2.0: known issues
+Easy Edits v1.3.0: known issues
 ============================
 
 Timing / formats
@@ -54,6 +54,25 @@ shorts (tested on a 30-min Taglish podcast)
   the last. Move the outputs between runs.
 - Fixed in 1.0.0: a short's window could open mid-word when the previous word was glued to the first one; the
   render window's pads now stop at the neighbouring words.
+
+Style packs (new in 1.3.0)
+- Packs can only use the three fonts ./install.sh installs (Montserrat, Playfair Display, JetBrains Mono); any
+  other family is refused by the schema. Pack fonts are variable fonts: weights outside a font's range are refused.
+- clean-cut takes no --style (its look is the approved one). Use talking-head for the same cut in a style.
+- A transition plays at every layout change and camera change; on a talking-head with few beats and one camera
+  there may be only the intro / outro transitions.
+- The signature move fires on punch-ins only (spaced by the pack's minBeatGap); a run whose plan has no punch-in
+  (captions mode, shorts without --graphics) shows none. report.json "signatures" counts them.
+- Generated style skills reference a user pack by its absolute path; move the pack and generate the skill again.
+
+Auto contrast / --face (new in 1.3.0)
+- Auto contrast samples the source footage at 2 fps, 64 px wide: a bright object smaller than about 1/30 of the
+  frame width, or one that flashes in for under half a second, is not seen. It does not account for graphics
+  drawn under the caption (panels use the backdrop colour).
+- The approved clean-cut 9:16 burn-in always uses white captions; auto contrast applies to 1:1 / 16:9 clean-cut
+  exports and to every other mode.
+- --face is one point for the whole video, not per shot. On multi-camera sources where the face moves between
+  shots, leave it off or split the source.
 
 Tests
 - Tests that need media not shipped in the repo (source clips, renders, frame crops of test footage) are

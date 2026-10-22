@@ -2,7 +2,8 @@
 # Easy Edits installer: one command, idempotent, safe to re-run. Installs or verifies everything Easy Edits needs:
 # Node 22 (official nodejs.org build in $EASY_EDITS_HOME/node unless a Node >= 22 is already on PATH; no nvm),
 # ffmpeg/ffprobe, a python venv with faster-whisper + OpenCV, the Whisper models (small + medium, ~2 GB, in a known dir),
-# the npm deps, HyperFrames' Chrome and the caption font (Montserrat, OFL). Writes $EASY_EDITS_HOME/env.sh.
+# the npm deps, HyperFrames' Chrome and the fonts (Montserrat for the captions; Playfair Display and JetBrains Mono
+# for the style packs; all OFL). Writes $EASY_EDITS_HOME/env.sh.
 #
 #   ./install.sh               install / verify everything
 #   ./install.sh --no-models   skip the Whisper model download (they then download on first use)
@@ -210,6 +211,31 @@ install_font() {
   have fc-cache && fc-cache -f "$d" >/dev/null 2>&1 || true
 }
 
+# ---------------------------------------------------------------- style pack fonts
+# The style packs (easy-edits/styles/packs) also use Playfair Display (Broadsheet) and JetBrains Mono (Terminal); the
+# renderer refuses a pack whose fonts are missing. Same source, pinned commit and checksums as Montserrat (SIL OFL 1.1).
+#   family|google/fonts dir|file|sha256
+STYLE_FONTS="Playfair Display|playfairdisplay|PlayfairDisplay[wght].ttf|c40f2293766a503bc70cce9e512ef844a4ccb7cbcde792fe2ea31d191917d8d6
+JetBrains Mono|jetbrainsmono|JetBrainsMono[wght].ttf|48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda"
+# (grep >/dev/null, not grep -q: -q exits on the first match, fc-list gets SIGPIPE and pipefail calls it missing)
+have_family() { if have fc-list; then fc-list : family | tr ',' '\n' | grep -x "$1" >/dev/null; else ls "$HOME/Library/Fonts/$2" "/Library/Fonts/$2" >/dev/null 2>&1; fi; }
+install_style_fonts() {
+  local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
+  local fam dir file sha url added=0
+  while IFS='|' read -r fam dir file sha; do
+    if have_family "$fam" "$file"; then log "font $fam OK"; continue; fi
+    mkdir -p "$d"; log "installing font $fam (OFL) into $d"
+    url="https://raw.githubusercontent.com/google/fonts/$FONT_COMMIT/ofl/$dir"
+    curl -fsSL -o "$d/$file.part" "$url/$(printf '%s' "$file" | sed 's/\[/%5B/; s/\]/%5D/')" || die "font download failed ($fam)"
+    echo "$sha  $d/$file.part" | { have sha256sum && sha256sum -c --quiet - || shasum -a 256 -c --quiet -; } || die "font checksum mismatch ($fam)"
+    mv "$d/$file.part" "$d/$file"
+    curl -fsSL -o "$d/${file%%[*}-OFL.txt" "$url/OFL.txt" || true
+    added=1
+  done <<< "$STYLE_FONTS"
+  [ "$added" = 1 ] && { have fc-cache && fc-cache -f "$d" >/dev/null 2>&1 || true; }
+  return 0
+}
+
 # ---------------------------------------------------------------- doctor
 FAILS=0
 check() { # name, command...
@@ -233,6 +259,8 @@ c_hf()      { load_node && cd "$REPO" && node_modules/.bin/hyperframes --version
 c_gsap()    { load_node && cd "$REPO" && node -p 'require("gsap/package.json").version'; }
 c_chrome()  { load_node && cd "$REPO" && p="$(node_modules/.bin/hyperframes browser path 2>/dev/null | tail -n1)" && [ -x "$p" ] && echo "$p"; }
 c_font()    { have_montserrat && echo "Montserrat (Clean cut captions)" || { echo "Montserrat missing: captions would fall back (run ./install.sh)"; return 1; }; }
+c_sfonts()  { local fam dir file sha miss=(); while IFS='|' read -r fam dir file sha; do have_family "$fam" "$file" || miss+=("$fam"); done <<< "$STYLE_FONTS"
+              [ ${#miss[@]} -eq 0 ] && echo "Playfair Display, JetBrains Mono (style packs)" || { echo "missing: ${miss[*]}: style packs that use them are refused (run ./install.sh)"; return 1; }; }
 c_cli()     { load_node && "$REPO/bin/easy-edits" --help | head -n1; }
 c_env()     { [ -f "$EASY_EDITS_HOME/env.sh" ] && echo "$EASY_EDITS_HOME/env.sh"; }
 c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$EASY_EDITS_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
@@ -255,6 +283,7 @@ doctor() {
   check gsap c_gsap
   check hyperframes-chrome c_chrome
   check caption-font c_font
+  check style-fonts c_sfonts
   check env.sh c_env
   check telemetry-off c_telem
   check easy-edits-cli c_cli
@@ -274,6 +303,6 @@ for a in "$@"; do
   esac
 done
 if [ "$MODE" = doctor ]; then doctor; exit; fi
-install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; write_env
+install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env
 log "done. In each new shell:  . $EASY_EDITS_HOME/env.sh     Verify:  ./install.sh --doctor"
 log "first edit:  easy-edits talk.mp4 -o out/        (easy-edits --help lists every mode)"

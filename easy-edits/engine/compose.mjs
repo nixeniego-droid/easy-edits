@@ -9,6 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { captionGroups } from '../presets/captions-default.mjs';
 import { icon, iconFor } from './icons.mjs';
 import { TOPBOX, norm, locate } from './plan.mjs';
+import { themeOf, fontCss } from './theme.mjs';
+import { regionStats, blendBackdrop, pickInk, isBusy, contrastRatio, relLum, rgba, INK } from './contrast.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const r3 = (v) => Math.round(v * 1000) / 1000;
@@ -87,28 +89,31 @@ export function layoutSegments(beats, duration) {
   return segs;
 }
 
-const CSS_BASE = (G, A) => `*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:${G.w}px;height:${G.h}px;overflow:hidden;background:#0b1020}
-#root{position:relative;width:${G.w}px;height:${G.h}px;overflow:hidden;background:#0b1020;font-family:'Montserrat',sans-serif;color:#fff}
-#spkbox{position:absolute;left:0;top:0;width:${G.w}px;height:${G.h}px;overflow:hidden;z-index:1;background:#0b1020}
+const CSS_BASE = (G, Th) => { const A = Th.A; return `*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:${G.w}px;height:${G.h}px;overflow:hidden;background:${Th.bg}}
+#root{position:relative;width:${G.w}px;height:${G.h}px;overflow:hidden;background:${Th.bg};font-family:${Th.house ? "'Montserrat',sans-serif" : Th.font.body.stack};color:${Th.text}}
+#spkbox{position:absolute;left:0;top:0;width:${G.w}px;height:${G.h}px;overflow:hidden;z-index:1;background:${Th.bg}}
 #spk{position:absolute;left:0;top:0;transform-origin:0 0}
-.panel{position:absolute;overflow:hidden;z-index:5;background:radial-gradient(120% 90% at 30% 20%,#1d2b5a 0%,#111a3a 55%,#0b1020 100%)}
-.panel .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:54px 54px}
+.panel{position:absolute;overflow:hidden;z-index:5;background:${Th.panelBg}}
+.panel .grid{position:absolute;inset:0;background-image:linear-gradient(${Th.grid} 1px,transparent 1px),linear-gradient(90deg,${Th.grid} 1px,transparent 1px);background-size:54px 54px}
 .panel .edge{position:absolute;left:0;bottom:0;width:100%;height:6px;background:${A}}
-.seam{position:absolute;left:0;width:100%;z-index:4;background:#0b1020}
+.seam{position:absolute;left:0;width:100%;z-index:4;background:${Th.bg}}
 .chip{display:inline-flex;align-items:center;gap:.4em;padding:.28em .8em;border-radius:999px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 #prog{position:absolute;left:0;top:0;height:8px;width:${G.w}px;background:${A};transform-origin:0 50%;z-index:30;box-shadow:0 0 12px rgba(0,0,0,.35)}
 #progbg{position:absolute;left:0;top:0;height:8px;width:${G.w}px;background:rgba(255,255,255,.18);z-index:29}
 .pop{position:absolute;z-index:12;display:flex;flex-direction:column;align-items:center;gap:14px}
-.pop .disc{border-radius:50%;background:${A};display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 6px rgba(255,255,255,.9)}
-.pop .lab{font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:#0b1020;background:#fff;border-radius:12px;padding:6px 16px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.pop .disc{border-radius:50%;background:${A};display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 6px ${Th.ring}}
+.pop .lab{font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:${Th.labFg};background:${Th.labBg};border-radius:12px;padding:6px 16px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.pop .numbox{position:relative;display:inline-block}
+.pop .numbox .sizer{visibility:hidden}
+.pop .numbox .nv{position:absolute;left:0;right:0;top:0;text-align:center;visibility:hidden;white-space:nowrap}
 .lower{position:absolute;z-index:14;display:flex;align-items:stretch;gap:0}
 .lower .bar{width:12px;background:${A};border-radius:3px}
-.lower .txt{background:rgba(11,16,32,.88);padding:16px 26px 16px 22px;border-radius:0 10px 10px 0}
+.lower .txt{background:${Th.ltBg};padding:16px 26px 16px 22px;border-radius:0 10px 10px 0}
 .lower .n{font-weight:900;letter-spacing:.02em}
 .lower .r{font-weight:600;opacity:.85;margin-top:4px}
-.card{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(110% 80% at 50% 30%,#22336b 0%,#121b3d 55%,#0b1020 100%)}
-.card .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:60px 60px}
+.card{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:${Th.cardBg}}
+.card .grid{position:absolute;inset:0;background-image:linear-gradient(${Th.cardGrid} 1px,transparent 1px),linear-gradient(90deg,${Th.cardGrid} 1px,transparent 1px);background-size:60px 60px}
 .card .ttl{position:relative;font-weight:900;text-transform:uppercase;line-height:1.02;letter-spacing:.01em}
 .card .ttl .w{display:inline-block;margin:0 .14em}
 .card .sub{position:relative;font-weight:600;opacity:.9;margin-top:28px}
@@ -118,17 +123,86 @@ html,body{width:${G.w}px;height:${G.h}px;overflow:hidden;background:#0b1020}
 .cap span.l{display:inline-block;text-align:center;transform-origin:50% 50%}
 .kin span.l{font-weight:900;text-transform:uppercase;letter-spacing:1px;line-height:1.05;white-space:nowrap;color:#fff;text-shadow:0 3px 4px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.5);-webkit-text-stroke:3px rgba(0,0,0,.35);paint-order:stroke fill}
 .kin span.l em{font-style:normal;color:${A}}
-.min span.l{font-weight:700;line-height:1.18;white-space:normal;color:#fff;-webkit-text-stroke:4px rgba(0,0,0,.55);paint-order:stroke fill;text-shadow:0 0 2px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.55),0 3px 12px rgba(0,0,0,.45)}`;
+.min span.l{font-weight:700;line-height:1.18;white-space:normal;color:#fff;-webkit-text-stroke:4px rgba(0,0,0,.55);paint-order:stroke fill;text-shadow:0 0 2px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.55),0 3px 12px rgba(0,0,0,.45)}
+.kin.busy span.l{-webkit-text-stroke:5px rgba(0,0,0,.55)}
+.min.busy span.l{-webkit-text-stroke:6px rgba(0,0,0,.7)}
+.kin.ink-dark span.l{color:${INK.dark};-webkit-text-stroke:3px rgba(255,255,255,.6);text-shadow:0 0 3px rgba(255,255,255,.75),0 2px 10px rgba(255,255,255,.45)}
+.kin.ink-dark span.l em{color:${Th.onA};background:${A};border-radius:.12em;padding:0 .1em;-webkit-text-stroke:0;text-shadow:none}
+.min.ink-dark span.l{color:${INK.dark};-webkit-text-stroke:4px rgba(255,255,255,.7);text-shadow:0 0 2px rgba(255,255,255,.8),0 2px 6px rgba(255,255,255,.5),0 3px 14px rgba(255,255,255,.35)}
+.ink-dark.busy span.l{-webkit-text-stroke-color:rgba(255,255,255,.85)}${Th.house ? '' : PACK_CSS(Th)}${Th.cap ? PACK_CAP_CSS(Th) : ''}`; };
+
+/** caption css of a style pack: one class per ink (auto contrast), per highlight style, busy backgrounds. */
+const SHADOWS = {
+  soft: ['0 2px 4px rgba(0,0,0,.55),0 4px 14px rgba(0,0,0,.4)', '0 0 3px rgba(255,255,255,.7),0 2px 10px rgba(255,255,255,.45)'],
+  hard: ['0 5px 0 rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6)', '0 4px 0 rgba(255,255,255,.85),0 0 2px rgba(255,255,255,.6)'],
+  none: ['none', 'none'],
+};
+function PACK_CAP_CSS(Th) {
+  const C = Th.cap, A = Th.A, e = C.edge;
+  const sh = C.shadow === 'glow' ? [`0 0 2px rgba(0,0,0,.9),0 0 14px ${rgba(A, 0.55)}`, `0 0 2px rgba(255,255,255,.9),0 0 14px ${rgba(A, 0.5)}`] : SHADOWS[C.shadow];
+  const tf = { upper: 'uppercase', lower: 'lowercase', 'as-spoken': 'none' }[C.case];
+  return `
+.sp span.l{font-family:${C.stack};font-weight:${C.weight};letter-spacing:${C.letterSpacing || 0}px;line-height:1.12;text-transform:${tf};color:var(--ink);-webkit-text-stroke:${e}px var(--edge);paint-order:stroke fill;text-shadow:var(--shadow)}
+.sp.one span.l{white-space:nowrap}
+.sp.wrap span.l{white-space:normal}
+.sp.ink-light{--ink:${INK.light};--edge:rgba(0,0,0,.6);--shadow:${sh[0]}}
+.sp.ink-dark{--ink:${INK.dark};--edge:rgba(255,255,255,.78);--shadow:${sh[1]}}
+.sp.busy span.l{-webkit-text-stroke-width:${Math.max(2, Math.round(e * 1.7))}px}
+.sp.ink-light.busy{--edge:rgba(0,0,0,.78)}
+.sp.ink-dark.busy{--edge:rgba(255,255,255,.9)}
+.sp .w{display:inline-block;margin:0 .1em}
+.sp.hl-color .w.on{color:${A}}
+.sp.hl-glow .w.on{text-shadow:0 0 2px rgba(0,0,0,.9),0 0 12px ${A},0 0 26px ${rgba(A, 0.75)}}
+.sp.hl-glow.ink-light .w.on{color:${A}}
+.sp.hl-box .w{padding:0 .12em;border-radius:.14em}
+.sp.hl-box .w.on{background:${A};color:${Th.onA};-webkit-text-stroke-width:0;text-shadow:none}
+.sp.hl-underline .w{background-image:linear-gradient(${A},${A});background-repeat:no-repeat;background-position:0 96%;background-size:0% .12em}
+.sp.hl-underline .w.on{background-size:100% .12em}
+.sp.type .w{opacity:0}`;
+}
+/** a style pack's fonts on the house elements (titles, lower third, labels, chips). */
+const PACK_CSS = (Th) => `
+.card .ttl,.lower .n{font-family:${Th.font.display.stack};font-weight:${Th.font.display.weight}}
+.lower .r,.chip,.card .sub,.pop .lab,.wm{font-family:${Th.font.body.stack}}
+.pop .lab{font-weight:${Math.max(600, Th.font.body.weight)}}
+.card .ttl{text-transform:${Th.font.display.family === 'Playfair Display' ? 'none' : 'uppercase'}}`;
+
+/**
+ * Number treatment frames for a stat value ("29:18", "$1,200", "40%", "3.5x"): {frames: [{t, text}]} where t is the
+ * offset from the pop's start. count-up: 14 steps over 0.9 s from zero, eased out, same decimals and separators;
+ * scramble: every digit runs through 9 random frames 50 ms apart (seeded, so a re-render is identical), then the
+ * value; slam / pop: no frames (the value is drawn once). count-up moves the first number; text around it stays.
+ */
+export function numberFrames(value, mode, seed = 0) {
+  const v = String(value ?? '');
+  const m = /^(.*?)(\d[\d,]*(?:\.\d+)?)(.*)$/s.exec(v);
+  if (!m || (mode !== 'count-up' && mode !== 'scramble')) return { frames: [] };
+  const [, pre, num, post] = m;
+  if (mode === 'count-up') {
+    const n = Number(num.replace(/,/g, '')), dec = (num.split('.')[1] || '').length, commas = num.includes(',');
+    const fmt = (x) => { const s = x.toFixed(dec); if (!commas) return s; const [i, d] = s.split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (d ? `.${d}` : ''); };
+    const K = 14;
+    return { frames: Array.from({ length: K + 1 }, (_, k) => ({ t: r3(0.08 + (0.9 * k) / K), text: `${pre}${fmt(k === K ? n : n * (1 - (1 - k / K) ** 3))}${post}` })) };
+  }
+  let x = (seed * 7919 + v.length * 104729 + 17) % 2147483647;
+  const rnd = () => { x = (x * 48271) % 2147483647; return x / 2147483647; };
+  const frames = Array.from({ length: 9 }, (_, k) => ({ t: r3(0.06 + k * 0.05), text: v.replace(/\d/g, () => String(Math.floor(rnd() * 10))) }));
+  frames.push({ t: r3(0.06 + 9 * 0.05), text: v });
+  return { frames };
+}
 
 /**
  * Build the composition. opts:
  *  fmt '9x16'|'1x1'|'16x9'; clip {file, w, h, duration}; track (facetrack json of the clip); words (edited timeline);
  *  plan (validated); captions 'kinetic'|'minimal'|'none'; intro seconds (0 = none); outro seconds; title; subtitle;
- *  speaker {name, role}; accent; watermark; cta; progress bool; lowerThird bool
- * Returns { html, duration, offset, cues:[{t, sfx}], captions:[...] }.
+ *  speaker {name, role}; accent; watermark; cta; progress bool; lowerThird bool; style (a validated style pack,
+ *  engine/style-pack.mjs: palette, fonts, caption look, transitions, number treatment, signature move);
+ *  luma (engine/contrast.mjs lumaGrid of the clip: captions pick light / dark text from the footage behind them);
+ *  ink 'auto' (default) | 'light' | 'dark' | '#RRGGBB' (caption text colour; auto needs luma, else light)
+ * Returns { html, duration, offset, cues:[{t, sfx}], captions:[...], style, transitions, signatures, ink }.
  */
 export function compose(o) {
-  const G = geometry(o.fmt), A = o.accent || '#FFC83D';
+  const G = geometry(o.fmt), Th = o.theme || themeOf(o.style, o.accent), A = Th.A;
   const W = o.clip.w, H = o.clip.h, D = o.clip.duration;
   const SCREEN = !!o.screen; // a screen recording: letterboxed (contain) on the card background, zooms follow activity
   if (SCREEN) {
@@ -164,21 +238,23 @@ export function compose(o) {
     const step = 0.5;
     const f0 = faceAt(o.track, seg.start + 0.1);
     let z = seg.kind === 'punch' ? (seg.zoom || autoPunch(f0, R)) : baseZoomFace;
+    if (seg.kind === 'punch' && Th.punchZoom) z = clamp(z, Th.punchZoom[0], Th.punchZoom[1]);
     if (seg.kind === 'split' && o.fmt !== '9x16') z = 1;
     if (SCREEN) z *= seg.kind === 'split' ? (o.fmt === '9x16' ? Math.max(1, (R.h / R.w) * (W / H)) * 1.02 : 1) : G.screenBase;
     for (let t = seg.start; t < seg.end - 1e-6; t += step) {
       const face = faceAt(o.track, Math.min(t + step / 2, D));
-      const push = seg.kind === 'split' ? 1 : 1 + 0.035 * ((t - seg.start) / Math.max(1, seg.end - seg.start));
+      const push = seg.kind === 'split' ? 1 : 1 + Th.drift * ((t - seg.start) / Math.max(1, seg.end - seg.start));
       keys.push({ t: r3(t), ...frame(W, H, R, face, z * push, fy, SCREEN) });
     }
     const face = faceAt(o.track, seg.end);
-    keys.push({ t: seg.end, ...frame(W, H, R, face, z * (seg.kind === 'split' ? 1 : 1.035), fy, SCREEN) });
+    keys.push({ t: seg.end, ...frame(W, H, R, face, z * (seg.kind === 'split' ? 1 : 1 + Th.drift), fy, SCREEN) });
     framings.push({ seg, R, keys });
   }
   // steady (shorts / podcasts, no layout beats): one framing per camera shot or speaker turn, held still; it only
   // re-centres (eased) when the face leaves a deadzone; wide shots get a modest zoom; the clean cut's jump cuts
   // inside one shot alternate 1x / 1.12x so a join reads as a punch-in, not a jump
   const steady = o.steady && !SCREEN && segs.every((sg) => sg.kind === 'face');
+  const steadyCams = [], steadyPunches = [];
   if (steady) {
     framings.length = 0;
     const R = G.full, s0 = Math.max(R.w / W, R.h / H), med = (a) => [...a].sort((x, y) => x - y)[a.length >> 1];
@@ -189,6 +265,7 @@ export function compose(o) {
       const a = bounds[k], b = bounds[k + 1];
       const cam = k === 0 || camCuts.some((c) => Math.abs(c - a) < 0.3);
       alt = cam ? 0 : 1 - alt;
+      if (k > 0) (cam ? steadyCams : steadyPunches).push({ start: a, end: b });
       const fs_ = []; for (let t = a; t < b; t += 0.25) { const f = faceAt(o.track, t + 0.01); if (f) fs_.push(f); }
       const fw = fs_.length ? med(fs_.map((f) => f.fw)) : null;
       const zWide = fw ? clamp((o.fmt === '9x16' ? 0.13 : 0.2) * R.h / (fw * s0), 1, 1.35) : 1;
@@ -231,12 +308,24 @@ export function compose(o) {
       tw.push(`tl.to('#spk',{x:${b.x},y:${b.y},scale:${b.s},duration:${r3(b.t - a.t)},ease:'none'},${at(a.t)});`);
     }
   }
-  // framing lookup for overlay placement (face in output px at time t)
-  const faceOutAt = (t) => {
+  // framing lookup (region + the camera key at or before t) and the face in output px at time t (overlay placement)
+  const framingAt = (t) => {
     const fr = framings.find((f) => t >= f.seg.start && t < f.seg.end) || framings.at(-1);
     if (!fr) return null;
-    const k = fr.keys.reduce((p, c) => (c.t <= t ? c : p), fr.keys[0]);
-    return { ...faceOut(fr.R, k, faceAt(o.track, t)), kind: fr.seg.kind, R: fr.R };
+    return { fr, R: fr.R, k: fr.keys.reduce((p, c) => (c.t <= t ? c : p), fr.keys[0]) };
+  };
+  const faceOutAt = (t) => {
+    const F = framingAt(t);
+    if (!F) return null;
+    return { ...faceOut(F.R, F.k, faceAt(o.track, t)), kind: F.fr.seg.kind, R: F.R };
+  };
+  // ---------- entrances (style motion.entrance; house: drop) ----------
+  // drop: the house slide from the panel's edge; slide: from the left; fade: a slow fade with a slight settle;
+  // flicker: on / off for three frames, then on (a CRT / terminal feel)
+  const enter = (sel, s, dropFrom, slideFrom) => {
+    if (Th.entrance === 'fade') return `tl.from('${sel}',{opacity:0,scale:1.02,duration:.5,ease:'sine.out'},${s});`;
+    if (Th.entrance === 'flicker') return [[0, 0], [1, 1], [2, 0.2], [3, 1], [4, 0.55], [5, 1]].map(([f, v]) => `tl.set('${sel}',{opacity:${v}},${r3(s + f / 30)});`).join('');
+    return `tl.from('${sel}',{${Th.entrance === 'slide' ? slideFrom : dropFrom},opacity:0,duration:.28,ease:'power3.out'},${s});`;
   };
   // ---------- top-box panels ----------
   const P = G.panel, pw = P.w, ph = P.h;
@@ -252,8 +341,8 @@ export function compose(o) {
       // each quote word appears when it is spoken (from the anchor on), else staggered
       let from = b.i0 ?? 0; const times = qWords.map((qw) => { const l = locate(o.words, qw, from); if (l && l.start <= b.end + 0.5) { from = l.i0 + 1; return l.start; } return null; });
       inner = `<div style="position:absolute;left:${Math.round(pw * 0.08)}px;top:${Math.round(ph * 0.1)}px;color:${A};opacity:.95" id="${id}q">${icon('quote', { size: Math.round(big * 1.6), stroke: 1.4, color: A })}</div>
-<div style="position:absolute;left:${Math.round(pw * 0.1)}px;right:${Math.round(pw * 0.1)}px;top:${Math.round(ph * 0.3)}px;font-weight:800;font-size:${Math.round(big * 1.05)}px;line-height:1.18">${qWords.map((w, k) => `<span id="${id}w${k}" style="display:inline-block;margin-right:.28em">${esc(w)}</span>`).join('')}</div>
-${b.cite ? `<div id="${id}c" style="position:absolute;left:${Math.round(pw * 0.1)}px;bottom:${Math.round(ph * 0.12)}px"><span class="chip" style="background:${A};color:#0b1020;font-size:${Math.round(big * 0.5)}px">${icon('book', { size: Math.round(big * 0.6), stroke: 2.2, color: '#0b1020' })}${esc(b.cite)}</span></div>` : ''}`;
+<div style="position:absolute;left:${Math.round(pw * 0.1)}px;right:${Math.round(pw * 0.1)}px;top:${Math.round(ph * 0.3)}px;${fontCss(Th, 'display', 800)};font-size:${Math.round(big * 1.05)}px;line-height:1.18">${qWords.map((w, k) => `<span id="${id}w${k}" style="display:inline-block;margin-right:.28em">${esc(w)}</span>`).join('')}</div>
+${b.cite ? `<div id="${id}c" style="position:absolute;left:${Math.round(pw * 0.1)}px;bottom:${Math.round(ph * 0.12)}px"><span class="chip" style="background:${A};color:${Th.onA};font-size:${Math.round(big * 0.5)}px">${icon('book', { size: Math.round(big * 0.6), stroke: 2.2, color: Th.onA })}${esc(b.cite)}</span></div>` : ''}`;
       tw.push(`tl.from('#${id}q',{scale:0,rotation:-20,duration:.35,ease:'back.out(2)'},${r3(s + 0.05)});`);
       let last = s + 0.1;
       qWords.forEach((_, k) => { const t = times[k] != null ? Math.max(at(times[k]) - 0.05, last) : last + 0.12; last = r3(t); tw.push(`tl.from('#${id}w${k}',{opacity:0,y:${Math.round(big * 0.5)},duration:.22,ease:'power2.out'},${last});`); });
@@ -272,14 +361,14 @@ ${b.cite ? `<div id="${id}c" style="position:absolute;left:${Math.round(pw * 0.1
       const rowH = Math.round(Math.min(rsz * (rows.length > 2 ? 1.7 : 2.6), rowsSpan / Math.max(1, rows.length)));
       const rows0 = Math.round(rowsTop + (rowsSpan - rowH * rows.length) / 2);
       const head = (side, h) => `<div id="${id}h${side}" style="position:absolute;top:${top0}px;${side === 'L' ? `left:${gx}px` : `right:${gx}px`};width:${colW}px;display:flex;flex-direction:column;align-items:center;gap:12px">
-<div style="width:${Math.round(hsz * 2)}px;height:${Math.round(hsz * 2)}px;border-radius:50%;background:${side === 'L' ? '#4FD1C5' : A};display:flex;align-items:center;justify-content:center">${icon(h.icon || iconFor(h.title) || 'sparkles', { size: Math.round(hsz * 1.25), stroke: 2, color: '#0b1020' })}</div>
-<div style="font-weight:900;font-size:${hsz}px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">${esc(h.title)}</div></div>`;
+<div style="width:${Math.round(hsz * 2)}px;height:${Math.round(hsz * 2)}px;border-radius:50%;background:${side === 'L' ? Th.A2 : A};display:flex;align-items:center;justify-content:center">${icon(h.icon || iconFor(h.title) || 'sparkles', { size: Math.round(hsz * 1.25), stroke: 2, color: Th.onA })}</div>
+<div style="${fontCss(Th, 'display', 900)};font-size:${hsz}px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">${esc(h.title)}</div></div>`;
       inner = head('L', b.left || {}) + head('R', b.right || {}) +
-        `<div id="${id}div" style="position:absolute;left:${Math.round(pw / 2 - 2)}px;top:${top0}px;width:4px;height:${Math.round(ph * 0.76)}px;background:rgba(255,255,255,.35);transform-origin:50% 0"></div>
-<div style="position:absolute;left:${Math.round(pw / 2 - big * 0.55)}px;top:${Math.round(top0 + hsz * 0.55)}px;width:${Math.round(big * 1.1)}px;height:${Math.round(big * 1.1)}px;border-radius:50%;background:#0b1020;border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(big * 0.42)}px" id="${id}vs">VS</div>` +
+        `<div id="${id}div" style="position:absolute;left:${Math.round(pw / 2 - 2)}px;top:${top0}px;width:4px;height:${Math.round(ph * 0.76)}px;background:${Th.line(0.35)};transform-origin:50% 0"></div>
+<div style="position:absolute;left:${Math.round(pw / 2 - big * 0.55)}px;top:${Math.round(top0 + hsz * 0.55)}px;width:${Math.round(big * 1.1)}px;height:${Math.round(big * 1.1)}px;border-radius:50%;background:${Th.bg};border:3px solid ${Th.line(0.5)};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(big * 0.42)}px" id="${id}vs">VS</div>` +
         rows.map((r, k) => {
           const y = rows0 + k * rowH;
-          const cell = (side, txt, ic) => `<div id="${id}r${k}${side}" style="position:absolute;top:${y}px;${side === 'L' ? `left:${gx}px` : `right:${gx}px`};width:${colW}px;text-align:center;font-weight:800;font-size:${rsz}px;line-height:1.1;display:flex;flex-direction:${rows.length > 2 ? 'row' : 'column'};justify-content:center;align-items:center;gap:${rows.length > 2 ? 14 : 6}px;white-space:${rows.length > 2 ? 'nowrap' : 'normal'}">${ic ? icon(ic, { size: Math.round(rsz * (rows.length > 2 ? 1 : 1.3)), stroke: 1.8, color: side === 'L' ? '#4FD1C5' : A }) : ''}<span>${esc(txt)}</span></div>`;
+          const cell = (side, txt, ic) => `<div id="${id}r${k}${side}" style="position:absolute;top:${y}px;${side === 'L' ? `left:${gx}px` : `right:${gx}px`};width:${colW}px;text-align:center;${fontCss(Th, 'body', 800)};font-size:${rsz}px;line-height:1.1;display:flex;flex-direction:${rows.length > 2 ? 'row' : 'column'};justify-content:center;align-items:center;gap:${rows.length > 2 ? 14 : 6}px;white-space:${rows.length > 2 ? 'nowrap' : 'normal'}">${ic ? icon(ic, { size: Math.round(rsz * (rows.length > 2 ? 1 : 1.3)), stroke: 1.8, color: side === 'L' ? Th.A2 : A }) : ''}<span>${esc(txt)}</span></div>`;
           return cell('L', r.left, r.icons?.[0]) + cell('R', r.right, r.icons?.[1]);
         }).join('');
       tw.push(`tl.from('#${id}hL',{x:-${Math.round(pw * 0.3)},opacity:0,duration:.35,ease:'power3.out'},${r3(s + 0.05)});`);
@@ -298,15 +387,15 @@ ${b.cite ? `<div id="${id}c" style="position:absolute;left:${Math.round(pw * 0.1
     } else if (b.type === 'list') {
       const items = b.items || [], isz = Math.round(big * 0.95), tsz = Math.round(big * 0.8);
       const gy = Math.round((ph * 0.62) / Math.max(3, items.length));
-      inner = `<div id="${id}t" style="position:absolute;left:${Math.round(pw * 0.08)}px;top:${Math.round(ph * 0.1)}px"><span class="chip" style="background:${A};color:#0b1020;font-size:${tsz}px">${esc(b.title || '')}</span></div>` +
-        items.map((it, k) => `<div id="${id}i${k}" style="position:absolute;left:${Math.round(pw * 0.08)}px;right:${Math.round(pw * 0.06)}px;top:${Math.round(ph * 0.28 + k * gy)}px;display:flex;align-items:center;gap:22px;font-weight:800;font-size:${isz}px">${icon('check', { size: Math.round(isz * 1.2), stroke: 2, color: A })}<span>${esc(it.text)}</span></div>`).join('');
+      inner = `<div id="${id}t" style="position:absolute;left:${Math.round(pw * 0.08)}px;top:${Math.round(ph * 0.1)}px"><span class="chip" style="background:${A};color:${Th.onA};font-size:${tsz}px">${esc(b.title || '')}</span></div>` +
+        items.map((it, k) => `<div id="${id}i${k}" style="position:absolute;left:${Math.round(pw * 0.08)}px;right:${Math.round(pw * 0.06)}px;top:${Math.round(ph * 0.28 + k * gy)}px;display:flex;align-items:center;gap:22px;${fontCss(Th, 'body', 800)};font-size:${isz}px">${icon('check', { size: Math.round(isz * 1.2), stroke: 2, color: A })}<span>${esc(it.text)}</span></div>`).join('');
       tw.push(`tl.from('#${id}t',{opacity:0,x:-60,duration:.3,ease:'power2.out'},${r3(s + 0.05)});`);
       items.forEach((it, k) => { const t = r3(Math.max(at(it.at) - 0.05, s + 0.2 + k * 0.15)); tw.push(`tl.from('#${id}i${k}',{opacity:0,x:-80,duration:.3,ease:'power3.out'},${t});`); cues.push({ t, sfx: 'click2' }); });
     } else { // card
       const tsz = Math.round(big * 1.05);
       inner = `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${Math.round(big * 0.6)}px;padding:0 ${Math.round(pw * 0.08)}px;text-align:center">
-<div id="${id}ic" style="width:${Math.round(big * 3)}px;height:${Math.round(big * 3)}px;border-radius:50%;background:${A};display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px rgba(255,255,255,.12)">${icon(b.icon || 'sparkles', { size: Math.round(big * 1.9), stroke: 1.8, color: '#0b1020' })}</div>
-<div id="${id}tt" style="font-weight:900;font-size:${tsz}px;line-height:1.08;text-transform:uppercase">${String(b.title || '').split(/\s+/).map((w, k) => `<span id="${id}tw${k}" style="display:inline-block;margin:0 .15em">${esc(w)}</span>`).join('')}</div>
+<div id="${id}ic" style="width:${Math.round(big * 3)}px;height:${Math.round(big * 3)}px;border-radius:50%;background:${A};display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 10px ${Th.line(0.12)}">${icon(b.icon || 'sparkles', { size: Math.round(big * 1.9), stroke: 1.8, color: Th.onA })}</div>
+<div id="${id}tt" style="${fontCss(Th, 'display', 900)};font-size:${tsz}px;line-height:1.08;text-transform:uppercase">${String(b.title || '').split(/\s+/).map((w, k) => `<span id="${id}tw${k}" style="display:inline-block;margin:0 .15em">${esc(w)}</span>`).join('')}</div>
 ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big * 0.6)}px;opacity:.88">${esc(b.sub)}</div>` : ''}</div>`;
       tw.push(`tl.from('#${id}ic',{scale:0,rotation:-25,duration:.45,ease:'back.out(2)'},${r3(s + 0.05)});`);
       String(b.title || '').split(/\s+/).forEach((_, k) => tw.push(`tl.from('#${id}tw${k}',{opacity:0,y:50,duration:.3,ease:'power3.out'},${r3(s + 0.25 + k * 0.09)});`));
@@ -314,7 +403,7 @@ ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big *
     }
     el.push(`<div id="${id}" class="panel clip" data-start="${s}" data-duration="${d}" data-track-index="2" style="left:${P.x}px;top:${P.y}px;width:${pw}px;height:${ph}px"><div class="grid"></div>${inner}<div class="edge"></div></div>`);
     if (G.seamY) el.push(`<div id="${id}s" class="seam clip" data-start="${s}" data-duration="${d}" data-track-index="3" style="top:${P.y + ph}px;height:${G.split.y - (P.y + ph)}px"></div>`);
-    tw.push(`tl.from('#${id}',{${o.fmt === '9x16' ? `y:-${Math.round(ph * 0.25)}` : `x:-${Math.round(pw * 0.25)}`},opacity:0,duration:.28,ease:'power3.out'},${s});`);
+    tw.push(enter(`#${id}`, s, o.fmt === '9x16' ? `y:-${Math.round(ph * 0.25)}` : `x:-${Math.round(pw * 0.25)}`, `x:-${Math.round(pw * 0.25)}`));
     cues.push({ t: r3(s - 0.08), sfx: 'whoosh_low' });
   }
   // ---------- icon / stat pops ----------
@@ -337,13 +426,29 @@ ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big *
     }
     cx = clamp(cx, Z.x0 + disc / 2, Z.x1 - disc / 2); cy = clamp(cy, Z.y0 + disc / 2, Z.y1 - disc / 2);
     const labSize = o.fmt === '9x16' ? 40 : 32;
+    // stat value: the style's number treatment (house: static in the disc)
+    const nf = b.type === 'stat' ? numberFrames(b.value, Th.numbers, popI) : null;
+    const statLook = { 'count-up': `background:${Th.hookBg};color:${A};border-bottom:8px solid ${A};box-shadow:0 10px 30px rgba(0,0,0,.35)`, scramble: `background:${Th.hookBg};color:${A};border:3px solid ${A};box-shadow:0 0 26px ${rgba(A, 0.45)};text-shadow:0 0 14px ${rgba(A, 0.7)}` }[Th.numbers] || `color:${Th.onA}`;
+    const numHtml = nf?.frames.length
+      ? `<span class="numbox"><span class="sizer">${esc(b.value)}</span>${nf.frames.map((fr, k) => `<span class="nv" id="${id}v${k}">${esc(fr.text)}</span>`).join('')}</span>`
+      : `<span class="num" style="display:inline-block">${esc(b.value)}</span>`;
     const body = b.type === 'stat'
-      ? `<div class="disc" style="width:${Math.round(disc * 1.25)}px;height:${Math.round(disc * 1.25)}px;border-radius:28px;color:#0b1020;font-weight:900;font-size:${Math.round(disc * 0.42)}px">${esc(b.value)}</div>`
-      : `<div class="disc" style="width:${disc}px;height:${disc}px">${icon(b.icon, { size: Math.round(disc * 0.62), stroke: 1.9, color: '#0b1020' })}</div>`;
+      ? `<div class="disc" style="width:${Math.round(disc * 1.25)}px;height:${Math.round(disc * 1.25)}px;border-radius:28px;${statLook};${fontCss(Th, 'numbers', 900)};font-size:${Math.round(disc * 0.42)}px">${numHtml}</div>`
+      : `<div class="disc" style="width:${disc}px;height:${disc}px">${icon(b.icon, { size: Math.round(disc * 0.62), stroke: 1.9, color: Th.onA })}</div>`;
     const label = b.label ? `<div class="lab" style="font-size:${labSize}px">${esc(b.label)}</div>` : '';
     boxes.push({ kind: b.type, s, e, x: cx - disc * 0.7, y: cy - disc / 2, w: disc * 1.4, h: disc + (b.label ? labSize + 30 : 0) });
     el.push(`<div id="${id}" class="pop clip" data-start="${s}" data-duration="${r3(e - s)}" data-track-index="7" style="left:${Math.round(cx - disc)}px;top:${Math.round(cy - disc / 2)}px;width:${disc * 2}px">${body}${label}</div>`);
-    tw.push(`tl.fromTo('#${id}',{scale:0,rotation:${side * -18}},{scale:1.12,rotation:0,duration:.2,ease:'power2.out'},${s});tl.to('#${id}',{scale:1,duration:.12,ease:'power1.inOut'},${r3(s + 0.2)});tl.to('#${id}',{y:-14,duration:${r3(Math.max(0.3, e - s - 0.5))},ease:'sine.inOut'},${r3(s + 0.32)});tl.to('#${id}',{scale:0,opacity:0,duration:.16,ease:'power2.in'},${r3(e - 0.16)});`);
+    if (Th.entrance === 'slide' || Th.entrance === 'fade') tw.push(`tl.from('#${id}',{${Th.entrance === 'slide' ? `x:${side * 140}` : 'y:30'},opacity:0,duration:${Th.entrance === 'fade' ? '.45' : '.3'},ease:'power3.out'},${s});`);
+    else if (Th.entrance === 'flicker') tw.push(enter(`#${id}`, s));
+    else tw.push(`tl.fromTo('#${id}',{scale:0,rotation:${side * -18}},{scale:1.12,rotation:0,duration:.2,ease:'power2.out'},${s});tl.to('#${id}',{scale:1,duration:.12,ease:'power1.inOut'},${r3(s + 0.2)});`);
+    tw.push(`tl.to('#${id}',{y:-14,duration:${r3(Math.max(0.3, e - s - 0.5))},ease:'sine.inOut'},${r3(s + 0.32)});tl.to('#${id}',{scale:0,opacity:0,duration:.16,ease:'power2.in'},${r3(e - 0.16)});`);
+    if (nf?.frames.length) nf.frames.forEach((fr, k) => { tw.push(`tl.set('#${id}v${k}',{visibility:'visible'},${r3(s + fr.t)});`); if (k) tw.push(`tl.set('#${id}v${k - 1}',{visibility:'hidden'},${r3(s + fr.t)});`); });
+    if (b.type === 'stat' && Th.numbers === 'slam') {
+      // slam: the value drops in from 3x, then the whole pop takes the hit (a 4-frame shake)
+      tw.push(`tl.fromTo('#${id} .num',{scale:3,opacity:0},{scale:1,opacity:1,duration:.16,ease:'power4.in',immediateRender:false},${r3(s + 0.06)});`);
+      [[12, 0], [-9, 1], [5, 2], [0, 3]].forEach(([x, f]) => tw.push(`tl.set('#${id}',{x:${x}},${r3(s + 0.22 + f / 30)});`));
+      cues.push({ t: r3(s + 0.2), sfx: 'tap' });
+    }
     cues.push({ t: s, sfx: b.type === 'stat' ? 'click' : 'tap' });
   }
   // ---------- lower third ----------
@@ -375,16 +480,56 @@ ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big *
     el.push(`<div id="lt${k}" class="lower clip" data-start="${at(ls)}" data-duration="${r3(le - ls)}" data-track-index="8" style="left:${G.lower.x}px;top:${Math.round(ly)}px"><div class="bar" id="lt${k}b"></div><div class="txt" id="lt${k}t"><div class="n" style="font-size:${nsz}px">${esc(L.name)}</div>${L.role ? `<div class="r" style="font-size:${rsz}px">${esc(L.role)}</div>` : ''}</div></div>`);
     tw.push(`tl.from('#lt${k}b',{scaleY:0,duration:.25,ease:'power2.out'},${at(ls)});tl.from('#lt${k}t',{clipPath:'inset(0 100% 0 0)',duration:.4,ease:'power3.out'},${r3(at(ls) + 0.12)});tl.to('#lt${k}',{opacity:0,x:-40,duration:.25,ease:'power2.in'},${r3(at(le) - 0.25)});`);
   });
+  // ---------- style signature moves: which punch-ins get one (spaced by minBeatGap; drawn after the captions) ----------
+  const sigHits = [];
+  if (Th.signature) {
+    let last = -Infinity;
+    for (const sg of [...segs.filter((x) => x.kind === 'punch'), ...steadyPunches].sort((a, b) => a.start - b.start)) {
+      if (sg.start - last < Math.max(Th.minGap, 1.5) || sg.end - sg.start < 0.6) continue;
+      last = sg.start;
+      sigHits.push({ start: sg.start, end: Math.min(sg.end, sg.start + 4) }); // a signature holds 4 s at most
+    }
+  }
+  // letterbox bars: captions in their window sit above the bottom bar, never across its edge
+  const LB = Th.signature === 'letterbox' ? { h: Math.round(G.h * (o.fmt === '16x9' ? 0.11 : 0.085)), wins: sigHits } : null;
+  const underBar = (t0, t1) => LB && LB.wins.some((w) => t0 < w.end && t1 > w.start);
   // ---------- captions ----------
+  // house: kinetic (1-2 word pops, key words in the accent) or minimal (the clean-cut look); a style pack: its own
+  // font, case, grouping, highlight and animation. Every caption picks light or dark text from the footage behind
+  // it (auto contrast: o.luma), unless o.ink / the pack fixes the colour.
   const capStyle = o.captions || 'kinetic';
-  const capsOut = [];
+  const capsOut = [], inkCount = { light: 0, dark: 0 };
+  // what is behind a caption rect (output px) from t0 to t1 (clip time): footage stats blended with the backdrop
+  // colour for the part of the rect that is not over the picture; null = unknown (no luma grid)
+  const behind = (t0, t1, rect) => {
+    const fr = framingAt((t0 + t1) / 2);
+    if (!fr) return { lum: relLum(Th.house ? '#0b1020' : Th.bg), std: 0 };
+    const { R, k } = fr;
+    const vx0 = Math.max(R.x, R.x + k.x), vy0 = Math.max(R.y, R.y + k.y), vx1 = Math.min(R.x + R.w, R.x + k.x + W * k.s), vy1 = Math.min(R.y + R.h, R.y + k.y + H * k.s);
+    const ix0 = Math.max(rect.x, vx0), iy0 = Math.max(rect.y, vy0), ix1 = Math.min(rect.x + rect.w, vx1), iy1 = Math.min(rect.y + rect.h, vy1);
+    const share = ix1 > ix0 && iy1 > iy0 ? ((ix1 - ix0) * (iy1 - iy0)) / Math.max(1, rect.w * rect.h) : 0;
+    const back = Th.house ? '#0b1020' : Th.bg;
+    if (share < 0.05) return blendBackdrop(null, back, 0);
+    if (!o.luma) return null;
+    const st = regionStats(o.luma, t0, t1, { x: (ix0 - R.x - k.x) / k.s, y: (iy0 - R.y - k.y) / k.s, w: (ix1 - ix0) / k.s, h: (iy1 - iy0) / k.s });
+    return st ? blendBackdrop(st, back, share) : null;
+  };
+  const inkMode = o.ink || 'auto';
+  const inkFor = (bg, prev) => {
+    const fixed = /^#/.test(inkMode) ? inkMode : (inkMode === 'auto' && Th.cap && Th.cap.color !== 'auto' ? Th.cap.color : null);
+    if (fixed) return { kind: relLum(fixed) > 0.18 ? 'light' : 'dark', fill: fixed };
+    if (inkMode === 'light' || inkMode === 'dark') return { kind: inkMode };
+    return { kind: pickInk(bg?.lum ?? null, { prev }) };
+  };
   if (capStyle !== 'none') {
-    const kin = capStyle === 'kinetic';
-    const base = JSON.parse(fs.readFileSync(path.join(REPO, kin ? 'easy-edits/presets/captions-default.json' : 'easy-edits/styles/clean-cut/captions.json'), 'utf8'));
-    const words = o.words.map((w) => ({ ...w, text: kin ? w.text : w.text }));
+    const C = Th.cap;
+    const kin = !C && capStyle === 'kinetic';
+    const base = JSON.parse(fs.readFileSync(path.join(REPO, kin || C ? 'easy-edits/presets/captions-default.json' : 'easy-edits/styles/clean-cut/captions.json'), 'utf8'));
+    if (C) base.grouping = { ...base.grouping, maxWords: C.maxWords, maxChars: C.maxChars, maxGap: C.maxWords > 3 ? 0.5 : base.grouping.maxGap };
+    const one = C ? C.maxChars <= 18 : kin; // one line in the kinetic band, else up to two lines in the lower band
     // never let a caption group straddle a layout cut
     const cutsAt = segs.map((s) => s.start).filter((t) => t > 0);
-    let caps = captionGroups(words, { duration: D, p: base });
+    let caps = captionGroups(o.words, { duration: D, p: base });
     caps = caps.flatMap((c) => {
       const cut = cutsAt.find((t) => t > c.words[0].start + 0.01 && t < c.words.at(-1).end - 0.01 && c.words.some((w) => w.start >= t));
       if (!cut || c.words.length < 2) return [c];
@@ -394,33 +539,67 @@ ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big *
     const trim = new RegExp(base.trimPunctuation || '[,.;:]+$');
     const emph = new Set();
     for (const b of beats) { for (const k of ['anchor']) if (b[k] && (b.type === 'icon' || b.type === 'stat')) norm(b[k]).split(' ').forEach((x) => emph.add(x)); if (b.type === 'compare') { emph.add(norm(b.left?.title || '')); emph.add(norm(b.right?.title || '')); } }
+    const key = (w) => emph.has(norm(w.text)) || /\d/.test(w.text);
+    let prevInk = null;
     caps.forEach((c, i) => {
       const t0 = c.words[0].start + 0.02; // the spoken start: a caption leads its word by 2 frames, never into another layout
       const lay = segs.find((s) => t0 >= s.start && t0 < s.end) || segs.at(-1);
       const f = faceOutAt(t0);
-      let y, size = kin ? G.capSize : G.minSize, box = kin ? G.capBox : G.minBox, left = Math.round((G.w - box) / 2);
+      let y, size = C ? Math.round((C.size * G.capSize) / 96) : (kin ? G.capSize : G.minSize), box = one ? G.capBox : G.minBox, left = Math.round((G.w - box) / 2);
       if (lay?.kind === 'split') {
         if (G.seamY) y = G.seamY;
         else { y = G.h - 150; box = Math.min(box, G.split.w - 40); left = Math.round(G.split.x + (G.split.w - box) / 2); size = Math.round(size * 0.85); }
       } else {
-        y = kin ? G.capY : G.minY;
+        y = one ? G.capY : G.minY;
         if (SCREEN) y = G.screenCapY;
         else if (f?.cy) { const chin = f.cy + f.fw * 0.8; if (chin + size * 0.9 > y) y = chin + size * 0.9; }
         if (!SCREEN) y = clamp(y, G.capMinY, G.capMaxY);
       }
-      const txt = c.words.map((w, k) => { let t = w.text; if (k === c.words.length - 1) t = t.replace(trim, ''); const e = esc(t); return kin && emph.has(norm(w.text)) ? `<em>${e}</em>` : e; }).join(' ');
-      el.push(`<div id="cap${i}" class="cap clip ${kin ? 'kin' : 'min'}" data-start="${at(c.start)}" data-duration="${r3(c.end - c.start)}" data-track-index="4" style="left:${left}px;width:${box}px;top:${Math.round(y)}px"><span class="l" style="font-size:${size}px;max-width:${box}px">${txt}</span></div>`);
-      if (kin) tw.push(`tl.fromTo('#cap${i} span',{scale:0},{scale:1.1,duration:.12,ease:'power2.out'},${at(c.start)});tl.to('#cap${i} span',{scale:1,duration:.08,ease:'power1.inOut'},${r3(at(c.start) + 0.125)});`);
-      const lines = kin ? 1 : Math.ceil(c.text.length * size * 0.55 / box);
-      const ch = size * (kin ? 1.05 : 1.18) * Math.max(1, lines);
-      capsOut.push({ i, start: at(c.start), end: at(c.end), text: c.words.map((w) => w.text).join(' '), y: Math.round(y), size, box, left, layout: lay?.kind, rect: { x: left, y: y - ch / 2, w: box, h: ch }, face: !SCREEN && f?.cy ? { x: f.cx - f.fw / 2, y: f.cy - f.fw * 0.6, w: f.fw, h: f.fw * 1.35 } : null });
+      const lines = one ? 1 : Math.max(1, Math.ceil((c.text.length * size * 0.55) / box));
+      const ch = size * (one ? 1.05 : 1.18) * lines;
+      if (underBar(c.start, c.end)) y = Math.min(y, G.h - LB.h - 16 - ch / 2);
+      // auto contrast: what the text will sit on (its estimated width, not the whole caption box)
+      const tw0 = Math.min(box, (c.text.length * size * ((C ? C.case === 'upper' : kin) ? 0.72 : 0.58)) / lines);
+      const bg = behind(c.start, c.end, { x: left + (box - tw0) / 2, y: y - ch / 2, w: tw0, h: ch });
+      const ink = inkFor(bg, prevInk); prevInk = ink.kind; inkCount[ink.kind]++;
+      const busy = isBusy(bg);
+      let hl = null;
+      if (C) {
+        hl = C.highlight === 'none' ? null : C.highlightStyle;
+        // the accent would vanish into this background (yellow on a white wall): the accent box instead
+        if ((hl === 'color' || hl === 'glow') && bg && contrastRatio(A, bg.lum) < 3) hl = 'box';
+      }
+      const cls = ['cap', 'clip', C ? `sp ${one ? 'one' : 'wrap'}${hl ? ` hl-${hl}` : ''}${C.animation === 'type' ? ' type' : ''}` : (kin ? 'kin' : 'min'), `ink-${ink.kind}`, busy ? 'busy' : ''].filter(Boolean).join(' ');
+      const wt = (w, k) => { let t = w.text; if (k === c.words.length - 1) t = t.replace(trim, ''); return t; };
+      let txt;
+      if (C) txt = c.words.map((w, k) => `<span class="w" id="cap${i}w${k}">${esc(wt(w, k))}</span>`).join(' ');
+      else txt = c.words.map((w, k) => { const e = esc(wt(w, k)); return kin && emph.has(norm(w.text)) ? `<em>${e}</em>` : e; }).join(' ');
+      const fill = ink.fill ? (C ? `--ink:${ink.fill};` : '') : '';
+      el.push(`<div id="cap${i}" class="${cls}" data-start="${at(c.start)}" data-duration="${r3(c.end - c.start)}" data-track-index="4" style="left:${left}px;width:${box}px;top:${Math.round(y)}px;${fill}"><span class="l" style="font-size:${size}px;max-width:${box}px${ink.fill && !C ? `;color:${ink.fill}` : ''}">${txt}</span></div>`);
+      if (kin || C?.animation === 'pop') tw.push(`tl.fromTo('#cap${i} span.l',{scale:0},{scale:1.1,duration:.12,ease:'power2.out',immediateRender:${c.start <= 0}},${at(c.start)});tl.to('#cap${i} span.l',{scale:1,duration:.08,ease:'power1.inOut'},${r3(at(c.start) + 0.125)});`);
+      else if (C?.animation === 'fade-up') tw.push(`tl.fromTo('#cap${i} span.l',{opacity:0,y:${Math.round(size * 0.35)}},{opacity:1,y:0,duration:.22,ease:'power2.out',immediateRender:${c.start <= 0}},${at(c.start)});`);
+      if (C) {
+        // word timing on the caption: typed on, lit while spoken (active-word) or from when spoken (keywords)
+        const wOn = (k) => r3(Math.max(at(c.start), at(c.words[k].start) - 0.03));
+        c.words.forEach((w, k) => {
+          if (C.animation === 'type') tw.push(`tl.to('#cap${i}w${k}',{opacity:1,duration:.05},${wOn(k)});`);
+          if (C.highlight === 'active-word') {
+            tw.push(`tl.set('#cap${i}w${k}',{attr:{class:'w on'}},${wOn(k)});`);
+            if (k + 1 < c.words.length) tw.push(`tl.set('#cap${i}w${k}',{attr:{class:'w'}},${wOn(k + 1)});`);
+          } else if (C.highlight === 'keywords' && key(w)) {
+            if (hl === 'underline') tw.push(`tl.to('#cap${i}w${k}',{backgroundSize:'100% .12em',duration:.3,ease:'power2.out'},${wOn(k)});`);
+            else tw.push(`tl.set('#cap${i}w${k}',{attr:{class:'w on'}},${wOn(k)});`);
+          }
+        });
+      }
+      capsOut.push({ i, start: at(c.start), end: at(c.end), text: c.words.map((w) => w.text).join(' '), y: Math.round(y), size, box, left, layout: lay?.kind, ink: ink.kind, ...(ink.fill ? { fill: ink.fill } : {}), bgLum: bg ? r3(bg.lum) : null, busy, ...(hl ? { highlight: hl } : {}), rect: { x: left, y: y - ch / 2, w: box, h: ch }, face: !SCREEN && f?.cy ? { x: f.cx - f.fw / 2, y: f.cy - f.fw * 0.6, w: f.fw, h: f.fw * 1.35 } : null });
     });
   }
   // ---------- hook title (shorts): the opener as a headline for the first seconds ----------
   if (o.hook) {
     const hd = r3(Math.min(3.2, D - 0.2)), hs = o.fmt === '9x16' ? 64 : 52;
     const hy = o.fmt === '9x16' ? 300 : 70;
-    el.push(`<div id="hook" class="clip" data-start="${I}" data-duration="${hd}" data-track-index="13" style="position:absolute;z-index:25;left:${Math.round(G.w * 0.07)}px;width:${Math.round(G.w * 0.86)}px;top:${hy}px;display:flex;justify-content:center"><div id="hookb" style="background:${A};color:#0b1020;font-weight:900;font-size:${hs}px;line-height:1.1;text-transform:uppercase;text-align:center;padding:18px 30px;border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.45)">${esc(o.hook)}</div></div>`);
+    el.push(`<div id="hook" class="clip" data-start="${I}" data-duration="${hd}" data-track-index="13" style="position:absolute;z-index:25;left:${Math.round(G.w * 0.07)}px;width:${Math.round(G.w * 0.86)}px;top:${hy}px;display:flex;justify-content:center"><div id="hookb" style="background:${A};color:${Th.onA};${fontCss(Th, 'display', 900)};font-size:${hs}px;line-height:1.1;text-transform:uppercase;text-align:center;padding:18px 30px;border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.45)">${esc(o.hook)}</div></div>`);
     tw.push(`tl.fromTo('#hookb',{scale:.6,opacity:0,rotation:-3},{scale:1,opacity:1,rotation:0,duration:.3,ease:'back.out(2)'},${r3(I + 0.02)});tl.to('#hookb',{scale:.85,opacity:0,y:-30,duration:.22,ease:'power2.in'},${r3(I + hd - 0.22)});`);
     cues.push({ t: r3(I + 0.02), sfx: 'whoosh' });
   }
@@ -442,14 +621,14 @@ ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big *
     boxes.push({ kind: 'hook', s: I, e: r3(I + hd), x: (G.w - bw) / 2, y: hy, w: bw, h: ch });
     let wi = 0;
     const html = lines.map((l) => `<div>${l.split(' ').map((w) => `<span class="hw" id="hw${wi++}" style="display:inline-block;margin:0 .13em">${esc(w)}</span>`).join('')}</div>`).join('');
-    el.push(`<div id="hookc" class="clip" data-start="${I}" data-duration="${hd}" data-track-index="13" style="position:absolute;z-index:25;left:${Math.round((G.w - bw) / 2)}px;width:${bw}px;top:${hy}px;display:flex;justify-content:center"><div id="hookcb" style="position:relative;background:rgba(11,16,32,.84);border-radius:26px;padding:30px 36px 34px;text-align:center;font-weight:800;font-size:${hs}px;line-height:1.08;color:#fff;letter-spacing:-.01em;box-shadow:0 18px 40px rgba(0,0,0,.45)">${html}<div id="hookcu" style="position:absolute;left:36px;right:36px;bottom:16px;height:8px;border-radius:4px;background:${A};transform-origin:0 50%"></div></div></div>`);
+    el.push(`<div id="hookc" class="clip" data-start="${I}" data-duration="${hd}" data-track-index="13" style="position:absolute;z-index:25;left:${Math.round((G.w - bw) / 2)}px;width:${bw}px;top:${hy}px;display:flex;justify-content:center"><div id="hookcb" style="position:relative;background:${Th.hookBg};border-radius:26px;padding:30px 36px 34px;text-align:center;${fontCss(Th, 'display', 800)};font-size:${hs}px;line-height:1.08;color:${Th.hookFg};letter-spacing:-.01em;box-shadow:0 18px 40px rgba(0,0,0,.45)">${html}<div id="hookcu" style="position:absolute;left:36px;right:36px;bottom:16px;height:8px;border-radius:4px;background:${A};transform-origin:0 50%"></div></div></div>`);
     tw.push(`tl.fromTo('#hookcb',{opacity:0,y:40,scale:.94},{opacity:1,y:0,scale:1,duration:.32,ease:'back.out(1.6)'},${r3(I + 0.02)});`);
     for (let k = 0; k < wi; k++) tw.push(`tl.fromTo('#hw${k}',{opacity:0,y:${Math.round(hs * 0.35)}},{opacity:1,y:0,duration:.24,ease:'power3.out'},${r3(I + 0.08 + k * 0.06)});`);
     tw.push(`tl.fromTo('#hookcu',{scaleX:0},{scaleX:1,duration:.45,ease:'power2.out'},${r3(I + 0.2 + wi * 0.06)});tl.to('#hookcb',{opacity:0,y:-36,duration:.28,ease:'power2.in'},${r3(I + hd - 0.3)});`);
   }
   // ---------- topic header over a 9:16 screen recording (the band above the screen window) ----------
   if (SCREEN && o.fmt === '9x16' && o.title) {
-    el.push(`<div id="topic" class="clip" data-start="${I}" data-duration="${r3(D)}" data-track-index="14" style="position:absolute;z-index:3;left:0;width:${G.w}px;top:${G.screen.y - 170}px;display:flex;justify-content:center"><span class="chip" style="background:rgba(255,255,255,.1);border:2px solid ${A};color:#fff;font-size:44px">${esc(o.title)}</span></div>`);
+    el.push(`<div id="topic" class="clip" data-start="${I}" data-duration="${r3(D)}" data-track-index="14" style="position:absolute;z-index:3;left:0;width:${G.w}px;top:${G.screen.y - 170}px;display:flex;justify-content:center"><span class="chip" style="background:${Th.line(0.1)};border:2px solid ${A};color:${Th.text};font-size:44px">${esc(o.title)}</span></div>`);
     tw.push(`tl.from('#topic',{opacity:0,y:-20,duration:.35,ease:'power2.out'},${r3(I + 0.1)});`);
   }
   // ---------- progress bar ----------
@@ -491,6 +670,72 @@ ${o.watermark ? `<div class="sub" id="oh" style="font-size:${Math.round(tsz * 0.
     const wsz = o.fmt === '9x16' ? 30 : 26;
     el.push(`<div class="wm clip" data-start="${I}" data-duration="${r3(D)}" data-track-index="12" style="right:${o.fmt === '9x16' ? 40 : 34}px;top:${o.fmt === '9x16' ? 150 : 30}px;font-size:${wsz}px">${esc(o.watermark)}</div>`);
   }
+  // ---------- style transitions: at every layout change, speaker / camera change and card edge ----------
+  // whip: a skewed accent smear crosses the frame while the picture blurs; dip: through the background colour;
+  // glitch: RGB slices, a jitter and a colour shift for a few frames. House: hard cuts (none of this).
+  let txN = 0, sgN = 0;
+  if (Th.transition !== 'cut' && Th.tDur > 0) {
+    const tts = [...segs.slice(1).map((sg) => at(sg.start)), ...steadyCams.map((sg) => at(sg.start)), ...(I > 0 ? [I] : []), ...(O > 0 ? [at(D)] : [])]
+      .filter((t) => t > 0.15 && t < T - 0.15).sort((a, b) => a - b).filter((t, k, a) => k === 0 || t - a[k - 1] > 0.6);
+    let seed = 7;
+    const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+    if (Th.transition === 'whip' && tts.length) tw.push(`tl.set('#spkbox',{filter:'blur(0px)'},0);`);
+    for (const t of tts) {
+      const d = Th.tDur, t0 = r3(Math.max(0, t - d / 2)), id = `tx${txN++}`;
+      if (Th.transition === 'whip') {
+        el.push(`<div id="${id}" class="clip" data-start="${t0}" data-duration="${r3(d)}" data-track-index="15" style="position:absolute;z-index:35;left:0;top:-10%;width:${G.w * 2}px;height:120%;background:linear-gradient(90deg,transparent 0%,${rgba(A, 0)} 15%,${rgba(A, 0.9)} 42%,${rgba(Th.bg, 0.95)} 58%,transparent 85%);transform:skewX(-16deg)"></div>`);
+        tw.push(`tl.fromTo('#${id}',{x:${-G.w * 2}},{x:${G.w},duration:${r3(d)},ease:'power2.inOut',immediateRender:false},${t0});`);
+        tw.push(`tl.to('#spkbox',{filter:'blur(14px)',duration:${r3(d / 2)},ease:'power1.in'},${t0});tl.to('#spkbox',{filter:'blur(0px)',duration:${r3(d / 2)},ease:'power1.out'},${r3(t0 + d / 2)});`);
+        cues.push({ t: r3(Math.max(0, t0 - 0.05)), sfx: 'whoosh' });
+      } else if (Th.transition === 'dip') {
+        el.push(`<div id="${id}" class="clip" data-start="${t0}" data-duration="${r3(d)}" data-track-index="15" style="position:absolute;inset:0;z-index:18;background:${Th.bg};opacity:0"></div>`);
+        tw.push(`tl.to('#${id}',{opacity:1,duration:${r3(d / 2)},ease:'sine.in'},${t0});tl.to('#${id}',{opacity:0,duration:${r3(d / 2)},ease:'sine.out'},${r3(t0 + d / 2)});`);
+      } else {
+        const ys = [0.16, 0.39, 0.61, 0.83], n = Math.max(3, Math.round(d * 30));
+        el.push(`<div id="${id}" class="clip" data-start="${t0}" data-duration="${r3(n / 30 + 0.02)}" data-track-index="15" style="position:absolute;inset:0;z-index:35">${ys.map((y, q) => `<div id="${id}s${q}" style="position:absolute;left:0;width:100%;top:${Math.round(G.h * y)}px;height:${Math.round(G.h * (0.025 + 0.015 * q))}px;background:${q % 2 ? Th.A2 : A};mix-blend-mode:screen;opacity:0"></div>`).join('')}</div>`);
+        for (let j = 0; j < n; j++) {
+          const tj = r3(t0 + j / 30);
+          ys.forEach((_, q) => tw.push(`tl.set('#${id}s${q}',{opacity:${rnd() > 0.35 ? 0.85 : 0},x:${Math.round((rnd() - 0.5) * G.w * 0.12)}},${tj});`));
+          tw.push(`tl.set('#spkbox',{x:${Math.round((rnd() - 0.5) * 28)},filter:'${j % 2 ? 'hue-rotate(150deg) saturate(2.2) contrast(1.2)' : 'saturate(1.7) contrast(1.15)'}'},${tj});`);
+        }
+        tw.push(`tl.set('#spkbox',{x:0,filter:'none'},${r3(t0 + n / 30)});`);
+        cues.push({ t: t0, sfx: 'click' });
+      }
+    }
+  }
+  // ---------- style signature move: on every punch-in (and every zoom-in of a short), spaced by minBeatGap ----------
+  // punch-shake: a zoom hit, a 5-frame shake and an accent frame flash; letterbox: bars in the background colour
+  // with an accent rule slide in for the punch; hud: corner brackets lock onto the face, with faint scanlines.
+  if (Th.signature) {
+    for (const sg of sigHits) {
+      const t = at(sg.start), e = at(sg.end), id = `sg${sgN++}`;
+      if (Th.signature === 'punch-shake') {
+        tw.push(`tl.set('#spkbox',{scale:1.07},${t});tl.to('#spkbox',{scale:1,duration:.24,ease:'power2.out'},${r3(t + 0.01)});`);
+        [[16, -10], [-12, 8], [8, -5], [-4, 2], [0, 0]].forEach(([x, y], f) => tw.push(`tl.set('#spkbox',{x:${x},y:${y}},${r3(t + f / 30)});`));
+        el.push(`<div id="${id}" class="clip" data-start="${t}" data-duration="0.3" data-track-index="16" style="position:absolute;inset:0;z-index:16;box-shadow:inset 0 0 0 14px ${A}"></div>`);
+        tw.push(`tl.to('#${id}',{opacity:0,duration:.3,ease:'power2.in'},${t});`);
+        cues.push({ t, sfx: 'tap' });
+      } else if (Th.signature === 'letterbox') {
+        const bh = LB.h, dd = r3(e - t);
+        el.push(`<div id="${id}t" class="clip" data-start="${t}" data-duration="${dd}" data-track-index="16" style="position:absolute;left:0;top:0;width:100%;height:${bh}px;z-index:15;background:${Th.bg};border-bottom:4px solid ${A}"></div><div id="${id}b" class="clip" data-start="${t}" data-duration="${dd}" data-track-index="17" style="position:absolute;left:0;bottom:0;width:100%;height:${bh}px;z-index:15;background:${Th.bg};border-top:4px solid ${A}"></div>`);
+        tw.push(`tl.from('#${id}t',{yPercent:-100,duration:.45,ease:'power3.out'},${t});tl.from('#${id}b',{yPercent:100,duration:.45,ease:'power3.out'},${t});`);
+        if (dd > 1.2) tw.push(`tl.to('#${id}t',{yPercent:-100,duration:.35,ease:'power2.in'},${r3(e - 0.35)});tl.to('#${id}b',{yPercent:100,duration:.35,ease:'power2.in'},${r3(e - 0.35)});`);
+        cues.push({ t, sfx: 'whoosh_low' });
+      } else {
+        const f = faceOutAt(sg.start + 0.15), fw = f?.fw || G.w * 0.25;
+        const bw = Math.round(Math.min(G.w - 40, fw * 1.8)), bhh = Math.round(Math.min(G.h - 40, fw * 2.1));
+        const bx = Math.round(clamp((f?.cx ?? G.w / 2) - bw / 2, 20, G.w - 20 - bw)), by = Math.round(clamp((f?.cy ?? G.h * 0.38) + fw * 0.1 - bhh / 2, 20, G.h - 20 - bhh));
+        const c = Math.round(Math.min(bw, bhh) * 0.2), line = `${Math.max(4, Math.round(G.w / 200))}px solid ${A}`, dd = r3(e - t);
+        const corner = (k, css) => `<div id="${id}c${k}" style="position:absolute;width:${c}px;height:${c}px;${css}"></div>`;
+        el.push(`<div id="${id}" class="clip" data-start="${t}" data-duration="${dd}" data-track-index="16" style="position:absolute;inset:0;z-index:15;pointer-events:none">
+<div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 6px)"></div>
+<div id="${id}k" style="position:absolute;left:${bx}px;top:${by}px;width:${bw}px;height:${bhh}px;filter:drop-shadow(0 0 8px ${rgba(A, 0.8)})">${corner(0, `left:0;top:0;border-top:${line};border-left:${line}`)}${corner(1, `right:0;top:0;border-top:${line};border-right:${line}`)}${corner(2, `left:0;bottom:0;border-bottom:${line};border-left:${line}`)}${corner(3, `right:0;bottom:0;border-bottom:${line};border-right:${line}`)}
+<div style="position:absolute;left:0;top:-${Math.round(G.w / 28)}px;font-family:${Th.font.body.stack};font-weight:700;font-size:${Math.round(G.w / 40)}px;letter-spacing:.14em;color:${A}">● LOCK</div></div></div>`);
+        tw.push(`tl.from('#${id}k',{scale:1.4,opacity:0,duration:.25,ease:'expo.out'},${t});tl.set('#${id}k',{opacity:.3},${r3(t + 0.28)});tl.set('#${id}k',{opacity:1},${r3(t + 0.31)});tl.to('#${id}',{opacity:0,duration:.2},${r3(t + dd - 0.2)});`);
+        cues.push({ t, sfx: 'click2' });
+      }
+    }
+  }
   // self-check: caption over the face, over a pop / lower third, or outside the frame
   const hit = (a, b) => a && b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
   const overlaps = [];
@@ -502,7 +747,7 @@ ${o.watermark ? `<div class="sub" id="oh" style="font-size:${Math.round(tsz * 0.
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Easy Edits ${esc(o.title || '')}</title>
 <script src="assets/gsap.min.js"></script>
-<style>${CSS_BASE(G, A)}</style></head><body>
+<style>${CSS_BASE(G, Th)}</style></head><body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="${T}" data-width="${G.w}" data-height="${G.h}">
 ${el.join('\n')}
 </div>
@@ -512,5 +757,7 @@ ${tw.join('\n')}
 tl.set({}, {}, ${T});
 window.__timelines=window.__timelines||{};window.__timelines['main']=tl;
 </script></body></html>`;
-  return { html, duration: T, offset: I, cues: cues.filter((c) => c.t >= 0 && c.t < T).sort((a, b) => a.t - b.t), captions: capsOut, segments: segs, overlaps };
+  // the style's sound policy: soft keeps the whooshes and the shimmer, none drops every effect
+  const sfxOk = (c) => Th.sfx === 'full' || (Th.sfx === 'soft' && /^(whoosh|whoosh_low|shimmer)$/.test(c.sfx));
+  return { html, duration: T, offset: I, cues: cues.filter((c) => c.t >= 0 && c.t < T && sfxOk(c)).sort((a, b) => a.t - b.t), captions: capsOut, segments: segs, overlaps, style: Th.id, transitions: txN, signatures: sgN, ink: inkCount };
 }

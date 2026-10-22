@@ -48,8 +48,9 @@ easy-edits --help
 
 `install.sh` installs, or verifies: Node 22 (into `~/.easy-edits/node` unless you already have Node >= 22),
 ffmpeg, a Python venv with faster-whisper, OpenCV and yt-dlp, the Whisper `small` + `medium` models, the YuNet face
-model, the npm packages, HyperFrames' headless Chrome and the Montserrat caption font. Everything goes into
-`~/.easy-edits` and this folder (plus the font in `~/.local/share/fonts`). `./install.sh --help` lists the options.
+model, the npm packages, HyperFrames' headless Chrome and the fonts (Montserrat for the captions, Playfair Display
+and JetBrains Mono for the style packs; all SIL OFL, pinned and checksummed). Everything goes into `~/.easy-edits`
+and this folder (plus the fonts in `~/.local/share/fonts`). `./install.sh --help` lists the options.
 
 HyperFrames (the renderer) sends anonymous usage telemetry by default. `install.sh` turns it off: it exports
 `HYPERFRAMES_NO_TELEMETRY=1` (and `DO_NOT_TRACK=1`) before anything runs, writes both into `~/.easy-edits/env.sh`, and
@@ -98,7 +99,8 @@ contact sheet, `.srt` / `.vtt`, a `report.json`, and a `CREDITS.txt` when music 
 
 Useful options (`easy-edits --help` has them all): `--title`, `--speaker` / `--role` (names are never guessed),
 `--plan-only` then `--plan FILE` (review or hand-edit the motion plan), `--transcript FILE`, `--review-patch FILE`,
-`--no-review`, `--music "query"` / `--no-music`, `--preset FILE` (your own watermark / accent / call to action; keep
+`--no-review`, `--style PACK` (below), `--face top|center|bottom|X,Y`, `--caption-color auto|white|black|#RRGGBB`,
+`--music "query"` / `--no-music`, `--preset FILE` (your own watermark / accent / call to action; keep
 it outside the repo), `--lang`, `--agent claude|codex|none`.
 
 ### Shorts
@@ -113,6 +115,46 @@ it outside the repo), `--lang`, `--agent claude|codex|none`.
    (`--reset-used` clears it).
 
 Easy Edits never posts, schedules or writes social copy: it writes files for you to review.
+
+### Styles
+
+A style pack is one JSON file that defines a whole editing style: palette, fonts, caption look (font, case, words
+per caption, highlight, animation), transitions, how numbers animate, a signature move, pacing (how often pops and
+punch-ins may land, how far punch-ins zoom), which scenes it allows, and its sound. Three ship with Easy Edits:
+
+| Style | Look | Transitions | Numbers | Signature move |
+| --- | --- | --- | --- | --- |
+| `punch` | black + safety yellow, heavy uppercase Montserrat, 1-2 words at a time, spoken word lit | whip-pan smear with motion blur | slam in from 3x with a hit | zoom hit + camera shake on every punch-in |
+| `broadsheet` | warm paper, ink and red, Playfair Display, sentence-case phrases rising in, key words underlined | dip through paper | count up like a ticker | cinematic letterbox bars on punch-ins |
+| `terminal` | near-black navy, cyan / magenta, JetBrains Mono, lowercase captions typed on, glowing key words | RGB-split glitch | digits decode through random numbers | HUD brackets lock onto the face |
+
+```sh
+easy-edits talking-head talk.mp4 -o out/ --style broadsheet    # captions / talking-head / explainer / shorts
+easy-edits style list                                          # built-in packs and yours
+easy-edits style validate my-brand.json                        # schema + readability checks, every problem listed
+easy-edits style skill punch                                   # a Claude Code skill that edits in that style
+```
+
+Your own packs go in `~/.easy-edits/styles/<id>.json` (or pass a path). Start from a copy of a built-in pack in
+`easy-edits/styles/packs/`; the schema is `easy-edits/styles/pack.schema.json`. The renderer validates the pack and
+refuses, with the reason, anything it doesn't support: an unknown key or value, unreadable colours, a mode or format
+the pack doesn't list, a `--plan` beat outside its scenes, `--hook` without a hook scene, a font that isn't
+installed. `clean-cut` keeps its approved look and takes no style.
+
+`easy-edits style skill <pack>` writes `~/.claude/skills/easy-edits-style-<id>/SKILL.md` (`--project` for
+`./.claude/skills`, `-o DIR`, or `--print`): a skill that tells Claude Code to add `--style <id>` to every render,
+plan only the beats the style allows, and review the result against that style.
+
+### Smarter captions
+
+- **Auto contrast.** Each caption samples the footage behind it (a small greyscale grid of the clip) and uses
+  white text with a dark edge, or near-black text with a light edge over bright footage such as a white wall or
+  sky. A hysteresis band stops neighbouring captions flickering between the two, busy backgrounds get a heavier
+  edge, and a highlight colour that would vanish into the background becomes a highlight box. `--caption-color
+  white|black|#RRGGBB` fixes the colour instead (the approved clean-cut 9:16 keeps white).
+- **Manual face position.** When face detection is wrong (a poster, a second person, a dark shot), `--face
+  top|center|bottom` or `--face X,Y` (fractions of the frame, e.g. `--face 0.3,0.4`) puts the framing, punch-ins,
+  caption keep-out and pops on that point.
 
 ### From a URL
 

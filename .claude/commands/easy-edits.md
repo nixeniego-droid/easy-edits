@@ -6,7 +6,8 @@ argument-hint: "[video file]"
 Use the `easy-edits` skill (`.claude/skills/easy-edits/SKILL.md`) and follow its getting-started flow in this
 checkout (it is already cloned, so skip the `git clone`):
 
-1. Section 1: run `./install.sh`, then `. ~/.easy-edits/env.sh`, then `./install.sh --doctor`.
+1. Section 1: run `./install.sh` in the foreground (long timeout; wait for it to finish), then
+   `. ~/.easy-edits/env.sh`, then `./install.sh --doctor`.
 2. Section 2: fix every doctor FAIL with the fix in the table, re-run `./install.sh` and `./install.sh --doctor`
    until it ends with "doctor: all PASS". Check the picker agent (`claude -p "say ok"`); use `--agent none` if it fails.
 3. Section 3: the quick first run on the user's video: $ARGUMENTS

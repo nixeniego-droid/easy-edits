@@ -282,12 +282,13 @@ export function proposalsText(src, P, { min, max, used }) {
 // ---------- fast low-res preview ----------
 const assTime = (t) => { const cs = Math.round(Math.max(0, t) * 100); return `${Math.floor(cs / 360000)}:${pad(Math.floor(cs / 6000) % 60)}:${pad(Math.floor(cs / 100) % 60)}.${pad(cs % 100)}`; };
 const assEsc = (s) => String(s).replace(/[{}]/g, '').replace(/\n/g, '\\N');
-export function previewClip(srcFile, c, words, out, { work, logFile }) {
+export function previewClip(srcFile, c, words, out, { work, logFile, face = null }) {
   fs.mkdirSync(work, { recursive: true });
   const t0 = Math.max(0, c.start - 0.15), t1 = c.end + 0.5;
   const win = path.join(work, 'win.mp4');
   if (!fs.existsSync(win)) execFileSync('ffmpeg', ['-v', 'error', '-y', '-ss', String(t0), '-i', srcFile, '-t', String(r3(t1 - t0)), '-vf', 'scale=640:360', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '20', '-c:a', 'aac', '-b:a', '128k', win]);
-  const track = faceTrack(win, path.join(work, 'win.track.json'), { logFile, switch: true });
+  // --face: one steady crop on that point instead of the detected speaker turns
+  const track = face ? { samples: [{ t: 0, cx: face.x * 640 }] } : faceTrack(win, path.join(work, 'win.track.json'), { logFile, switch: true });
   // crop: steady per speaker turn / shot (median face x), hard cuts between
   const S = track.samples || [], segs = [];
   for (const s of S) { if (!segs.length || s.cut) segs.push({ t: s.t, xs: [] }); segs.at(-1).xs.push(s.cx); }
@@ -543,7 +544,7 @@ export default async function shorts(o) {
       if (p.preview && fs.existsSync(p.preview)) continue; // a pinned proposal keeps its preview (an edited span drops it)
       p.preview = path.join(o.out, `proposal_${p.rank}_${p.slug}_preview.mp4`);
       log(`preview #${p.rank} ...`);
-      previewClip(src.file, p, words, p.preview, { work: path.join(o.work, `preview${p.rank}_${Math.round(p.start)}_${Math.round(p.end)}`), logFile: o.logFile });
+      previewClip(src.file, p, words, p.preview, { work: path.join(o.work, `preview${p.rank}_${Math.round(p.start)}_${Math.round(p.end)}`), logFile: o.logFile, face: o.face });
     }
   }
   const { from: _from, ...kept } = plan || {};

@@ -98,7 +98,10 @@ if (!j.whole?.length) process.exit(1);
 fs.writeFileSync(o, JSON.stringify({ language_code: l, produced_by: "cut-candidates whole-file disfluent decode (check/asr_excerpts.py)", words: j.whole.map((w) => ({ ...w, type: "word" })) }, null, 1));' "$PREP/source.cut-candidates.json" "$WORDS" "$LANGV")
 CUTC=(node "$STYLE/cut.mjs" "$WORDS" "$PROJ" --source "$SRC" --candidates "$PREP/source.cut-candidates.json" --mode "$MODE")
 REVC=(node "$REPO/easy-edits/bin/claude-watchdog.mjs" --prompt-file "$RUN/review.md" --log "$RUN/review.log" --stream-log "$RUN/review.jsonl" "${CLAUDE[@]}" -- --model "${EASY_EDITS_REVIEW_MODEL:-sonnet}" --max-turns 3 --permission-mode bypassPermissions)
-BUILDC=(node "$STYLE/build.mjs" "$PROJ" --source "$SRC" --prep "$PREP/source-prep.json")
+# EASY_EDITS_FACE (easy-edits --face top|center|bottom|X,Y): the build and the face gates read a copy of the prep with
+# every scene's face box and 9:16 crop on that point (engine/face-override.mjs), for when face detection is wrong
+PREPJ="$PREP/source-prep.json"; [ -n "${EASY_EDITS_FACE:-}" ] && PREPJ="$PREP/source-prep.face.json"
+BUILDC=(node "$STYLE/build.mjs" "$PROJ" --source "$SRC" --prep "$PREPJ")
 # caption verify (review aid, never a gate): a second decode of the built audio (plain + disfluent, 10 s windows)
 # flags caption words it did not hear; with the claude review on, one short text-only pass (brief-captions.md) may
 # fix them (caption-only: a text fix never moves a cut), then cut + build again, before the render. --review-patch /
@@ -129,8 +132,8 @@ gate pre   cuts      node "$T/cut-guard.mjs" "$PROJ" --source "$SRC"
 gate pre   disfl     env OMP_NUM_THREADS="${EASY_EDITS_DISFL_THREADS:-4}" node "$C/disfluency.mjs" "$MIX" --lang "$LANGV" "${DISFL[@]}"
 gate pre   air       node "$C/dead-air.mjs" "$MIX" --max "$AIRMAX"
 gate pre   room      node "$C/room-tone.mjs" "$PROJ" "$MIX"
-gate pre   face      node "$C/caption-face.mjs" "$PROJ" --prep "$PREP/source-prep.json"
-gate final finalface "$REPO/easy-edits/bin/lib/finalface-split.sh" "${EASY_EDITS_FACE_SLICES:-3}" "$PROJ" "$OUT" --prep "$PREP/source-prep.json"
+gate pre   face      node "$C/caption-face.mjs" "$PROJ" --prep "$PREPJ"
+gate final finalface "$REPO/easy-edits/bin/lib/finalface-split.sh" "${EASY_EDITS_FACE_SLICES:-3}" "$PROJ" "$OUT" --prep "$PREPJ"
 gate pre   style     node "$C/text-style.mjs" "$PROJ" --one-caption --no-kinetic-size
 gate pre   capsize   node "$C/caption-size.mjs" "$PROJ" --preset "$STYLE/captions.json"
 gate pre   read      node "$C/readability.mjs" "$PROJ"
@@ -163,6 +166,7 @@ t=$SECONDS
 ( "${CANDC[@]}" > "$RUN/cutcand.log" 2>&1 ) & CPID=$!
 EASY_EDITS_CUTCAND=0 "${PREPC[@]}" > "$RUN/prep.log" 2>&1 || { echo "clean-cut: source prep failed (see $RUN/prep.log)" >&2; exit 2; }
 wait "$CPID" || echo "clean-cut: cut-candidates failed (see $RUN/cutcand.log); ASR fallback" >&2
+if [ -n "${EASY_EDITS_FACE:-}" ]; then node "$REPO/easy-edits/engine/face-override.mjs" prep "$PREP/source-prep.json" "$PREPJ" "$EASY_EDITS_FACE" || exit 2; fi
 phase prep $t
 t=$SECONDS
 if [ -z "$TRIN" ] && ! "${FROMCAND[@]}" 2>/dev/null; then

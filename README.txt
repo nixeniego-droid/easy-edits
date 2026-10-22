@@ -1,4 +1,4 @@
-Easy Edits v1.2.0
+Easy Edits v1.3.0
 ==============
 
 Zero-instruction video editing: point it at a talking-head video, get a finished edit back.
@@ -13,7 +13,7 @@ INSTALL (Linux or macOS; needs git and curl)
 
   git clone https://github.com/nixeniego-droid/easy-edits
   cd easy-edits
-  ./install.sh                     # Node 22, ffmpeg, faster-whisper + models, OpenCV, yt-dlp, npm deps, Chrome, font
+  ./install.sh                     # Node 22, ffmpeg, faster-whisper + models, OpenCV, yt-dlp, npm deps, Chrome, fonts
   . ~/.easy-edits/env.sh              # in every new shell (puts easy-edits on your PATH)
   ./install.sh --doctor            # PASS/FAIL per dependency
   easy-edits --help
@@ -60,6 +60,25 @@ SHORTS FLAGS
   --reset-used     clear the used-clips log, so earlier picks can be proposed again
 
   Rendering one format at a time writes the same file name each time, so move each output before the next run.
+
+
+STYLES (captions, talking-head, explainer, shorts)
+
+  --style punch | broadsheet | terminal | PATH.json
+                   punch: loud creator look, whip transitions, numbers slam in, punch-in camera shake
+                   broadsheet: calm editorial serif, dips through paper, numbers count up, letterbox bars
+                   terminal: dark mono tech look, RGB glitch, numbers decode, HUD brackets on the face
+  easy-edits style list                  every pack (built-in + ~/.easy-edits/styles)
+  easy-edits style validate <pack>       check a pack; every problem listed
+  easy-edits style skill <pack>          write a Claude Code skill that edits in that style
+  The renderer refuses anything a pack doesn't support and says why.
+
+
+CAPTIONS
+
+  Captions pick white or dark text from the footage behind them (auto contrast).
+  --caption-color auto | white | black | #RRGGBB     fix the colour instead
+  --face top | center | bottom | X,Y                  where the face is, when face detection gets it wrong
 
 
 URL INPUT

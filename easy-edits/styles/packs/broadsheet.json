@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "broadsheet",
+  "name": "Broadsheet",
+  "description": "Calm editorial style: warm paper, ink and newsprint red, Playfair Display serif, sentence-case captions of a short phrase that rise in softly with key words underlined in red. Layout changes dip through paper, numbers count up like a ticker, and punch-ins bring in cinematic letterbox bars.",
+  "useFor": "Interviews, essays, documentary and opinion pieces, founder stories, anything that should feel considered rather than loud.",
+  "modes": ["captions", "talking-head", "explainer", "shorts"],
+  "formats": ["9x16", "1x1", "16x9"],
+  "palette": { "background": "#F4EFE6", "surface": "#FBF8F2", "text": "#1A1A1A", "accent": "#C8102E", "accent2": "#1F3A5F", "onAccent": "#FFFFFF" },
+  "fonts": {
+    "display": { "family": "Playfair Display", "weight": 800 },
+    "body": { "family": "Montserrat", "weight": 500 },
+    "numbers": { "family": "Playfair Display", "weight": 900 }
+  },
+  "captions": {
+    "font": "display", "weight": 700, "size": 74, "letterSpacing": 0, "case": "as-spoken", "maxWords": 6, "maxChars": 30,
+    "color": "auto", "highlight": "keywords", "highlightStyle": "underline", "animation": "fade-up", "edge": 2, "shadow": "soft"
+  },
+  "motion": { "transition": "dip", "transitionDuration": 0.4, "entrance": "fade", "numbers": "count-up", "signature": "letterbox", "drift": 0.02 },
+  "pacing": { "minBeatGap": 6, "maxBeatsPerMinute": 6, "punchZoom": [1.1, 1.25] },
+  "scenes": ["punch", "stat", "quote", "list", "compare", "card", "lower-third", "intro", "outro"],
+  "sound": { "sfx": "soft", "music": "ambient piano" }
+}

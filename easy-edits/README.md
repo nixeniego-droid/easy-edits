@@ -12,10 +12,12 @@ Easy Edits automates.
 | Path | What |
 | --- | --- |
 | `../bin/easy-edits` | The CLI entry point (loads `~/.easy-edits/env.sh`, then runs `cli/main.mjs`) |
-| `cli/main.mjs` | Argument parsing, URL input, dispatch to `modes/<mode>.mjs` |
+| `cli/main.mjs` | Argument parsing, URL input, `--style` / `--face` / `--caption-color` checks, dispatch to `modes/<mode>.mjs` |
+| `cli/style.mjs` | `easy-edits style list \| validate \| skill` (the skill generator) |
 | `modes/` | `clean-cut`, `talking-head`, `explainer`, `shorts`, `captions` |
 | `engine/` | Shared stages: source normalisation + SDR tone-map, ASR, face track (`facetrack.py`, YuNet), screen-activity track (`activity.py`), motion plan (`plan.mjs`, pinned plans in `plan-store.mjs`), HyperFrames composition per format (`compose.mjs`), soundtrack (`audio.mjs`), export + delivery check (`export.mjs`, `media.mjs`) |
 | `bin/clean-cut.sh` | The approved Clean cut pipeline (9:16), also used as the cut stage of talking-head |
+| `styles/pack.schema.json`, `styles/packs/` | Style pack schema and the built-in packs (`punch`, `broadsheet`, `terminal`) |
 | `styles/clean-cut/` | Deterministic cut list (`cut.mjs`), build, caption burn-in, review briefs |
 | `presets/` | Caption presets (`captions-default`, `captions-layout`, ASS export), the locked Clean cut preset, look specs |
 | `audio/` | Loudness master (-14 LUFS / -1 dBTP), Openverse music fetch (CC0 / CC BY only), synth SFX |
@@ -53,6 +55,45 @@ removed, normal cuts, one natural grade, clean minimal captions. No motion graph
 - Phone footage (rotation, extra spatial-audio streams) is normalised first.
 - ASR processes take a machine-wide lock (`EASY_EDITS_ASR_LOCK`, `0` = off), because concurrent CTranslate2 int8
   decodes are not deterministic.
+
+## Style packs
+
+`engine/style-pack.mjs` loads a pack (built-in id, an id in `~/.easy-edits/styles` / `EASY_EDITS_STYLES`, or a
+path), validates it against `styles/pack.schema.json` with a small dependency-free validator (the JSON Schema
+subset the schema uses; `x-error` gives a readable message) and then the rules a schema can't express: font
+weights the installed font has, WCAG 4.5:1 for text on background / surface and on the accent, `punchZoom` order.
+`checkRequest()` turns a run the pack doesn't support (mode, format, `--plan` beat types, `--hook`, `--speaker`,
+`--graphics`, missing fonts) into reasons, and the CLI exits 2 before any work. `stylePlan()` leaves out planner
+beats outside the pack's `scenes`, spaces pops / punch-ins by `pacing.minBeatGap`, caps beats per minute and clamps
+punch zooms; `exportFormats()` also drops intro / outro / progress / lower thirds / hook the pack doesn't list.
+
+`engine/theme.mjs` maps a pack onto the fields `compose()` draws with (the house look is the same structure, so
+there is one code path). The pack drives: palette and fonts on every element; captions (font, case, words per
+group, highlight `keywords` / `active-word` as `color` / `underline` / `glow` / `box`, animation `pop` / `fade-up` /
+`type`, edge, shadow); transitions at every layout change, camera change and card edge (`whip`, `dip`, `glitch`);
+the stat number treatment (`slam`, `count-up`, `scramble`; seeded, so re-renders match); a signature move on every
+punch-in (`punch-shake`, `letterbox`, `hud`); entrances; drift; SFX policy; the default music query. `report.json`
+records `style`, `transitions`, `signatures` and `styleDropped` per export.
+
+`cli/style.mjs` `skillMarkdown()` writes a Claude Code skill from a pack: frontmatter, the commands with
+`--style`, the look, the beat types allowed in a plan, pacing, review steps and the rules.
+
+## Smarter captions
+
+- **Auto contrast** (`engine/contrast.mjs`). `lumaGrid()` decodes the clip once to a 64 px wide greyscale grid at
+  2 fps (cached next to the clip). For each caption, `compose()` maps the estimated text rect back through the
+  camera framing into source pixels, `regionStats()` reads mean luminance and spread over the caption's time
+  window, and the part of the rect that is off the picture is blended with the backdrop colour. `pickInk()` keeps
+  white (dark edge) unless near-black text (light edge) has 2.5x its WCAG contrast, with a hysteresis band so
+  neighbouring captions don't flicker between inks. A busy background (grey spread > 48) gets a heavier edge; a
+  pack highlight colour under 3:1 against the background becomes a highlight box. `--caption-color` fixes the ink.
+  The approved clean-cut 9:16 burn-in keeps its white captions.
+- **Manual face position** (`engine/face-override.mjs`). `--face top|center|bottom|X,Y` replaces every face-track
+  sample with that point (keeping the detected face size, else 18% of the short side), so framing, punch-ins,
+  caption keep-out, pops and the HUD signature all follow it. On the clean-cut 9:16 path, `clean-cut.sh` writes
+  `source-prep.face.json` (every scene's crop and cover transform on the point) for the build and the face gates.
+  Shorts previews use one steady crop on the point. Explainer screen recordings ignore it (their track is screen
+  activity).
 
 ## Delivery check
 

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "punch",
+  "name": "Punch",
+  "description": "Loud creator style: black and safety yellow, heavy uppercase Montserrat, one or two words at a time, the spoken word lit in yellow. Whip-pan smears between layouts, numbers slam in, and every punch-in lands with a short camera shake.",
+  "useFor": "High-energy shorts, hot takes, tips and listicles, podcast clips for TikTok / Reels / Shorts.",
+  "modes": ["captions", "talking-head", "explainer", "shorts"],
+  "formats": ["9x16", "1x1", "16x9"],
+  "palette": { "background": "#111111", "surface": "#232323", "text": "#FFFFFF", "accent": "#FFD400", "accent2": "#FF3B6B", "onAccent": "#111111" },
+  "fonts": {
+    "display": { "family": "Montserrat", "weight": 900 },
+    "body": { "family": "Montserrat", "weight": 800 },
+    "numbers": { "family": "Montserrat", "weight": 900 }
+  },
+  "captions": {
+    "font": "display", "weight": 900, "size": 96, "letterSpacing": 1, "case": "upper", "maxWords": 2, "maxChars": 13,
+    "color": "auto", "highlight": "active-word", "highlightStyle": "color", "animation": "pop", "edge": 3, "shadow": "hard"
+  },
+  "motion": { "transition": "whip", "transitionDuration": 0.18, "entrance": "drop", "numbers": "slam", "signature": "punch-shake", "drift": 0.04 },
+  "pacing": { "minBeatGap": 2.5, "maxBeatsPerMinute": 22, "punchZoom": [1.25, 1.7] },
+  "scenes": ["punch", "icon", "stat", "quote", "list", "compare", "card", "lower-third", "hook", "progress", "intro", "outro"],
+  "sound": { "sfx": "full", "music": "upbeat" }
+}

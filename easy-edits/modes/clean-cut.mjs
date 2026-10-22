@@ -19,7 +19,8 @@ export default async function cleanCut(o) {
   if (o.modeCut) args.push('--mode', o.modeCut);
   if (o.names) args.push('--names', o.names);
   log(`clean cut (approved path${want916 ? '' : ', build only'}) ...`);
-  const r = run('bash', args, { label: 'clean-cut', logFile: o.logFile, allowFail: true });
+  // --face: the approved 9:16 path reads it from the environment (clean-cut.sh -> engine/face-override.mjs)
+  const r = run('bash', args, { label: 'clean-cut', logFile: o.logFile, allowFail: true, env: o.face ? { EASY_EDITS_FACE: `${o.face.x},${o.face.y}` } : undefined });
   const summary = (r.stderr || '').split('\n').filter((l) => /^clean-cut: (total|gate )/.test(l));
   const tr = JSON.parse(fs.readFileSync(path.join(proj, 'assets/transcript.json'), 'utf8'));
   const words = tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end }));
