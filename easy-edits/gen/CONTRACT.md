@@ -32,3 +32,5 @@ A recipe that gets any pending result finishes planning, prints the manifest pat
 ("waiting for assets"). The assistant generates each asset with its own tools and saves it at `file`;
 then `easy-edits resume <out>` re-runs the approved plan, finds the files (cached:true) and finishes the
 edit, captions and QA. `xai` is an optional hosted fallback for running outside an assistant.
+Names: `"http-generic:<provider>"` picks a providers.json entry; capabilities may also carry `secondsPerCall`
+(estimate), `supported` (local: false for llm/search), `provider`, `synthetic`. Setup and fields: BACKENDS.md.

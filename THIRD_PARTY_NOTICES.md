@@ -52,6 +52,10 @@ font files are included.
 | Kokoro-82M TTS voice (via HyperFrames) | Apache-2.0 | explainer mode with a `.txt` script; downloaded on first use |
 | Openverse API (WordPress.org) | API terms of use; each track keeps its own licence | music beds: only **CC0** or **CC BY** tracks are accepted, fetched at render time, never bundled; every export with music gets a `CREDITS.txt` (title, creator, licence, licence URL, source) |
 | `claude` / `codex` CLIs | their vendors' terms | optional; only if you installed them yourself |
+| Piper TTS (`piper`) and its voice models | Piper: MIT (rhasspy/piper) or GPL-3.0 (piper1-gpl); each voice model has its own licence (check its model card) | optional `local` TTS engine, only if you installed `piper` and set `EASY_EDITS_PIPER_MODEL`; no voice is bundled or downloaded by Easy Edits |
+| eSpeak NG (`espeak-ng`) / eSpeak | GPL-3.0-or-later | optional `local` TTS fallback, run as a separate program if it is on PATH |
+| Flite (via FFmpeg's `flite` filter) | Flite: BSD-style (CMU) licence | optional `local` TTS fallback, only when your FFmpeg build includes libflite |
+| Hosted generation APIs you configure (`http-generic`) | each provider's terms | optional; only providers you add to `~/.easy-edits/providers.json`, with your own key |
 
 Not used: Remotion (its licence is not plain open source for companies).
 

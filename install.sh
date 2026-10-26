@@ -299,6 +299,7 @@ c_sfonts()  { local fam dir file sha miss=(); while IFS='|' read -r fam dir file
 c_cli()     { load_node && "$REPO/bin/easy-edits" --help | head -n1; }
 c_env()     { [ -f "$EASY_EDITS_HOME/env.sh" ] && echo "$EASY_EDITS_HOME/env.sh"; }
 c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$EASY_EDITS_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
+c_backends() { load_node && node "$REPO/easy-edits/cli/backends.mjs" --doctor; }   # key present: yes/no only, never a key
 c_agent()   { local a=(); for b in claude codex; do have "$b" && a+=("$b"); done; echo "optional agent CLIs on PATH: ${a[*]:-none} (Clean cut runs without one: --no-review)"; }
 
 doctor() {
@@ -323,6 +324,7 @@ doctor() {
   check telemetry-off c_telem
   check easy-edits-cli c_cli
   check agent c_agent
+  check backends c_backends
   if [ "$FAILS" -gt 0 ]; then echo "doctor: $FAILS FAIL"; exit 1; fi
   echo "doctor: all PASS"
 }

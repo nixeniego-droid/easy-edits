@@ -14,12 +14,14 @@ import { log } from '../engine/media.mjs';
 import { loadPack, checkRequest, missingFonts, StyleError } from '../engine/style-pack.mjs';
 import { parseFace } from '../engine/face-override.mjs';
 import { styleMain } from './style.mjs';
+import { backendsMain } from './backends.mjs';
 
 const HELP = `Easy Edits: one CLI for talking-head editing, built on Herk Edit Kit (Nate Herk) + HyperFrames.
 
 usage: easy-edits <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--notes "..."] [options]
        easy-edits <input> -o <out-dir> ...            (mode defaults to clean-cut)
        easy-edits style list | validate <pack> | skill <pack>   (style packs; easy-edits style --help)
+       easy-edits backends [list | try <kind> | init]          (generation backends; easy-edits backends --help)
 
 modes
   clean-cut     APPROVED default. Fillers, dead air and clear slips removed; clean minimal captions.
@@ -134,6 +136,7 @@ export function styleProblems(o, pack) {
 
 async function main() {
   if (process.argv[2] === 'style') process.exit(styleMain(process.argv.slice(3)));
+  if (process.argv[2] === 'backends') process.exit(await backendsMain(process.argv.slice(3)));
   let o;
   try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(`easy-edits: ${e.message}`); process.exit(2); }
   if (o.help || !o.input) { process.stdout.write(HELP); process.exit(o.help ? 0 : 2); }

@@ -227,6 +227,8 @@ composition per format (GSAP), the soundtrack (voice, an Openverse bed fetched a
 the loudness master and the delivery check. Details: [easy-edits/README.md](easy-edits/README.md).
 
 Tests: `npm test` (tests that need media not shipped in the repo are reported as skipped).
+Generation backends (bring your own key; local ones need none): `easy-edits backends`, docs in
+[easy-edits/gen/BACKENDS.md](easy-edits/gen/BACKENDS.md). `npm run lint` is the open-source check (no keys, no home paths).
 Known limitations: [KNOWN_ISSUES.txt](KNOWN_ISSUES.txt).
 
 ## Credits and licence

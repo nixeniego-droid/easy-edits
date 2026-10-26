@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- **Generation backends (bring your own key).** `local` (ffmpeg title-card stills, Ken Burns clips, Kokoro / Piper /
+  eSpeak / flite TTS, a synthetic still + zoom avatar mastered to -14 LUFS / -1.5 dBTP, BT.709) and `http-generic`
+  (any REST API from `~/.easy-edits/providers.json`: endpoint, auth header, env-var key, JSON body template,
+  response path to a URL / base64 / binary) join `none` and `mock`. Keys come from env vars or providers.json only and
+  are redacted everywhere; results are cached by content hash in `~/.easy-edits/cache` (`cached: true`, cost 0 on a
+  re-run). `easy-edits backends [list | try | init]`; the doctor has a `backends` line (key present yes/no only).
+  Docs: `easy-edits/gen/BACKENDS.md`.
+- `npm run lint` (`easy-edits/tools/lint-repo.mjs`, CI workflow `lint.yml`): fails on key-like strings and absolute
+  home paths.
+
 ## 1.3.1 (2026-10-26)
 
 macOS font checks, supported Python, install CI. The macOS font fix and the install CI come from PR #1 (squashed).

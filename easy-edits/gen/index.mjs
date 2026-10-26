@@ -1,10 +1,13 @@
-// Generation backend registry (stub; see CONTRACT.md). Adapters: none, mock. local/http-generic land in stream A.
+// Generation backend registry (see CONTRACT.md, BACKENDS.md). Adapters: none, mock, local, http-generic.
+// A name "adapter:sub" (e.g. "http-generic:my-images") passes sub to the adapter factory (a providers.json entry).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { xaiAdapter } from './xai.mjs';
 import { hostAdapter } from './host.mjs';
+import { localAdapter } from './local.mjs';
+import { httpGenericAdapter } from './http-generic.mjs';
 
 export const KINDS = ['video', 'image', 'tts', 'avatar', 'llm', 'search'];
 
@@ -43,14 +46,12 @@ function mockAdapter(kind) {
   };
 }
 
-const registry = { none: noneAdapter, mock: mockAdapter, xai: xaiAdapter, host: hostAdapter };
+const registry = { none: noneAdapter, mock: mockAdapter, local: localAdapter, 'http-generic': httpGenericAdapter, xai: xaiAdapter, host: hostAdapter };
 export function registerAdapter(name, factory) { registry[name] = factory; }
 export function listBackends() { return Object.keys(registry); }
 export function getBackend(kind, { name } = {}) {
   if (!KINDS.includes(kind)) throw new Error(`unknown backend kind ${kind}`);
-  const n = process.env.EASY_EDITS_BACKEND || name || ((kind === 'image' || kind === 'video') ? 'host' : 'none');
-  const f = registry[n]; if (!f) throw new Error(`unknown backend ${n}`);
-  const b = f(kind);
+const registry = { none: noneAdapter, mock: mockAdapter, local: localAdapter, 'http-generic': httpGenericAdapter, xai: xaiAdapter, host: hostAdapter };
   const gen = b.generate.bind(b);
   b.generate = async (req, opts = {}) => {
     if (opts.offline && b.capabilities.network) throw new Error(`backend ${n} needs network; refused by --offline`);
