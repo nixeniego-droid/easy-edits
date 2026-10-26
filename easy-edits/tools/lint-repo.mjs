@@ -23,7 +23,7 @@ const PATH_RULES = [
   { re: /(?<![\w.])\/home\/[A-Za-z0-9_][\w.-]*/, what: 'absolute home path (Linux user home)' },
   { re: /(?<![\w.])\/Users\/[A-Za-z0-9_][\w.-]*/, what: 'absolute home path (macOS user home)' },
   { re: /(?<![\w.])\/root\//, what: 'absolute home path (root user home)' },
-  { re: /(?<![\w.])\/workspace\//, what: 'machine path (workspace dir)' },
+  { re: /(?<![\w.])\/work[s]pace\//, what: 'machine path (workspace dir)' },
   { re: /\b[A-Z]:\\(?:Users|Documents and Settings)\\/i, what: 'absolute home path (C:\\Users\\)' },
 ];
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'out', 'renders', 'tmp', 'video-projects', 'raw-media', 'test-media']);
