@@ -93,7 +93,7 @@ easy-edits shorts podcast.mp4 -o out/ --pick 1,3 --hook              # render pr
 easy-edits captions talk.mp4 -o out/ --format 16x9
 ```
 
-Every export is mastered to -14 LUFS / -1 dBTP and goes through a delivery check (speech at the edges, dead tail,
+Every export is mastered to -14 LUFS / -1.5 dBTP and goes through a delivery check (speech at the edges, dead tail,
 dropouts, repeated phrases, loudness). Per format you get `easy-edits_<mode>_<clip>[_<fmt>].mp4`, a `_sheet.png`
 contact sheet, `.srt` / `.vtt`, a `report.json`, and a `CREDITS.txt` when music is used.
 
@@ -155,6 +155,25 @@ plan only the beats the style allows, and review the result against that style.
 - **Manual face position.** When face detection is wrong (a poster, a second person, a dark shot), `--face
   top|center|bottom` or `--face X,Y` (fractions of the frame, e.g. `--face 0.3,0.4`) puts the framing, punch-ins,
   caption keep-out and pops on that point.
+
+### Make a video from a brief: `easy-edits new`
+
+`easy-edits new <type>` builds a video without source footage: `explainer-cited`, `presenter`, `podcast`, `story`,
+`promo`, `music-video`, or `other` (a `--brief` mapped to the closest type; the plan shows the mapping). It always
+stops after planning: `plan.json`, `PLAN.txt` (generation count, estimated cost and time, what would be sent to any
+online backend) and a `storyboard.png`. Nothing is generated until you approve the pinned plan.
+
+```sh
+easy-edits new promo -o out/promo --brand brand.json --assets brand/ --format 9x16,1x1   # zero generations
+easy-edits new podcast -o out/pod --script episode.txt --audio-only                       # "A: ..." / "B: ..." lines
+easy-edits new --approve out/promo/plan.json                                              # render it
+```
+
+Formats: 9:16, 16:9, 1:1, 4:5 or a custom `WxH`. `--length S|MIN-MAX` is checked at delivery, `--loudness
+social|podcast|LUFS` picks the finish (social -14 LUFS, podcast -16 LUFS, both -1.5 dBTP, BT.709 video),
+`--max-generations N` and `--offline` refuse plans over budget or needing the network, and `--post-draft` writes a
+`POST_DRAFT.txt` labelled DRAFT (never posted). Each run writes `report.json` (with `WEAK_SHOTS`), `REVIEW.txt` and
+`DELIVERY.json`. Details: [easy-edits/new/README.md](easy-edits/new/README.md).
 
 ### From a URL
 

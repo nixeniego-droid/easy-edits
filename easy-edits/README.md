@@ -16,11 +16,13 @@ Easy Edits automates.
 | `cli/style.mjs` | `easy-edits style list \| validate \| skill` (the skill generator) |
 | `modes/` | `clean-cut`, `talking-head`, `explainer`, `shorts`, `captions` |
 | `engine/` | Shared stages: source normalisation + SDR tone-map, ASR, face track (`facetrack.py`, YuNet), screen-activity track (`activity.py`), motion plan (`plan.mjs`, pinned plans in `plan-store.mjs`), HyperFrames composition per format (`compose.mjs`), soundtrack (`audio.mjs`), export + delivery check (`export.mjs`, `media.mjs`) |
+| `new/` | `easy-edits new <type>`: plan.json + PLAN.txt + storyboard, the approval gate, the recipe registry (`new/recipes/`), the ffmpeg assembler and finish presets ([new/README.md](new/README.md)) |
+| `gen/` | Generation backend registry (`gen/CONTRACT.md`): none / mock adapters |
 | `bin/clean-cut.sh` | The approved Clean cut pipeline (9:16), also used as the cut stage of talking-head |
 | `styles/pack.schema.json`, `styles/packs/` | Style pack schema and the built-in packs (`punch`, `broadsheet`, `terminal`) |
 | `styles/clean-cut/` | Deterministic cut list (`cut.mjs`), build, caption burn-in, review briefs |
 | `presets/` | Caption presets (`captions-default`, `captions-layout`, ASS export), the locked Clean cut preset, look specs |
-| `audio/` | Loudness master (-14 LUFS / -1 dBTP), Openverse music fetch (CC0 / CC BY only), synth SFX |
+| `audio/` | Loudness master (-14 LUFS / -1.5 dBTP), Openverse music fetch (CC0 / CC BY only), synth SFX |
 | `post/` | Lead-in and the post-pass (lead-in, optional music, master, delivery check) |
 | `check/` | Delivery check and the quality gates (captions vs faces, cards, panels, verbatim, dead air, ...) |
 | `tools/` | Source prep, cut candidates, name / verbatim / sibling guards, DOM sampler |
@@ -106,7 +108,7 @@ PASS/FAIL. It is a fault detector: read the check text before trusting a FAIL (s
 | `first-word` | the first word starts before 0.15 s |
 | `last-word` | the last word ends within 0.15 s of the end |
 | `no-repeat` | a phrase is heard twice that the reference transcript says only once |
-| `loudness` | integrated loudness is outside -14 +-1 LUFS or true peak is above -1 dBTP |
+| `loudness` | integrated loudness is outside -14 +-1 LUFS or true peak is above -1 dBTP (the master's ceiling is -1.5 dBTP, so this only trips on a real overshoot) |
 
 Segments not backed by speech-band activity (e.g. a phantom "thanks for watching" decoded from a music tail) are
 dropped and listed as `dropped`. Standalone: `node easy-edits/check/delivery.mjs out.mp4 [--script narr.txt]`.

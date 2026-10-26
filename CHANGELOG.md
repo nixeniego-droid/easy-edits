@@ -11,6 +11,17 @@
   Docs: `easy-edits/gen/BACKENDS.md`.
 - `npm run lint` (`easy-edits/tools/lint-repo.mjs`, CI workflow `lint.yml`): fails on key-like strings and absolute
   home paths.
+- **`easy-edits new <type>`** (explainer-cited, presenter, podcast, story, promo, music-video, other): plan first
+  (`plan.json` with `shots[]`, `PLAN.txt` with `generations: N video, M image, K TTS`, estimated cost and wall time,
+  `will send: ...` lines, `storyboard.png`), then `--approve plan.json` (sha256 pin; `new repin` after an edit),
+  `--max-generations N`, `--offline`. Recipes register in `easy-edits/new/recipes/`.
+- **Promo** from `--brand brand.json --assets DIR`: code-drawn scenes, zero generations, brand colours contrast-checked.
+- **Podcast** from a speaker-tagged script: two voices, turn gaps, room tone; waveform video with speaker-named
+  captions, or `--audio-only` WAV + MP3 at -16 LUFS.
+- Shared assembler (BT.709 conform, crossfades, captions from the known script), finish presets (social -14 LUFS,
+  podcast -16 LUFS, both -1.5 dBTP), `--loudness`, `--length`, 4:5 and custom `WxH` formats, `report.json`
+  `WEAK_SHOTS`, `REVIEW.txt`, `DELIVERY.json` and opt-in `--post-draft` (`POST_DRAFT.txt`, labelled DRAFT).
+- Docs: the master's true-peak ceiling is -1.5 dBTP (some docs said -1 dBTP).
 
 ## 1.3.1 (2026-10-26)
 

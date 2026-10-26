@@ -94,6 +94,17 @@ or that break its pacing, are left out and listed in `report.json` (`styleDroppe
 Every export: `easy-edits_<mode>_<clip>[_<fmt>].mp4`, a `_sheet.png` contact sheet, `.srt` / `.vtt`,
 `easy-edits_<mode>_<clip>.report.json`, and a `CREDITS.txt` when music is used.
 
+### Make a video from a brief (`easy-edits new`)
+
+```sh
+easy-edits new <explainer-cited|presenter|podcast|story|promo|music-video|other> -o out/x [--brief ".." | --script F | --brand F --assets DIR]
+easy-edits new --approve out/x/plan.json          # only after the user has seen PLAN.txt and storyboard.png
+```
+
+- `new` stops after planning. Show the user PLAN.txt (generation count, cost, wall time, "will send" lines) and
+  storyboard.png, and approve only when they say so. After editing plan.json, run `easy-edits new repin plan.json`.
+- Relay REVIEW.txt's WEAK SHOTS lines as written. POST_DRAFT.txt is a draft for the user; never post it.
+
 ## Review (your main job)
 
 1. Open every `*_sheet.png` contact sheet and look at faces, captions, cards and crops.

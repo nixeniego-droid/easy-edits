@@ -1,7 +1,7 @@
 // Easy Edits post-pass for every finished render, in order:
 //   1. lead-in (easy-edits/post/leadin.mjs, default 0.2 s)
 //   2. optional Openverse music bed (easy-edits/audio/music.mjs)
-//   3. loudness master (easy-edits/audio/master.mjs, -14 LUFS, <= -1 dBTP)
+//   3. loudness master (easy-edits/audio/master.mjs, -14 LUFS, -1.5 dBTP ceiling)
 //   4. delivery check (easy-edits/check/delivery.mjs; skip with --no-check)
 //
 //   node easy-edits/post/postpass.mjs <video.mp4> [--lead-in 0.3 | --no-lead-in] [--music "<query>"] [--music-db -24] [--no-check]

@@ -13,7 +13,7 @@
 // cut (fillers / dead air / slips out, review + caption verify), a face-tracked 9:16 reframe that follows the active
 // speaker (facetrack --switch: speaker turns on wide shots, hard cuts, steady framing, punch-ins hiding jump cuts),
 // the approved clean-cut captions, a lower third for named people (--speaker / --people, recognised on screen
-// against reference stills: engine/faceid.py), the optional --hook card, -14 LUFS / -1 dBTP, delivery check.
+// against reference stills: engine/faceid.py), the optional --hook card, -14 LUFS / -1.5 dBTP, delivery check.
 // Nothing is ever posted or scheduled.
 import fs from 'node:fs';
 import path from 'node:path';
