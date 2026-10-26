@@ -187,6 +187,20 @@ easy-edits consent create --subject "Your Name" --allow face,voice --ref me.jpg 
 
 Third-party and public-figure likeness is always refused. Details: [docs/CONSENT.md](docs/CONSENT.md).
 
+### Multi-shot story and music video (preview)
+
+Generated stories and beat-cut music videos, through the pluggable generation backends (`easy-edits/gen/`). Until
+they are wired into the CLI, run them with `node easy-edits/story/run.mjs` (details: [easy-edits/story/README.md](easy-edits/story/README.md)):
+
+```sh
+node easy-edits/story/run.mjs story --shotlist shotlist.json --characters characters.json -o out/ --aspect 9:16
+node easy-edits/story/run.mjs music-video --song my-song.wav --i-own-this-music --lyrics my-song.lrc -o out/ --aspect 4:5
+```
+
+Music video takes only music you own or have licensed (`--i-own-this-music`, recorded in `report.json`). Every
+shot is checked (black / frozen frames, duration, flicker, character drift) and weak shots are listed in
+`report.json` (`WEAK_SHOTS`) and `REVIEW.txt`.
+
 ### From a URL
 
 Every mode also takes a YouTube (or other yt-dlp-supported) link instead of a file:

@@ -23,6 +23,8 @@ Easy Edits automates.
 | `styles/clean-cut/` | Deterministic cut list (`cut.mjs`), build, caption burn-in, review briefs |
 | `presets/` | Caption presets (`captions-default`, `captions-layout`, ASS export), the locked Clean cut preset, look specs |
 | `audio/` | Loudness master (-14 LUFS / -1.5 dBTP), Openverse music fetch (CC0 / CC BY only), synth SFX |
+| `story/` | Multi-shot story and music video: shot lists + character lock (`shots.mjs`), sources with video / still / card fallback (`sources.mjs`), per-shot QA (`qa.mjs`), beat detection (`beats.mjs`), assembly (`assemble.mjs`), `run.mjs` runner; see [story/README.md](story/README.md) |
+| `new/recipes/` | `story` and `music-video` recipes ({name, plan(opts), render(plan, ctx)}) |
 | `post/` | Lead-in and the post-pass (lead-in, optional music, master, delivery check) |
 | `check/` | Delivery check and the quality gates (captions vs faces, cards, panels, verbatim, dead air, ...) |
 | `tools/` | Source prep, cut candidates, name / verbatim / sibling guards, DOM sampler |

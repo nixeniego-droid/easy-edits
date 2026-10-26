@@ -5,7 +5,7 @@
   "type": "commonjs",
   "description": "Easy Edits: one CLI for editing talking-head video (clean cuts, captions, motion design, explainers, shorts), built on Herk Edit Kit by Nate Herk.",
   "scripts": {
-    "test": "node --test easy-edits/check/test/*.test.mjs easy-edits/bin/test/*.test.mjs easy-edits/tools/test/*.test.mjs easy-edits/engine/test/*.test.mjs easy-edits/styles/test/*.test.mjs easy-edits/gen/test/*.test.mjs easy-edits/new/test/*.test.mjs easy-edits/research/test/*.test.mjs easy-edits/presenter/test/*.test.mjs",
+    "test": "node --test easy-edits/check/test/*.test.mjs easy-edits/bin/test/*.test.mjs easy-edits/tools/test/*.test.mjs easy-edits/engine/test/*.test.mjs easy-edits/styles/test/*.test.mjs easy-edits/gen/test/*.test.mjs easy-edits/new/test/*.test.mjs easy-edits/research/test/*.test.mjs easy-edits/presenter/test/*.test.mjs easy-edits/story/test/*.test.mjs",
     "lint": "node easy-edits/tools/lint-repo.mjs",
     "doctor": "./install.sh --doctor"
   },

@@ -36,6 +36,15 @@
   record with intact reference hashes. Voice cloning uses the tts `voiceClone` capability. `report.json` says
   `synthetic: true`, with an on-screen "AI-generated presenter" label by default. `easy-edits consent create |
   verify | show` writes and checks the records. See [docs/CONSENT.md](docs/CONSENT.md).
+- **Multi-shot story and music video** (`easy-edits/story/`, recipes `easy-edits/new/recipes/story.mjs` and
+  `music-video.mjs`; standalone runner `node easy-edits/story/run.mjs`). Story: a brief or `shotlist.json`,
+  `characters.json` descriptions on every shot prompt and reference images to backends that take them, long beats
+  split at the backend's max clip length, video -> still + Ken Burns -> text card fallback, transitions, narration
+  and captions. Music video: `--song FILE` only with `--i-own-this-music` (recorded in `report.json`), local beat
+  detection, cuts snapped to beats with the snap error reported, length = song, lyric captions from your own
+  lyrics file. Any aspect (9:16, 16:9, 1:1, 4:5, W:H, WxH). Per-shot QA (black / frozen frames, duration match,
+  flicker, identity drift) feeds `WEAK_SHOTS` in `report.json` and `REVIEW.txt`. Finished at -14 LUFS / -1.5 dBTP,
+  tagged BT.709.
 
 ## 1.3.1 (2026-10-26)
 
