@@ -23,6 +23,15 @@ Asked to "install Easy Edits" (from this repo's URL, in an empty folder or anywh
 
 ## Quickstart
 
+**One line** (Claude Code, in any folder):
+
+```sh
+claude -p "Install Easy Edits from https://github.com/nixeniego-droid/easy-edits"
+```
+
+It clones to `~/easy-edits`, runs the install and the doctor, and registers the skill, so the next session can just
+say *"Use Easy Edits to add captions to clip.mp4"*.
+
 **Use with Claude Code**
 
 ```sh
