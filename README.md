@@ -187,6 +187,19 @@ easy-edits https://www.youtube.com/watch?v=VIDEO_ID -o out/
 `--cookies cookies.txt` (exported from your browser; keep it private) or download the video yourself and pass the
 file. Details: [docs/URL_INPUT.md](docs/URL_INPUT.md).
 
+### Cited explainer (preview)
+
+A narrated explainer made from sources instead of footage: every claim quotes a passage from a web page, PDF or
+document, an on-screen chip `[n] Source title` names the source while the claim is spoken, and a `Sources` end
+card plus `SOURCES.txt` list them. It will become `easy-edits new explainer-cited`; until then:
+
+```sh
+node easy-edits/research/run.mjs --source notes.pdf --source https://example.org/article --topic "..." -o out/ --format all
+```
+
+A claim whose quoted passage isn't found word for word in its source FAILs the `citation` check. Details:
+[easy-edits/research/README.md](easy-edits/research/README.md).
+
 ## Use it with any AI agent
 
 Easy Edits is a plain CLI, so any agent with a terminal can drive it. The agent's job is judgement: pick the mode,

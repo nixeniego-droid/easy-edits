@@ -22,6 +22,13 @@
   podcast -16 LUFS, both -1.5 dBTP), `--loudness`, `--length`, 4:5 and custom `WxH` formats, `report.json`
   `WEAK_SHOTS`, `REVIEW.txt`, `DELIVERY.json` and opt-in `--post-draft` (`POST_DRAFT.txt`, labelled DRAFT).
 - Docs: the master's true-peak ceiling is -1.5 dBTP (some docs said -1 dBTP).
+- **Cited explainer (research stream).** `easy-edits/research/`: a sources store from `--source URL|FILE` (HTML, PDF
+  via pdftotext, txt, md) and `--topic` (search backend), a scriptwriter (LLM backend, or a deterministic extractive
+  fallback) that writes `script.json` (claim -> source id -> quoted passage) to a target length, a `citation` check
+  that FAILs any quote not found verbatim in its source, and a render with TTS narration, a still or code card per
+  claim, `[n] Source title` chips, captions from the script, a Sources end card, `SOURCES.txt` and `.srt` / `.vtt`
+  (9:16, 16:9; -14 LUFS / -1.5 dBTP; BT.709). Recipe `easy-edits/new/recipes/explainer-cited.mjs`; standalone runner
+  `node easy-edits/research/run.mjs`.
 
 ## 1.3.1 (2026-10-26)
 

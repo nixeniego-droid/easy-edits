@@ -5,6 +5,8 @@
 //               preview?(shot, plan, out, work) -> png (storyboard cell for a code-drawn scene) }
 // Built-in generic recipes cover every type so each one renders end to end; a file in ./recipes/<name>.mjs whose
 // default export (or `recipe` export) has the same name replaces the built-in (workstreams register there).
+// A file with a `recipe` export registers that one only, so its default export can stay the pipeline's own
+// interface (the standalone runners and their tests use it).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -31,7 +33,7 @@ export async function loadRecipes(dir = path.join(HERE, 'recipes')) {
   if (fs.existsSync(dir)) {
     for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.mjs')).sort()) {
       const m = await import(pathToFileURL(path.join(dir, f)).href);
-      for (const r of new Set([m.default, m.recipe, ...(m.recipes || [])].filter(Boolean))) registerRecipe(r);
+      for (const r of new Set([m.recipe || m.default, ...(m.recipes || [])].filter(Boolean))) registerRecipe(r);
     }
   }
   return listRecipes();

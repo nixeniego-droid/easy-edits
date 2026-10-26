@@ -12,6 +12,8 @@
 //   "shots": [{ "id": "s1", "durationSec": 3, "source": "generate|still|code|user", "kind": "video|image|avatar",
 //               "prompt": "...", "refs": [], "camera": "static", "transition": "fade", "file": "...", "scene": {...} }],
 //   "voice": [{ "id": "v1", "speaker": "A", "text": "...", "voice": "..." }],     // one TTS generation per line
+//   "assets": [{ "id": "host", "kind": "image", "prompt": "..." }],   // generations that are not shots (a presenter's host)
+//   "backends": { "video": "host", "image": "host", "tts": "local", "avatar": "local", "llm": "none", "search": "none" },
 //   "options": { ... recipe options ... },
 //   "generations": { "video": 0, "image": 0, "tts": 0, "avatar": 0, "total": 0 },
 //   "estimate": { "cost": 0, "wallSec": 12 }, "willSend": ["..."]
@@ -20,11 +22,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { getBackend } from '../gen/index.mjs';
+import { backendOf } from './hostflow.mjs';
 
 export const SOURCES = ['generate', 'still', 'code', 'user'];
 export const PLAN_VERSION = 1;
 // rough seconds per call when the backend does not say (capabilities.secondsPerCall overrides)
-const CALL_SEC = { local: { video: 90, image: 12, tts: 4, avatar: 60 }, network: { video: 120, image: 15, tts: 5, avatar: 90 }, mock: { video: 1, image: 0.5, tts: 0.5, avatar: 1 } };
+const CALL_SEC = { host: { video: 0, image: 0, tts: 0, avatar: 0 }, local: { video: 90, image: 12, tts: 4, avatar: 60 }, network: { video: 120, image: 15, tts: 5, avatar: 90 }, mock: { video: 1, image: 0.5, tts: 0.5, avatar: 1 } };
 
 /** The generation kind a shot needs, or null (code-drawn, user footage, a user still). */
 export function shotKind(s) {
@@ -58,6 +61,7 @@ export class PlanError extends Error { constructor(m) { super(m); this.name = 'P
 export function countGenerations(plan) {
   const g = { video: 0, image: 0, tts: 0, avatar: 0 };
   for (const s of plan.shots) { const k = shotKind(s); if (k) g[k]++; }
+  for (const a of plan.assets || []) if (g[a.kind] != null) g[a.kind]++;
   g.tts = (plan.voice || []).filter((v) => !v.silent).length;
   g.total = g.video + g.image + g.tts + g.avatar;
   return g;
@@ -71,10 +75,10 @@ export function estimate(plan) {
   const g = plan.generations;
   for (const kind of ['video', 'image', 'tts', 'avatar']) {
     if (!g[kind]) continue;
-    const b = backendFor(kind, plan.backend);
+    const b = backendFor(kind, backendOf(plan, kind));
     const caps = b?.capabilities || {};
     cost += g[kind] * (Number(caps.costPerCall) || 0);
-    const per = Number(caps.secondsPerCall) || CALL_SEC[b?.name === 'mock' ? 'mock' : caps.network ? 'network' : 'local'][kind];
+    const per = Number(caps.secondsPerCall) || CALL_SEC[b?.name === 'mock' ? 'mock' : caps.host ? 'host' : caps.network ? 'network' : 'local'][kind];
     wall += g[kind] * per;
   }
   const len = plan.shots.reduce((a, s) => a + s.durationSec, 0);
@@ -88,7 +92,7 @@ export function willSend(plan) {
   const g = plan.generations;
   for (const kind of ['video', 'image', 'tts', 'avatar']) {
     if (!g[kind]) continue;
-    const b = backendFor(kind, plan.backend);
+    const b = backendFor(kind, backendOf(plan, kind));
     if (!b?.capabilities?.network) continue;
     const shots = plan.shots.filter((s) => shotKind(s) === kind);
     const refs = shots.reduce((a, s) => a + (s.refs || []).length, 0);
@@ -124,12 +128,20 @@ export function gateProblems(plan, { maxGenerations = null, offline = false } = 
 const fmtSec = (s) => (s >= 90 ? `${Math.floor(s / 60)} min ${Math.round(s % 60)} s` : `${s} s`);
 const short = (t, n = 70) => { const s = String(t || '').replace(/\s+/g, ' ').trim(); return s.length > n ? `${s.slice(0, n - 1)}...` : s; };
 
+/** Image / video generations that go to the host backend (the driving assistant) in this plan. */
+export function hostCount(plan) {
+  let n = 0;
+  for (const kind of ['video', 'image']) if (plan.generations?.[kind] && backendFor(kind, backendOf(plan, kind))?.capabilities?.host) n += plan.generations[kind];
+  return n;
+}
+
 export function planText(plan, { planFile, approveCmd } = {}) {
   const g = plan.generations;
   const L = [];
   L.push(`generations: ${g.video + g.avatar} video, ${g.image} image, ${g.tts} TTS${g.avatar ? ` (${g.avatar} of the video are avatar clips)` : ''}`);
   L.push(`estimated cost: $${plan.estimate.cost.toFixed(2)} (backend "${plan.backend}" costPerCall)`);
-  L.push(`estimated wall time: ${fmtSec(plan.estimate.wallSec)}`);
+  L.push(`estimated wall time: ${fmtSec(plan.estimate.wallSec)}${hostCount(plan) ? ' plus the time your assistant takes to generate the host assets' : ''}`);
+  if (hostCount(plan)) L.push(`host generation: ${hostCount(plan)} asset(s) are made by your assistant's built-in image/video generation after approval (GENERATION_MANIFEST.json, then easy-edits resume)`);
   if (plan.willSend.length) L.push(...plan.willSend); else L.push('will send: nothing (no network backend in this plan)');
   L.push('');
   L.push(`type: ${plan.mapping ? `other -> ${plan.recipe} (${plan.mapping.matched.length ? `matched: ${plan.mapping.matched.join(', ')}` : 'no keyword matched; default recipe'})` : plan.type}`);

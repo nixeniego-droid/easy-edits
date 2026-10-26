@@ -8,6 +8,7 @@ import {
   voiceTimeline, premix, muxAndMaster, clipFaults, aspectOf, transitionSec,
 } from './assemble.mjs';
 import { probeFile } from './finish.mjs';
+import { applyClipAudio } from './clip-audio.mjs';
 
 export const PALETTE = { bg: '#101418', fg: '#FFFFFF', accent: '#FFD60A', muted: '#B8C0CC' };
 
@@ -75,6 +76,7 @@ export async function renderShots(plan, ctx, opts = {}) {
       srcs[s.id] = { type: 'code' };
     }
   }
+  ctx.checkpoint?.();   // host assets pending: stop here (exit 3); `easy-edits resume` comes back with the files
   let t = 0;
   plan.shots.forEach((s, i) => {
     const src = srcs[s.id];
@@ -86,6 +88,7 @@ export async function renderShots(plan, ctx, opts = {}) {
   });
   const captions = captionsFromSegments(segments);
   const outputs = [], captionFiles = [];
+  let clipAudio = null;
   for (const fmt of plan.formats) {
     const fw = path.join(ctx.work, fmt.id);
     fs.mkdirSync(fw, { recursive: true });
@@ -104,10 +107,14 @@ export async function renderShots(plan, ctx, opts = {}) {
     const a = assembleVideo({ clips, w: fmt.w, h: fmt.h, out: tmp, work: fw, captions: opts.burnCaptions === false ? [] : captions, logFile: ctx.logFile });
     const pre = opts.pre || path.join(ctx.work, 'premix.wav');
     if (!opts.pre && !fs.existsSync(pre)) premix(pre, { total: a.durationSec, segments, roomTone: !!opts.roomTone, bed, logFile: ctx.logFile });
+    if (!clipAudio) {   // once: the generated clips' own audio (dropped / ducked / kept, see clip-audio.mjs)
+      const gen = plan.shots.map((s, i) => ({ s, i })).filter(({ s }) => srcs[s.id].type === 'video' && s.source === 'generate').map(({ s, i }) => ({ file: srcs[s.id].file, at: s._at, dur: durs[i] }));
+      clipAudio = applyClipAudio(pre, gen, { flag: plan.options?.clipAudio || 'auto', voice: segments.some((sg) => !sg.silent), song: !!opts.pre, music: !!bed?.file, total: a.durationSec, work: ctx.work });
+    }
     fs.copyFileSync(tmp, video);
     muxAndMaster(video, pre, plan.finish, a.durationSec, { silent: !!opts.silent });
     outputs.push({ file: video, format: fmt.id, kind: 'video', width: fmt.w, height: fmt.h });
   }
   if (captions.length) captionFiles.push(writeSrt(captions, ctx.outName(null, 'srt')), writeVtt(captions, ctx.outName(null, 'vtt')));
-  return { outputs, captions: captionFiles, weakShots: weak, timeline: { total, shots: plan.shots.map((s, i) => ({ id: s.id, at: Number(s._at.toFixed(2)), durationSec: Number(durs[i].toFixed(2)) })) } };
+  return { outputs, captions: captionFiles, weakShots: weak, clipAudio, timeline: { total, shots: plan.shots.map((s, i) => ({ id: s.id, at: Number(s._at.toFixed(2)), durationSec: Number(durs[i].toFixed(2)) })) } };
 }

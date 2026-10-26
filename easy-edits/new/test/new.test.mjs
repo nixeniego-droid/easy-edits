@@ -234,13 +234,16 @@ test('podcast video: waveform visual with speaker captions, -16 LUFS, BT.709', (
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+const NOTES = 'Sunlight is made of many colours that travel together as white light.\nWhen sunlight enters the air, the short blue waves scatter far more than the long red waves.\nThis scattering sends blue light across the whole sky, so the sky looks blue from the ground.\nAt sunset the light crosses much more air, and the scattered blue fades before it reaches us.\n';
+
 test('generic recipes render with the mock backend (explainer-cited, presenter, story, other, music-video)', () => {
   const dir = tmp();
   try {
     fs.writeFileSync(path.join(dir, 's.txt'), 'Why is the sky blue?\nSunlight scatters off the air.\n');
+    fs.writeFileSync(path.join(dir, 'notes.md'), NOTES);
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'sine=f=440:d=4', '-ar', '48000', path.join(dir, 'song.wav')]);
     const runs = [
-      ['explainer-cited', ['--script', path.join(dir, 's.txt')]],
+      ['explainer-cited', ['--source', path.join(dir, 'notes.md'), '--topic', 'why the sky is blue', '--length', '15-40']],
       ['presenter', ['--script', path.join(dir, 's.txt')]],
       ['story', ['--script', path.join(dir, 's.txt')]],
       ['other', ['--brief', 'An interview episode. Two voices.', '--script', path.join(dir, 's.txt')]],
@@ -285,7 +288,7 @@ test('weak shots: a generated clip shorter than its shot is named in WEAK_SHOTS 
 test('--length is a delivery check: a render outside the range FAILs (exit 1)', () => {
   const dir = tmp();
   try {
-    fs.writeFileSync(path.join(dir, 's.txt'), 'Just one short line.\n');
+    fs.writeFileSync(path.join(dir, 's.txt'), NOTES);
     const out = path.join(dir, 'o');
     assert.equal(ee(['explainer-cited', '-o', out, '--script', path.join(dir, 's.txt'), '--format', '270x480', '--length', '1']).status, 0);
     const r = ee(['--approve', path.join(out, 'plan.json')]);
