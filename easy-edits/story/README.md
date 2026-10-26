@@ -44,8 +44,9 @@ Try it offline with the mock backend: `EASY_EDITS_BACKEND=mock node easy-edits/s
    then conformed to WxH, 30 fps, BT.709 yuv420p at exactly its timeline length.
 4. **Per-shot QA.** Black frames (`blackdetect`), frozen frames (`freezedetect`), duration match (what the backend
    returned vs the request), a flicker score (signalstats YDIF spikes over their rolling median + YAVG up-down
-   oscillation) and identity drift (colour-histogram Bhattacharyya distance + average-hash distance to the
-   character's reference images; a cheap proxy, not face recognition). Problems go to `WEAK_SHOTS`.
+   oscillation) and identity drift against the character's reference images: the colours of the face and torso
+   regions (YuNet face boxes, `story/identity.py`, limit 0.55), else the character's colours with the reference
+   backdrop removed (limit 0.5); `qa.identity.method` says which. Not face recognition. Problems go to `WEAK_SHOTS`.
 5. **Assemble.** Cuts or xfade transitions centred on the planned cut times, captions burned from the shot
    narration / captions or the lyrics, soundtrack (TTS narration per shot, your `--narration` audio, your song or
    `--music` bed, or a quiet synthesised ambient bed), mastered with `audio/master.mjs` to -14 LUFS / -1.5 dBTP.
@@ -62,7 +63,7 @@ on a refusal or a bad request. Weak shots are reported, not failures.
 
 ## Limits
 
-- The QA can't tell whether a shot matches its prompt, and the identity score is a colour / layout proxy: look at
-  the sheet. A real face-identity model is future work (its licence has to be checked first).
+- The QA can't tell whether a shot matches its prompt, and the identity score compares colours, not faces (a
+  different person in the same clothes passes; calibration in `qa.mjs` QA_LIMITS): look at the sheet. A real face-identity model is future work (its licence has to be checked first).
 - The ownership attestation is the user's claim; Easy Edits records it but can't verify it.
 - Beat tracking is energy based: clear percussive music works best; rubato or beatless tracks fall back to even cuts.
