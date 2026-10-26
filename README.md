@@ -1,5 +1,26 @@
 # Easy Edits
 
+## For AI assistants: install steps
+
+Asked to "install Easy Edits" (from this repo's URL, in an empty folder or anywhere else)? Do this:
+
+1. `git clone https://github.com/nixeniego-droid/easy-edits ~/easy-edits` (it exists: `cd ~/easy-edits && git pull`).
+   Use a permanent folder, not `/tmp`: the `easy-edits` command runs from this checkout.
+2. Read `~/easy-edits/.claude/skills/easy-edits/SKILL.md` with your file-reading tool and follow it (sections 1-3).
+   Claude Code only lists a repo's skills in sessions started inside that checkout, so the Skill tool can't load it
+   in the session that cloned it.
+3. `cd ~/easy-edits && ./install.sh` in the foreground with a long timeout (a first install takes 5-15 min), then
+   `./install.sh --doctor` until it ends with "doctor: all PASS".
+4. `./install.sh` also registers the skill for this checkout as `~/.claude/skills/easy-edits` (or
+   `$CLAUDE_CONFIG_DIR/skills/easy-edits`), so every NEW Claude Code session, in any folder, can load it with the
+   Skill tool or `/easy-edits`. Re-register only the skill: `./install.sh --skill-only`; opt out:
+   `EASY_EDITS_NO_SKILL=1 ./install.sh`. The doctor's `claude-skill` line checks it.
+5. Every new shell: `. ~/.easy-edits/env.sh`, then `easy-edits ...`. Keep the command's exit status (don't pipe it
+   into `tail`): 0 = done, 1 = a delivery FAIL to report (the file is written), 5 = no final file in the `-o` folder.
+   Files under `<out>/.work/` are intermediates, never the result. Exit 137 / 143 means your shell tool killed the
+   render: re-run the same command (finished steps are reused), in the foreground with a 30-minute timeout or with
+   `nohup ... > LOG 2>&1 &`.
+
 ## Quickstart
 
 **Use with Claude Code**

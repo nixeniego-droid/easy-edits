@@ -10,6 +10,7 @@ import { planMusicVideo } from './music-video.mjs';
 import { renderPlan } from './render.mjs';
 import { RefusalError } from './errors.mjs';
 import { PendingAssetsError, pendingMessage, EXIT_PENDING } from '../new/hostflow.mjs';
+import { finalOutputProblems, FinalOutputError, EXIT_NO_OUTPUT } from '../engine/final-output.mjs';
 
 export const HELP = `usage: node easy-edits/story/run.mjs <story|music-video> -o <out-dir> [options]
 
@@ -87,7 +88,12 @@ async function main() {
   let o;
   try { o = parseRunArgs(process.argv.slice(2)); } catch (e) { console.error(`easy-edits: ${e.message}`); process.exit(2); }
   if (o.help || !o.recipe) { process.stdout.write(HELP); process.exit(o.help ? 0 : 2); }
-  try { const r = await runRecipe(o); process.exit(r.code); } catch (e) {
+  try {
+    const r = await runRecipe(o);
+    const bad = r.result ? finalOutputProblems([r.result.file], o.out) : [];
+    if (bad.length) { console.error(`easy-edits: FAILED: ${new FinalOutputError(bad, path.resolve(o.out)).message}`); process.exit(EXIT_NO_OUTPUT); }
+    process.exit(r.code);
+  } catch (e) {
     if (e instanceof RefusalError) { console.error(`easy-edits: ${e.message}`); process.exit(2); }
     if (e instanceof PendingAssetsError) { process.stdout.write(pendingMessage(e, { resumeCmd: 'the same command again (the saved assets are picked up)' })); process.exit(EXIT_PENDING); }
     console.error(`easy-edits: ${process.env.EASY_EDITS_DEBUG ? e.stack : e.message}`); process.exit(e.code === 'ENOENT' ? 2 : 1);

@@ -8,6 +8,9 @@ captions, graphics and rendering. Built on Herk Edit Kit by Nate Herk.
 Claude Code: the full step-by-step flow (install, fix doctor FAILs, first run, shorts, review) is the repo skill
 `.claude/skills/easy-edits/SKILL.md`. When the user says "set up Easy Edits" (or runs `/easy-edits`), follow it. This
 folder is already an Easy Edits checkout, so skip the skill's `git clone` and run everything from here.
+Asked to install Easy Edits from outside a checkout (e.g. "Install Easy Edits from <repo url>" in an empty folder)?
+Follow README.md's "For AI assistants: install steps": clone to `~/easy-edits`, read the skill file there and follow it.
+`./install.sh` registers the skill as `~/.claude/skills/easy-edits`, so later sessions in any folder can load it.
 
 ## Setup (once per machine, then once per shell)
 
@@ -38,6 +41,9 @@ easy-edits <clean-cut|talking-head|explainer|shorts|captions> <video-or-url> -o 
 - `--agent none` keeps Easy Edits from calling `claude` / `codex` itself; `--no-review` gives the deterministic clean cut.
 - Renders take minutes. For long runs, start them in the background with a log file and poll the log:
   `nohup easy-edits ... > out/run.log 2>&1 &`.
+- Exit codes: 0 done, 1 a delivery FAIL (file written), 2 refused, 3 waiting for assets (`new` / `resume`), 5 no
+  usable final file in the `-o` folder. `<out>/.work/` holds intermediates, never the result. Keep the exit status
+  (don't pipe into `tail`); 137 / 143 means the command was killed before it finished: re-run it.
 - URL input: only for videos the user owns or has the rights to edit.
 
 ### The modes

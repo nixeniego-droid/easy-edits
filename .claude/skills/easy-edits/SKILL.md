@@ -1,6 +1,6 @@
 ---
 name: easy-edits
-description: Use when someone says "set up Easy Edits", wants to edit a talking-head video on a Linux machine with Easy Edits (captioned 9:16 shorts, a clean cut, captions), or wants Easy Edits to make a new video from a brief, script, sources or brand assets (cited explainer, presenter short, podcast, multi-shot story, promo, music video). It covers installing Easy Edits, fixing its dependencies, proposing and rendering shorts, the plan -> approve -> generate -> resume flow for new videos, and reviewing the results.
+description: Use when someone says "set up Easy Edits" or "install Easy Edits" (also from its GitHub URL), wants to edit a talking-head video on a Linux machine with Easy Edits (captioned 9:16 shorts, a clean cut, captions), or wants Easy Edits to make a new video from a brief, script, sources or brand assets (cited explainer, presenter short, podcast, multi-shot story, promo, music video). It covers installing Easy Edits, fixing its dependencies, proposing and rendering shorts, the plan -> approve -> generate -> resume flow for new videos, and reviewing the results.
 ---
 
 # Easy Edits
@@ -47,6 +47,10 @@ skips what is already installed. Only call setup done after `./install.sh --doct
 `HYPERFRAMES_NO_TELEMETRY=1` and `DO_NOT_TRACK=1` before anything runs and keeps them in `~/.easy-edits/env.sh`.
 
 If the clone fails because `~/easy-edits` already exists, run `cd ~/easy-edits && git pull` instead.
+
+`./install.sh` also registers this skill as `~/.claude/skills/easy-edits` (a copy that names the checkout), so new
+Claude Code sessions in any folder can load it; `./install.sh --skill-only` refreshes just that, and the doctor's
+`claude-skill` line checks it.
 Use `./install.sh --no-models` on a slow or metered connection; the models then download on the first edit.
 
 ## 2. Check dependencies and fix them
@@ -261,6 +265,10 @@ Never add it on your own judgement and never fetch a commercial track.
   easy-edits). Don't wait with `pgrep -f NAME`: the wait loop's own command line contains NAME, so it never ends.
 
 - `easy-edits: command not found`: run `. ~/.easy-edits/env.sh` in this shell.
+- Exit 5 (`FAILED: no usable final output in ...`): the run ended without its final file in the `-o` folder (only
+  `.work/` intermediates). Tell the user; check the log it names, then re-run the same command.
+- Exit 137 / 143 (or no `done in` line): the command was killed before it finished, usually by a shell-tool timeout.
+  There is no final file yet; re-run it with a longer timeout or in the background with a log.
 - The run seems stuck on "ASR" or "transcribing": that's normal for long videos. Watch the log grow, and check
   `top` shows python busy.
 - The run stops while picking or reviewing: re-run the same command with `--agent none`.

@@ -8,12 +8,15 @@
 #   ./install.sh               install / verify everything
 #   ./install.sh --no-models   skip the Whisper model download (they then download on first use)
 #   ./install.sh --doctor      print PASS/FAIL per dependency, exit nonzero on any FAIL
+#   ./install.sh --skill-only  only (re-)register the Claude Code skill (see install_skill)
 #
 # Env overrides:
 #   EASY_EDITS_HOME     (default ~/.easy-edits)          venv, node and env.sh live here
 #   EASY_EDITS_MODELS   (default $HF_HOME if set, else $EASY_EDITS_HOME/models)   Whisper model cache (HF_HOME layout)
 #   EASY_EDITS_WHISPER  (default "small medium")      which faster-whisper models to fetch
 #   FASTER_WHISPER_VERSION (default 1.2.1)
+#   CLAUDE_CONFIG_DIR   (default ~/.claude)               the skill goes to $CLAUDE_CONFIG_DIR/skills/easy-edits
+#   EASY_EDITS_NO_SKILL=1                                 don't register the Claude Code skill
 set -euo pipefail
 # HyperFrames sends anonymous usage telemetry unless opted out; opt out before anything below can run it.
 # (env.sh exports the same, and install_npm also records the opt-out in ~/.hyperframes/config.json)
@@ -216,6 +219,36 @@ export DO_NOT_TRACK=1
 ENV
 }
 
+# ---------------------------------------------------------------- Claude Code skill
+# The repo skill (.claude/skills/easy-edits) only loads in a Claude Code session started inside this checkout. An
+# assistant that cloned the repo from another folder ("Install Easy Edits from <url>") and every later session
+# started elsewhere never see it, so the Skill tool can't load it. Register a personal copy in
+# $CLAUDE_CONFIG_DIR/skills/easy-edits (loaded by every new session) that names this checkout. A copy, not a
+# symlink: it tells the assistant where the checkout is; re-running ./install.sh (e.g. after git pull) refreshes it.
+# A SKILL.md there without our marker line is the user's own and is left alone.
+SKILL_MARK="<!-- easy-edits: installed by install.sh; re-run ./install.sh to refresh -->"
+skill_dir() { printf '%s/skills/easy-edits' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; }
+install_skill() {
+  [ "${EASY_EDITS_NO_SKILL:-0}" = 1 ] && { log "Claude Code skill: skipped (EASY_EDITS_NO_SKILL=1)"; return 0; }
+  local src="$REPO/.claude/skills/easy-edits/SKILL.md" d; d="$(skill_dir)"
+  [ -f "$src" ] || { log "WARNING: $src missing; Claude Code skill not registered"; return 0; }
+  if [ -f "$d/SKILL.md" ] && ! grep -qxF "$SKILL_MARK" "$d/SKILL.md"; then
+    log "Claude Code skill: $d/SKILL.md is not ours; left alone"; return 0
+  fi
+  mkdir -p "$d"
+  # the frontmatter stays first; the note goes right after it
+  awk -v mark="$SKILL_MARK" -v repo="$REPO" -v home="$EASY_EDITS_HOME" '
+    { print }
+    /^---$/ && ++n == 2 {
+      print ""; print mark
+      print "> This copy was registered by `" repo "/install.sh`. Easy Edits is already cloned at `" repo "`:"
+      print "> skip the `git clone` in section 1, run `./install.sh` / `./install.sh --doctor` in that folder, and"
+      print "> `. " home "/env.sh` before any `easy-edits` command. The rest of this skill applies as written."
+    }' "$src" > "$d/SKILL.md.part"
+  mv "$d/SKILL.md.part" "$d/SKILL.md"
+  log "Claude Code skill registered: $d/SKILL.md (new Claude Code sessions can load it: /easy-edits)"
+}
+
 # ---------------------------------------------------------------- caption font
 # The Clean cut captions are Montserrat 700 (captions-minimal). Chrome only draws it if fontconfig (Linux) or macOS
 # has it; otherwise the captions silently fall back to another sans. Montserrat is SIL OFL 1.1 (google/fonts, pinned
@@ -300,6 +333,12 @@ c_cli()     { load_node && "$REPO/bin/easy-edits" --help | head -n1; }
 c_env()     { [ -f "$EASY_EDITS_HOME/env.sh" ] && echo "$EASY_EDITS_HOME/env.sh"; }
 c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$EASY_EDITS_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
 c_backends() { load_node && node "$REPO/easy-edits/cli/backends.mjs" --doctor; }   # key present: yes/no only, never a key
+c_skill()   { local d; d="$(skill_dir)"
+              if [ "${EASY_EDITS_NO_SKILL:-0}" = 1 ]; then echo "skipped (EASY_EDITS_NO_SKILL=1)"
+              elif [ -f "$d/SKILL.md" ] && grep -qF "$REPO" "$d/SKILL.md"; then echo "$d/SKILL.md"
+              elif [ -f "$d/SKILL.md" ] && ! grep -qxF "$SKILL_MARK" "$d/SKILL.md"; then echo "$d/SKILL.md (your own copy)"
+              elif ! have claude && [ ! -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" ]; then echo "Claude Code not found (skill not needed)"
+              else echo "not registered for this checkout in $d (run ./install.sh)"; return 1; fi; }
 c_agent()   { local a=(); for b in claude codex; do have "$b" && a+=("$b"); done; echo "optional agent CLIs on PATH: ${a[*]:-none} (Clean cut runs without one: --no-review)"; }
 
 doctor() {
@@ -323,6 +362,7 @@ doctor() {
   check env.sh c_env
   check telemetry-off c_telem
   check easy-edits-cli c_cli
+  check claude-skill c_skill
   check agent c_agent
   check backends c_backends
   if [ "$FAILS" -gt 0 ]; then echo "doctor: $FAILS FAIL"; exit 1; fi
@@ -338,11 +378,13 @@ for a in "$@"; do
     --doctor) MODE=doctor ;;
     --install) ;;
     --no-models) NO_MODELS=1 ;;
+    --skill-only) MODE=skill ;;
     -h|--help) sed -n '2,/^set -euo/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) die "unknown option: $a (see ./install.sh --help)" ;;
   esac
 done
 if [ "$MODE" = doctor ]; then doctor; exit; fi
-install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env
+if [ "$MODE" = skill ]; then install_skill; exit; fi
+install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env; install_skill
 log "done. In each new shell:  . $EASY_EDITS_HOME/env.sh     Verify:  ./install.sh --doctor"
 log "first edit:  easy-edits talk.mp4 -o out/        (easy-edits --help lists every mode)"

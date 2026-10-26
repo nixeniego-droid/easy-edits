@@ -13,6 +13,7 @@ import { parseFormats, ff } from './assemble.mjs';
 import { finishPreset, verifyOutput, probeFile } from './finish.mjs';
 import { resolveBackendNames, backendLabel, backendOf, genOpts, generationSession, resetManifest, recordApproval, approvedSha, assetProblems, PendingAssetsError, pendingMessage, EXIT_PENDING } from './hostflow.mjs';
 import { CLIP_AUDIO } from './clip-audio.mjs';
+import { assertFinalOutputs, FinalOutputError, EXIT_NO_OUTPUT } from '../engine/final-output.mjs';
 
 export const HELP = `easy-edits new: make a video from a brief, a script or brand assets (plan first, then approve).
 
@@ -223,6 +224,7 @@ export async function approveNew(planFile, o = {}) {
   log(`new ${plan.recipe}: ${o.resume ? 'resuming' : 'rendering'} ${plan.options?.audioOnly ? 'audio (WAV + MP3)' : plan.formats.map((f) => f.id).join(', ')} with backend "${plan.backend}" (log ${logFile})`);
   const res = await recipe.render(plan, ctx);
   session.checkpoint();   // a recipe that never called it still stops before delivery while assets are pending
+  assertFinalOutputs((res.outputs || []).map((x) => x.file), out);   // in <out>, non-empty, readable (exit 5 otherwise)
   const checks = res.outputs.map((x) => {
     const v = verifyOutput(x.file, { preset: plan.finish, length: plan.length, defaultLength: plan.defaultLength, silent: !!res.silent });
     const extra = (x.extraChecks || []).map((k) => ({ name: k.name, pass: !!k.pass, text: k.text }));
@@ -317,7 +319,7 @@ export async function resumeNew(dir, o = {}) {
   return approveNew(planFile, { ...o, out, resume: true });
 }
 
-/** CLI for `easy-edits resume <out-dir>` (exit 0 ok, 1 a delivery FAIL, 2 refused, 3 still waiting for assets). */
+/** CLI for `easy-edits resume <out-dir>` (exit 0 ok, 1 a delivery FAIL, 2 refused, 3 still waiting for assets, 5 no final file). */
 export async function resumeMain(argv) {
   let o;
   try { o = parseNewArgs(argv); } catch (e) { console.error(`easy-edits resume: ${e.message}`); return 2; }
@@ -330,12 +332,13 @@ export async function resumeMain(argv) {
     return r.pass ? 0 : 1;
   } catch (e) {
     if (e instanceof PendingAssetsError) { process.stdout.write(pendingMessage(e)); return EXIT_PENDING; }
+    if (e instanceof FinalOutputError) { console.error(`easy-edits resume: FAILED: ${e.message}`); return EXIT_NO_OUTPUT; }
     if (e instanceof PlanError) { console.error(`easy-edits resume: ${e.message}`); return 2; }
     throw e;
   }
 }
 
-/** CLI: process exit code (0 ok, 1 a delivery FAIL, 2 refused / bad arguments, 3 waiting for host assets). */
+/** CLI: process exit code (0 ok, 1 a delivery FAIL, 2 refused / bad arguments, 3 waiting for host assets, 5 no final file). */
 export async function newMain(argv) {
   let o;
   try { o = parseNewArgs(argv); } catch (e) { console.error(`easy-edits new: ${e.message}`); return 2; }
@@ -358,11 +361,13 @@ export async function newMain(argv) {
       return r.pass ? 0 : 1;
     }
     const { planFile } = await planNew(o.pos[0], o);
+    assertFinalOutputs([planFile, 'PLAN.txt', 'storyboard.png'], path.dirname(planFile), { expect: 3 });
     process.stdout.write(fs.readFileSync(path.join(path.dirname(planFile), 'PLAN.txt'), 'utf8'));
     log(`planned; nothing generated. storyboard: ${path.join(path.dirname(planFile), 'storyboard.png')}`);
     return 0;
   } catch (e) {
     if (e instanceof PendingAssetsError) { process.stdout.write(pendingMessage(e)); return EXIT_PENDING; }
+    if (e instanceof FinalOutputError) { console.error(`easy-edits new: FAILED: ${e.message}`); return EXIT_NO_OUTPUT; }
     if (e instanceof PlanError || /^(unknown format|custom format|--loudness|--length|unknown backend|--format)/.test(e.message)) { console.error(`easy-edits new: ${e.message}`); return 2; }
     throw e;
   }

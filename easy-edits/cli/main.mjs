@@ -16,6 +16,7 @@ import { parseFace } from '../engine/face-override.mjs';
 import { styleMain } from './style.mjs';
 import { backendsMain } from './backends.mjs';
 import { newMain, resumeMain } from '../new/index.mjs';
+import { finalOutputProblems, modeFinalFiles, FinalOutputError, EXIT_NO_OUTPUT } from '../engine/final-output.mjs';
 
 const HELP = `Easy Edits: one CLI for talking-head editing, built on Herk Edit Kit (Nate Herk) + HyperFrames.
 
@@ -29,6 +30,10 @@ usage: easy-edits <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--no
        easy-edits consent create | verify | show   (likeness consent for a presenter; easy-edits consent --help)
        easy-edits resume <out-dir>   finish an approved \`new\` plan once the assistant has generated the assets
                           listed in <out-dir>/GENERATION_MANIFEST.json (exit 3 while any are missing)
+
+exit codes: 0 done (final file(s) in <out-dir>), 1 a delivery check FAIL (the file is written), 2 bad request /
+            refused, 3 waiting for generated assets (new / resume), 5 no usable final file in <out-dir> (missing,
+            empty or unreadable: the run failed even if intermediates exist under <out-dir>/.work)
 
 modes
   clean-cut     APPROVED default. Fillers, dead air and clear slips removed; clean minimal captions.
@@ -180,10 +185,14 @@ async function main() {
   const mod = await import(`../modes/${o.mode}.mjs`);
   const res = await mod.default(o);
   const secs = Math.round((Date.now() - t0) / 1000);
-  const report = { mode: o.mode, input: o.input, formats: o.formats, seconds: secs, ...res };
+  // the final file(s) must be in the output folder, non-empty and readable (engine/final-output.mjs)
+  const fin = modeFinalFiles(o, res);
+  const missing = finalOutputProblems(fin.files, o.out, { expect: fin.expect });
+  const report = { mode: o.mode, input: o.input, formats: o.formats, seconds: secs, ...res, finalOutput: { ok: !missing.length, files: fin.files, problems: missing } };
   const rp = path.join(o.out, `easy-edits_${o.mode}_${o.clip}.report.json`);
   fs.writeFileSync(rp, JSON.stringify(report, null, 1));
   for (const e of res.exports || []) log(`${e.pass === false ? 'CHECK FAIL' : 'ok'} ${e.file}${e.note ? ` (${e.note})` : ''}`);
+  if (missing.length) { console.error(`easy-edits: FAILED: ${new FinalOutputError(missing, o.out).message}\n(work files: ${o.work}; log: ${o.logFile})`); process.exit(EXIT_NO_OUTPUT); }
   log(`done in ${secs} s; report ${rp}`);
   process.exit((res.exports || []).some((e) => e.pass === false) ? 1 : 0);
 }

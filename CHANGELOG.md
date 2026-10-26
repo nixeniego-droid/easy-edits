@@ -6,6 +6,14 @@ Make new videos, not just edit them: `easy-edits new` plans, waits for approval,
 pictures, and finishes the edit. Tested with the mock backend and the host flow fed with test-pattern assets;
 the quality of real generated pictures and hosted backends is untested.
 
+- Every mode, `new` and `resume` now check that the final file is in the `-o` folder, non-empty and readable
+  (ffprobe); otherwise they exit 5 with the file named (`report.json` `finalOutput`). A run that only left
+  `.work/` intermediates no longer looks done.
+- `./install.sh` registers the skill as `~/.claude/skills/easy-edits` (names the checkout; `--skill-only`,
+  `EASY_EDITS_NO_SKILL=1`; doctor line `claude-skill`), and README opens with install steps for AI assistants, so
+  "Install Easy Edits from <url>" in an empty folder finds the skill and later sessions can load it.
+- Story QA identity drift compares face and torso regions (background ignored), with a colour fallback; calibrated
+  on a real story (see KNOWN_ISSUES.txt).
 - **Host generation is the default for images and video.** After `--approve`, every image / video request goes
   into `GENERATION_MANIFEST.json` in the output folder (id, type, prompt, durationSec, aspect, referenceImages,
   firstFrame, file) and the run exits with code 3. The assistant driving Easy Edits makes each asset with its own
