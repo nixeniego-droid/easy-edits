@@ -15,7 +15,7 @@ import { loadPack, checkRequest, missingFonts, StyleError } from '../engine/styl
 import { parseFace } from '../engine/face-override.mjs';
 import { styleMain } from './style.mjs';
 import { backendsMain } from './backends.mjs';
-import { newMain } from '../new/index.mjs';
+import { newMain, resumeMain } from '../new/index.mjs';
 
 const HELP = `Easy Edits: one CLI for talking-head editing, built on Herk Edit Kit (Nate Herk) + HyperFrames.
 
@@ -27,6 +27,8 @@ usage: easy-edits <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--no
                           --approve; types explainer-cited presenter podcast story promo music-video other;
                           easy-edits new --help)
        easy-edits consent create | verify | show   (likeness consent for a presenter; easy-edits consent --help)
+       easy-edits resume <out-dir>   finish an approved \`new\` plan once the assistant has generated the assets
+                          listed in <out-dir>/GENERATION_MANIFEST.json (exit 3 while any are missing)
 
 modes
   clean-cut     APPROVED default. Fillers, dead air and clear slips removed; clean minimal captions.
@@ -143,6 +145,7 @@ async function main() {
   if (process.argv[2] === 'style') process.exit(styleMain(process.argv.slice(3)));
   if (process.argv[2] === 'backends') process.exit(await backendsMain(process.argv.slice(3)));
   if (process.argv[2] === 'new') process.exit(await newMain(process.argv.slice(3)));
+  if (process.argv[2] === 'resume') process.exit(await resumeMain(process.argv.slice(3)));
   if (process.argv[2] === 'consent') process.exit((await import('../presenter/consent-cli.mjs')).consentMain(process.argv.slice(3)));
   let o;
   try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(`easy-edits: ${e.message}`); process.exit(2); }
