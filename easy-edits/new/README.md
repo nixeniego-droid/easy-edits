@@ -34,7 +34,37 @@ easy-edits new --approve out/promo/plan.json   # sha256-checked, budget-checked,
   the render never makes more generations than the approved plan counted. `--offline` refuses any backend whose
   capabilities say `network: true`. Generation goes through `easy-edits/gen` (see `gen/CONTRACT.md`).
 
+## Backends and the host generation flow
+
+Each kind has its own backend (`plan.backends`): image and video default to `host`, tts and avatar to `local`, llm
+and search to `none`. `--backend NAME` sets every kind, `--video-backend` / `--image-backend` / `--tts-backend` /
+`--avatar-backend` / `--llm-backend` / `--search-backend` one kind; `EASY_EDITS_BACKEND` forces every kind (tests).
+
+`host` means the AI assistant driving Easy Edits makes the asset with its own built-in image/video generation:
+
+1. `--approve` records the approval (`plan.json.approved`, the plan's sha256), clears `GENERATION_MANIFEST.json`
+   and renders. Every recipe gets its backends from one generation session (`hostflow.mjs`: the approved budget,
+   usage, pending host assets). A host request is appended to the manifest (id = shot id + a hash of the request,
+   type, prompt, durationSec, aspect, referenceImages, firstFrame, file under `assets/`) and comes back pending.
+2. After its generation calls a recipe calls `ctx.checkpoint()` (or its pipeline throws `PendingAssetsError`):
+   with anything pending the CLI prints the manifest and the steps and exits **3**. Nothing has been rendered.
+3. The assistant saves each asset at its `file`. `easy-edits resume <out>` re-reads the plan (pin and approval
+   hash), refuses with exit 3 and the list while an asset is missing or unreadable, then renders again: the host
+   adapter finds every file (`cached: true`) and the run finishes with report.json, REVIEW.txt and DELIVERY.json.
+
+An edited prompt gets a new asset id, so a stale file is never reused. `xai` and `http-generic` are opt-in hosted
+backends (`gen/BACKENDS.md`); they are never a default.
+
+Generated clips' own audio (`clip-audio.mjs`, `--clip-audio auto|keep|duck|drop`): auto drops it under narration or
+a song, ducks it -18 dB under a music bed and keeps it as-is when it is the only audio; the master then sets social
+-14 LUFS / -1.5 dBTP or podcast -16 LUFS / -1.5 dBTP.
+
 ## Writing a recipe
+
+A file in `recipes/` registers its `recipe` export when it has one (so its default export can stay a pipeline's own
+interface, as `explainer-cited`, `presenter`, `story` and `music-video` do), else its default export. Pipelines
+that call backends themselves take `ctx.getBackend(kind)` (the session's backend) and route host requests with
+`genOpts()` from `hostflow.mjs`.
 
 ```js
 // easy-edits/new/recipes/my-type.mjs
@@ -46,14 +76,15 @@ export default {
     return { title: o.title, shots: [{ id: 's1', durationSec: 3, source: 'generate', prompt: '...', refs: [], camera: 'static', transition: 'fade' }],
              voice: [{ id: 'v1', speaker: null, text: '...' }], notes: [], options: {} };
   },
-  async render(plan, ctx) {   // ctx: out, work, logFile, generate(kind, req, {id}), outName(fmt, ext), ff, probeSec
+  async render(plan, ctx) {   // ctx: out, work, logFile, generate(kind, req, {id}), getBackend(kind), checkpoint(), outName(fmt, ext), ff, probeSec
     return renderShots(plan, ctx, { segments: await voiceSegments(plan, ctx) });   // -> { outputs, captions, weakShots }
   },
 };
 ```
 
-`render` returns `{ outputs:[{file, format, kind}], captions:[files], weakShots:[{shot, at, reason, fix}],
-sources?, credits?, notes?, postText? }`; `approveNew` verifies every output (loudness against the plan's finish
+`render` returns `{ outputs:[{file, format, kind, extraChecks?:[{name, pass, text}]}], captions:[files],
+weakShots:[{shot, at, reason, fix}], sources?, sourcesFile?, sheets?, credits?, notes?, postText?, clipAudio?, details? }`;
+`plan` may also return `assets:[{id, kind, prompt}]` (generations that aren't shots, e.g. a presenter's host image); `approveNew` verifies every output (loudness against the plan's finish
 preset, BT.709 tags, `--length`) and writes `report.json` (`WEAK_SHOTS`), `REVIEW.txt`, `DELIVERY.json` and, with
 `--post-draft`, `POST_DRAFT.txt`.
 

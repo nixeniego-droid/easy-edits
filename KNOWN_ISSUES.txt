@@ -1,4 +1,4 @@
-Easy Edits v1.3.1: known issues
+Easy Edits v1.4.0: known issues
 ============================
 
 Install (macOS, fixed in 1.3.1)
@@ -85,3 +85,12 @@ Tests
   reported as skipped.
 - A few ASR-dependent tests depend on what faster-whisper hears on a given machine and can fail on a correct
   install (asr-disfluent, verbatim-final). They are skipped when their local test media is absent.
+
+New videos: easy-edits new (new in 1.4.0)
+- Tested with the mock backend and with the host flow fed test-pattern assets. The quality of real generated
+  pictures (your assistant's, or a hosted backend's) is untested; read REVIEW.txt's WEAK SHOTS and watch the video.
+- story, music-video and presenter make one format per plan (re-plan for another aspect). Presenter is 9:16 only.
+- The local avatar is a still with a slow zoom, not lip-synced. Identity drift in story QA is a colour / layout
+  proxy, not face recognition. Beat tracking is energy based (tested on a click track).
+- Exit 3 from --approve or resume means "waiting for generated assets" (GENERATION_MANIFEST.json), not a failure.
+- resume makes the narration voice again before it renders (usually seconds with the local voice).

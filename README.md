@@ -158,48 +158,63 @@ plan only the beats the style allows, and review the result against that style.
 
 ### Make a video from a brief: `easy-edits new`
 
-`easy-edits new <type>` builds a video without source footage: `explainer-cited`, `presenter`, `podcast`, `story`,
-`promo`, `music-video`, or `other` (a `--brief` mapped to the closest type; the plan shows the mapping). It always
-stops after planning: `plan.json`, `PLAN.txt` (generation count, estimated cost and time, what would be sent to any
-online backend) and a `storyboard.png`. Nothing is generated until you approve the pinned plan.
+`easy-edits new <type>` builds a video without source footage:
+
+| Type | From | What you get |
+| --- | --- | --- |
+| `explainer-cited` | `--source URL\|FILE` (repeatable), `--topic` | every claim quotes a passage from a source; `[n] Source title` chips, a Sources end card, `SOURCES.txt`; zero video generations |
+| `presenter` | `--script FILE` | a 9:16, 15-90 s short read by a synthetic host (fictional, or your own face / voice with a consent record) |
+| `podcast` | `--script FILE` with `A:` / `B:` lines | two voices, turn gaps, room tone; waveform video with speaker-named captions, or `--audio-only` WAV + MP3 at -16 LUFS |
+| `story` | `--brief`, `--script` or `--shotlist FILE`, `--characters FILE` | a multi-shot video, characters kept consistent with reference images, per-shot QA |
+| `promo` | `--brand brand.json --assets DIR` | code-drawn scenes, zero generations, brand colours contrast-checked |
+| `music-video` | `--song FILE --i-own-this-music`, `--lyrics FILE` | cuts snapped to the beat, length = the song, lyric captions |
+| `other` | `--brief "..."` | mapped to the closest type; the plan shows the mapping |
+
+**Plan, approve, generate, resume.** `new` always stops after planning: `plan.json`, `PLAN.txt` (generation count,
+estimated cost and time, what would be sent to any online backend) and a `storyboard.png`. Nothing is generated
+until you approve the pinned plan. Images and video clips are made by **your AI assistant's built-in image/video
+generation** (the default `host` backend): after `--approve`, Easy Edits writes `GENERATION_MANIFEST.json` in the
+output folder (one entry per asset: id, type, prompt, duration, aspect, reference images, first frame, file) and
+exits with code 3. The assistant generates each asset and saves it at its `file`; `easy-edits resume` then checks
+the approved plan and the assets and finishes the edit, captions, QA, `report.json` and `DELIVERY.json`. Voice
+comes from the local TTS. Hosted APIs are opt-in with your own key (`--backend NAME`,
+[easy-edits/gen/BACKENDS.md](easy-edits/gen/BACKENDS.md)); none is used unless you choose it.
 
 ```sh
+easy-edits new story -o out/story --brief "A lighthouse at dusk. Waves hit the rocks. The light turns on."
+cat out/story/PLAN.txt                                   # and look at out/story/storyboard.png
+easy-edits new --approve out/story/plan.json             # exit 3: out/story/GENERATION_MANIFEST.json lists the clips
+#   ... the assistant generates each clip and saves it at its "file" ...
+easy-edits resume out/story                              # exit 3 + the list while any are missing; then renders
+
 easy-edits new promo -o out/promo --brand brand.json --assets brand/ --format 9x16,1x1   # zero generations
-easy-edits new podcast -o out/pod --script episode.txt --audio-only                       # "A: ..." / "B: ..." lines
-easy-edits new --approve out/promo/plan.json                                              # render it
+easy-edits new podcast -o out/pod --script episode.txt --audio-only
+easy-edits new explainer-cited -o out/bees --source notes.pdf --source https://example.org/article --topic "how bees find food"
 ```
 
-Formats: 9:16, 16:9, 1:1, 4:5 or a custom `WxH`. `--length S|MIN-MAX` is checked at delivery, `--loudness
-social|podcast|LUFS` picks the finish (social -14 LUFS, podcast -16 LUFS, both -1.5 dBTP, BT.709 video),
-`--max-generations N` and `--offline` refuse plans over budget or needing the network, and `--post-draft` writes a
-`POST_DRAFT.txt` labelled DRAFT (never posted). Each run writes `report.json` (with `WEAK_SHOTS`), `REVIEW.txt` and
-`DELIVERY.json`. Details: [easy-edits/new/README.md](easy-edits/new/README.md).
+Formats: 9:16, 16:9, 1:1, 4:5 or a custom `WxH` (presenter is 9:16; story, presenter and music-video make one format
+per plan). `--length S|MIN-MAX` is checked at delivery, `--loudness social|podcast|LUFS` picks the finish (social -14
+LUFS, podcast -16 LUFS, both -1.5 dBTP, BT.709 video), `--max-generations N` and `--offline` refuse plans over budget
+or needing the network, and `--post-draft` writes a `POST_DRAFT.txt` labelled DRAFT (never posted). Generated clips'
+own ambient audio is dropped under narration or a song, ducked -18 dB under music and kept when it is the only sound
+(`--clip-audio keep|duck|drop`). Each run writes `report.json` (with `WEAK_SHOTS`), `REVIEW.txt` and
+`DELIVERY.json`; weak shots are named plainly so you can regenerate them. Details:
+[easy-edits/new/README.md](easy-edits/new/README.md).
 
-### Presenter shorts (preview)
+- **Cited explainer.** A claim whose quoted passage isn't found word for word in its source FAILs the `citation`
+  check. Details: [easy-edits/research/README.md](easy-edits/research/README.md).
+- **Presenter.** Every presenter is labelled synthetic. Your own face and voice need a consent record you create
+  as the subject; third-party and public-figure likeness is always refused. Details: [docs/CONSENT.md](docs/CONSENT.md).
 
-A 9:16, 15-90 s short read by a synthetic presenter, captioned from the script: a fictional host (generated, or a
-licensed image you supply) or your own face and voice with a consent record. Every one is labelled synthetic.
-
-```sh
-node easy-edits/presenter/run.mjs --script script.md -o out/ --length 30
-easy-edits consent create --subject "Your Name" --allow face,voice --ref me.jpg --ref voice.wav --expires 2027-06-30 --i-am-the-subject
-```
-
-Third-party and public-figure likeness is always refused. Details: [docs/CONSENT.md](docs/CONSENT.md).
-
-### Multi-shot story and music video (preview)
-
-Generated stories and beat-cut music videos, through the pluggable generation backends (`easy-edits/gen/`). Until
-they are wired into the CLI, run them with `node easy-edits/story/run.mjs` (details: [easy-edits/story/README.md](easy-edits/story/README.md)):
-
-```sh
-node easy-edits/story/run.mjs story --shotlist shotlist.json --characters characters.json -o out/ --aspect 9:16
-node easy-edits/story/run.mjs music-video --song my-song.wav --i-own-this-music --lyrics my-song.lrc -o out/ --aspect 4:5
-```
-
-Music video takes only music you own or have licensed (`--i-own-this-music`, recorded in `report.json`). Every
-shot is checked (black / frozen frames, duration, flicker, character drift) and weak shots are listed in
-`report.json` (`WEAK_SHOTS`) and `REVIEW.txt`.
+  ```sh
+  easy-edits consent create --subject "Your Name" --allow face,voice --ref me.jpg --ref voice.wav --expires 2027-06-30 --i-am-the-subject
+  easy-edits new presenter -o out/me --script script.md --likeness self --consent ~/.easy-edits/consent/your-name.json --subject "Your Name"
+  ```
+- **Story and music video.** Music video takes only music you own or have licensed (`--i-own-this-music`, recorded in
+  `report.json`). Every shot is checked (black / frozen frames, duration, flicker, character drift). Details:
+  [easy-edits/story/README.md](easy-edits/story/README.md).
+- The standalone runners still work: `node easy-edits/research/run.mjs`, `node easy-edits/presenter/run.mjs`,
+  `node easy-edits/story/run.mjs story|music-video`.
 
 ### From a URL
 
@@ -212,19 +227,6 @@ easy-edits https://www.youtube.com/watch?v=VIDEO_ID -o out/
 **Use this only on videos you own or have the rights to edit.** If the site asks you to sign in, re-run with
 `--cookies cookies.txt` (exported from your browser; keep it private) or download the video yourself and pass the
 file. Details: [docs/URL_INPUT.md](docs/URL_INPUT.md).
-
-### Cited explainer (preview)
-
-A narrated explainer made from sources instead of footage: every claim quotes a passage from a web page, PDF or
-document, an on-screen chip `[n] Source title` names the source while the claim is spoken, and a `Sources` end
-card plus `SOURCES.txt` list them. It will become `easy-edits new explainer-cited`; until then:
-
-```sh
-node easy-edits/research/run.mjs --source notes.pdf --source https://example.org/article --topic "..." -o out/ --format all
-```
-
-A claim whose quoted passage isn't found word for word in its source FAILs the `citation` check. Details:
-[easy-edits/research/README.md](easy-edits/research/README.md).
 
 ## Use it with any AI agent
 

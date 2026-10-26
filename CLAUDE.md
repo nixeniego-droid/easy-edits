@@ -97,13 +97,32 @@ Every export: `easy-edits_<mode>_<clip>[_<fmt>].mp4`, a `_sheet.png` contact she
 ### Make a video from a brief (`easy-edits new`)
 
 ```sh
-easy-edits new <explainer-cited|presenter|podcast|story|promo|music-video|other> -o out/x [--brief ".." | --script F | --brand F --assets DIR]
+easy-edits new <explainer-cited|presenter|podcast|story|promo|music-video|other> -o out/x [--brief ".." | --script F | --source F|URL | --brand F --assets DIR | --song F --i-own-this-music]
 easy-edits new --approve out/x/plan.json          # only after the user has seen PLAN.txt and storyboard.png
+easy-edits resume out/x                           # after you have generated every asset in GENERATION_MANIFEST.json
 ```
 
-- `new` stops after planning. Show the user PLAN.txt (generation count, cost, wall time, "will send" lines) and
-  storyboard.png, and approve only when they say so. After editing plan.json, run `easy-edits new repin plan.json`.
-- Relay REVIEW.txt's WEAK SHOTS lines as written. POST_DRAFT.txt is a draft for the user; never post it.
+Images and video clips come from **your own built-in image/video generation** (the default `host` backend);
+voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up by the user: `easy-edits/gen/BACKENDS.md`).
+
+1. Plan: `new` writes plan.json, PLAN.txt and storyboard.png and generates nothing. Show the user PLAN.txt
+   (generation count, cost, wall time, host assets, "will send" lines) and storyboard.png. After editing plan.json,
+   run `easy-edits new repin plan.json` and show it again.
+2. Approve only when the user says so: `--approve`. With images or video to make it exits **3** and writes
+   `GENERATION_MANIFEST.json` in the output folder (id, type image|video, prompt, durationSec, aspect,
+   referenceImages, firstFrame, file). Exit 3 is "waiting for assets", not a failure.
+3. Generate each asset with your built-in generation from its prompt (use referenceImages / firstFrame when set) and
+   save it at its `file` (relative to the output folder; PNG/JPEG images, MP4 video).
+4. `easy-edits resume <out>`: checks the approved plan's hash and the assets (exit 3 + the list while any are
+   missing), then finishes the edit, captions, QA, report.json, REVIEW.txt and DELIVERY.json.
+5. Deliver: relay REVIEW.txt's WEAK SHOTS lines as written and every FAIL. POST_DRAFT.txt is a draft for the user;
+   never post it, never publish anything.
+
+- Finish: social -14 LUFS / -1.5 dBTP, podcast -16 LUFS / -1.5 dBTP, video BT.709. Generated clips' own ambient audio
+  is dropped under narration or a song, -18 dB under music, kept when alone (`--clip-audio keep|duck|drop`).
+- Presenter with the user's own face or voice: only with a consent record they created as the subject
+  (`easy-edits consent create ... --i-am-the-subject`, docs/CONSENT.md). Never a third party or a public figure.
+- `--i-own-this-music` only when the user has said they own or licensed the track.
 
 ## Review (your main job)
 

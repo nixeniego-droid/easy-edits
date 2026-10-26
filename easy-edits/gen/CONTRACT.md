@@ -31,6 +31,9 @@ never calls a network: each image/video request is appended to `<out>/GENERATION
 A recipe that gets any pending result finishes planning, prints the manifest path and exits with status 3
 ("waiting for assets"). The assistant generates each asset with its own tools and saves it at `file`;
 then `easy-edits resume <out>` re-runs the approved plan, finds the files (cached:true) and finishes the
-edit, captions and QA. `xai` is an optional hosted fallback for running outside an assistant.
+edit, captions and QA. `xai` is an optional hosted fallback for running outside an assistant (opt-in, never a
+default). `easy-edits new` defaults: image/video `host`, tts/avatar `local`, llm/search `none` (`new/hostflow.mjs`);
+`getBackend()` without a name stays `none`. Host requests carry `{ shotId }` (shot id + request hash) so resume
+finds the same files; pipelines stop with `PendingAssetsError` (exit 3) after their generation calls.
 Names: `"http-generic:<provider>"` picks a providers.json entry; capabilities may also carry `secondsPerCall`
 (estimate), `supported` (local: false for llm/search), `provider`, `synthetic`. Setup and fields: BACKENDS.md.

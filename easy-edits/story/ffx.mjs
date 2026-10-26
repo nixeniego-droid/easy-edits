@@ -71,7 +71,7 @@ export function colorCheck(file) {
 }
 
 /**
- * Master `wav` into the (silent) `video` at `target` LUFS with true peak <= `truePeak` dBTP (audio/master.mjs),
+ * Master `wav` into the (silent) `video` at `target` LUFS with true peak <= `truePeak` (-1.5 dBTP; audio/master.mjs),
  * tightening the limiter ceiling if the encoded AAC still peaks over the limit. Returns {I, TP, LRA, passes, pass}.
  */
 export function finishAudio(wav, video, { duration, target = -14, truePeak = -1.5 }) {

@@ -8,7 +8,7 @@
 //                --transcript ({words:[{text,start,end}]}) or a local faster-whisper pass on the input
 //   2. lead-in   easy-edits/post/leadin.mjs (default 0.2 s; EASY_EDITS_LEADIN)
 //   3. loudness  easy-edits/audio/master.mjs: one measure, one apply, one verify measure; a correction pass only
-//                if the result is > 0.5 LU off -14 LUFS or over -1 dBTP (maxPasses 2)
+//                if the result is > 0.5 LU off -14 LUFS or over the -1.5 dBTP ceiling (maxPasses 2)
 //   4. check     easy-edits/check/delivery.mjs (exit status kept)
 // Prints per-stage wall-clock timings and a JSON report.
 import { copyFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

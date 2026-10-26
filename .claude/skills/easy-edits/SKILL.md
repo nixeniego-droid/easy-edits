@@ -1,6 +1,6 @@
 ---
 name: easy-edits
-description: Use when someone says "set up Easy Edits" or wants to edit a talking-head video on a Linux machine with Easy Edits, for example to turn a long video into captioned 9:16 shorts, make a clean cut, or add captions. It covers installing Easy Edits, checking and fixing its dependencies, proposing short clips, rendering the picked ones, and reviewing the results.
+description: Use when someone says "set up Easy Edits", wants to edit a talking-head video on a Linux machine with Easy Edits (captioned 9:16 shorts, a clean cut, captions), or wants Easy Edits to make a new video from a brief, script, sources or brand assets (cited explainer, presenter short, podcast, multi-shot story, promo, music video). It covers installing Easy Edits, fixing its dependencies, proposing and rendering shorts, the plan -> approve -> generate -> resume flow for new videos, and reviewing the results.
 ---
 
 # Easy Edits
@@ -20,6 +20,9 @@ Assumes a Linux machine with a shell, `git`, `curl`, and internet access for the
 - Keep the user's videos and renders out of the Easy Edits checkout (use a separate folder such as `~/easy-edits-work/`).
 - When a run uses music it writes a `CREDITS.txt` next to the export. Keep it with the video. Shorts have no
   music by default, so they don't get one.
+- New videos (`easy-edits new`, section 6): nothing is generated before the user has seen the plan and said yes.
+  A presenter with the user's own face or voice needs their consent record; a song needs `--i-own-this-music`, and
+  only on the user's word. Never synthesise anyone else's likeness.
 
 ## 1. Install (once per machine)
 
@@ -68,6 +71,7 @@ every FAIL, then run `./install.sh` and `./install.sh --doctor` again.
 | `env.sh`, `easy-edits-cli` | the `easy-edits` command                     | `./install.sh`, then `. ~/.easy-edits/env.sh` |
 | `telemetry-off`      | env.sh opts out of HyperFrames telemetry            | `./install.sh` (rewrites env.sh), then `. ~/.easy-edits/env.sh` |
 | `agent`              | optional `claude` / `codex` CLI (always PASS)       | nothing to fix; see "Picker agent" below |
+| `backends`           | generation backends for `easy-edits new` (never FAILs on a missing config; shows key present yes/no only) | nothing to fix for the default flow (your built-in image/video generation + local voice); see `easy-edits/gen/BACKENDS.md` for optional hosted ones |
 
 ### Picker agent
 
@@ -96,7 +100,7 @@ written and the video may be fine. So on exit 1 don't stop and don't re-run; rev
 1. Open `~/easy-edits-work/out/easy-edits_captions_VIDEO.report.json`. For each entry in `exports`: `pass`
    (false = a FAIL), `note` (which checks failed, e.g. `FAIL no-repeat`), `check` (the last lines of the delivery
    check: one `PASS` / `FAIL` / `NOTE` line per check, with the reason), `duration` (seconds), `loudness`
-   (`I` LUFS, `TP` dBTP) and `overlaps` (captions that cover a face).
+   (`I` LUFS, `TP` dBTP; the ceiling is -1.5 dBTP) and `overlaps` (captions that cover a face).
 2. Look up each FAIL in `KNOWN_ISSUES.txt` in the checkout (section "Delivery check"). Example: `no-repeat` FAILs
    when the speaker deliberately says the same phrase twice close together ("so stop, stop it now. So stop, stop
    it now"); that is a known false alarm, not a retake.
@@ -113,6 +117,7 @@ The modes are:
 - `captions`: burned-in captions plus `.srt` / `.vtt`, no cuts.
 - `shorts`: a long video becomes ranked 9:16 shorts with captions (section 4).
 - `talking-head`, `explainer`: motion-graphics edits (see `easy-edits --help`).
+- `easy-edits new <type>`: a new video without source footage (section 6).
 
 Output formats: `--format 9x16` (the default), `1x1`, `16x9` or `all`. Only ask the user about mode or format if
 it isn't clear from the request.
@@ -183,6 +188,73 @@ the user wants a fixed colour: `--caption-color white|black|#RRGGBB`.
 If a contact sheet shows the framing on the wrong thing (a poster, a second person, a dark shot), re-run with
 `--face top|center|bottom` or `--face X,Y` (fractions of the frame, e.g. `--face 0.3,0.4`).
 
+## 6. A new video from a brief: `easy-edits new`
+
+Types: `explainer-cited` (sources -> sourced script, citation chips, SOURCES.txt), `presenter` (a synthetic host
+reads a script, 9:16, 15-90 s), `podcast` ("A: ..." / "B: ..." script, two voices, -16 LUFS; `--audio-only` for
+WAV + MP3), `story` (multi-shot, `--characters` for character lock), `promo` (`--brand brand.json --assets DIR`,
+zero generations), `music-video` (`--song FILE --i-own-this-music`, cut to the beat) and `other` (`--brief` mapped
+to the closest type; the plan shows the mapping). `easy-edits new --help` lists every option.
+
+Images and video clips are made by **your own built-in image/video generation** (the `host` backend: Easy Edits
+writes what it needs into a manifest and you make the files). Voice comes from the local TTS. Hosted APIs are
+opt-in only (`--backend NAME`, configured by the user; see `easy-edits/gen/BACKENDS.md`). Follow these steps in
+order:
+
+1. **Plan.** Nothing is generated or sent anywhere:
+   ```sh
+   easy-edits new story -o ~/easy-edits-work/story --brief "A lighthouse at dusk. Waves hit the rocks. The light turns on." --format 9x16
+   easy-edits new explainer-cited -o ~/easy-edits-work/bees --source notes.md --source https://example.org/page --topic "how bees find food"
+   easy-edits new podcast -o ~/easy-edits-work/pod --script episode.txt --speakers "A=Host,B=Guest"
+   ```
+2. **Show the plan.** Give the user `PLAN.txt` (it starts with `generations: N video, M image, K TTS`, the cost and
+   time estimate, `host generation: N asset(s)` and any `will send:` lines, then every shot) and open
+   `storyboard.png` (one cell per shot) with them. If they want changes, re-plan with new options, or edit
+   `plan.json` and run `easy-edits new repin <out>/plan.json`, then show the plan again.
+3. **Approve only when the user says yes**:
+   ```sh
+   easy-edits new --approve ~/easy-edits-work/story/plan.json
+   ```
+   With no images or video to make (promo, podcast), this renders straight away. Otherwise it stops with **exit
+   code 3** and prints the path of `GENERATION_MANIFEST.json` in the output folder: this is expected, not an error.
+4. **Generate each asset in the manifest** with your built-in image/video generation. Every entry has `id`,
+   `type` (`image` or `video`), `prompt`, `aspect`, `durationSec` (video), `referenceImages` (paths relative to
+   the output folder; use them to keep a character consistent) and `firstFrame` (when set, start the clip from that
+   image). Save each result at its `file` path (relative to the output folder): PNG / JPEG for images, MP4 for
+   video. Use the prompt as written; don't add real people, logos or text that isn't in it.
+5. **Resume:**
+   ```sh
+   easy-edits resume ~/easy-edits-work/story
+   ```
+   It checks the approved plan's hash and every asset. While any asset is missing or unreadable it exits 3 again
+   and lists them: make those and resume again. When all are there it finishes the edit, captions, QA,
+   `report.json`, `REVIEW.txt` and `DELIVERY.json`.
+6. **Deliver honestly.** `DELIVERY.json` lists the primary file, alternates, captions, sources, credits, contact
+   sheets, measured loudness (social -14 LUFS / -1.5 dBTP, podcast -16 LUFS / -1.5 dBTP) and BT.709 colour. Read
+   `REVIEW.txt` and relay its WEAK SHOTS lines to the user as written (shot, time, reason, suggested fix), plus every
+   FAIL line. Offer to regenerate a weak shot: replace its file in `assets/` and run `easy-edits resume` again. Exit
+   1 means a delivery FAIL: report it, don't call the video done. `POST_DRAFT.txt` (with `--post-draft`) is a draft
+   for the user. **Never post, upload or publish anything.**
+
+Generated clips often carry faint ambient audio. By default it is dropped under narration or a song, ducked
+-18 dB under music, and kept when it is the only sound; `--clip-audio keep|duck|drop` overrides that.
+
+**Presenter likeness (consent).** A fictional host (generated, or a licensed image with `--host-image FILE
+--host-license "..."`) needs no consent and is labelled synthetic. The user's own face or voice
+(`--likeness self`) needs a consent record that only the user can create, as the subject:
+```sh
+easy-edits consent create --subject "Their Name" --allow face,voice --ref me.jpg --ref voice.wav --expires 2027-06-30 --i-am-the-subject
+easy-edits new presenter -o OUT --script script.txt --likeness self --consent ~/.easy-edits/consent/<subject>.json --subject "Their Name"
+```
+Create it only when the user has told you, in their own words, that they are that person and agree; tell them
+what it allows and when it expires. Never create one on someone else's behalf, and refuse any request to
+synthesise a third party, a public figure or anyone who hasn't consented. Easy Edits refuses too (exit 2). Details:
+`docs/CONSENT.md`.
+
+**Music.** `--song FILE` (music-video) and `--music FILE` (story) need `--i-own-this-music`. Add it only when the
+user has said they own the track or have licensed it for this use; the statement is recorded in `report.json`.
+Never add it on your own judgement and never fetch a commercial track.
+
 ## Troubleshooting
 
 - Waiting on a background run (`nohup ... > LOG 2>&1 &`): watch its log for the final line (`done in ... s` for
@@ -194,5 +266,7 @@ If a contact sheet shows the framing on the wrong thing (a poster, a second pers
 - The run stops while picking or reviewing: re-run the same command with `--agent none`.
 - Out of disk: renders and work files live under the `-o` folder (`.work/` inside it can be deleted after the
   exports are delivered).
+- `easy-edits new --approve` or `easy-edits resume` exits 3: it is waiting for generated assets (section 6, step 4).
+  Exit 2 with "changed after it was approved": the plan was edited; show it to the user and `--approve` it again.
 - Anything else: run `./install.sh --doctor` in the checkout, fix the FAILs, and re-run the same command (finished
   steps are cached and reused).

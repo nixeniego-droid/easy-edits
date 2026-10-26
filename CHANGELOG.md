@@ -1,7 +1,31 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 (2026-10-26)
 
+Make new videos, not just edit them: `easy-edits new` plans, waits for approval, has your AI assistant generate the
+pictures, and finishes the edit. Tested with the mock backend and the host flow fed with test-pattern assets;
+the quality of real generated pictures and hosted backends is untested.
+
+- **Host generation is the default for images and video.** After `--approve`, every image / video request goes
+  into `GENERATION_MANIFEST.json` in the output folder (id, type, prompt, durationSec, aspect, referenceImages,
+  firstFrame, file) and the run exits with code 3. The assistant driving Easy Edits makes each asset with its own
+  built-in image/video generation and saves it at `file`; **`easy-edits resume <out>`** checks the approved plan's
+  hash and every asset (exit 3 with the list while any are missing or unreadable) and finishes the edit, captions,
+  QA, `report.json`, `REVIEW.txt` and `DELIVERY.json`. Voice and avatar default to `local`; `xai` and
+  `http-generic` stay opt-in. Per-kind backend flags: `--video-backend`, `--image-backend`, `--tts-backend`, ...
+- **Every type goes through the recipe registry**: `explainer-cited`, `presenter`, `podcast`, `story`, `promo`,
+  `music-video` and `other`, with the same plan -> storyboard -> approval -> render -> report flow. Hand edits to
+  `plan.json` shots (re-pinned) reach the story and music-video renderers. The standalone runners still work.
+- **Generated-clip audio**: `--clip-audio auto|keep|duck|drop`. By default a clip's own ambient audio is dropped
+  under narration or a song, ducked -18 dB under music, and kept as-is when it is the only sound; then the
+  finish preset masters it (social -14 LUFS / -1.5 dBTP, podcast -16 LUFS / -1.5 dBTP).
+- The master (`audio/master.mjs`) now runs its correction pass whenever true peak is over the requested ceiling
+  (-1.5 dBTP by default), not only above -1.
+- Story QA flags a held last frame when a shot is longer than its generated clip.
+- The cited explainer generates one still per claim and crops it for each format (half the image generations for
+  `--format all`), and renders custom `WxH` sizes.
+- Skill, README, AGENTS.md / CLAUDE.md and `gen/BACKENDS.md` describe the `new` types and the plan -> approve ->
+  generate -> resume -> deliver flow, consent for a presenter's likeness and `--i-own-this-music`.
 - **Generation backends (bring your own key).** `local` (ffmpeg title-card stills, Ken Burns clips, Kokoro / Piper /
   eSpeak / flite TTS, a synthetic still + zoom avatar mastered to -14 LUFS / -1.5 dBTP, BT.709) and `http-generic`
   (any REST API from `~/.easy-edits/providers.json`: endpoint, auth header, env-var key, JSON body template,
@@ -21,7 +45,7 @@
 - Shared assembler (BT.709 conform, crossfades, captions from the known script), finish presets (social -14 LUFS,
   podcast -16 LUFS, both -1.5 dBTP), `--loudness`, `--length`, 4:5 and custom `WxH` formats, `report.json`
   `WEAK_SHOTS`, `REVIEW.txt`, `DELIVERY.json` and opt-in `--post-draft` (`POST_DRAFT.txt`, labelled DRAFT).
-- Docs: the master's true-peak ceiling is -1.5 dBTP (some docs said -1 dBTP).
+- Docs: every true-peak figure now says -1.5 dBTP, the master's ceiling.
 - **Cited explainer (research stream).** `easy-edits/research/`: a sources store from `--source URL|FILE` (HTML, PDF
   via pdftotext, txt, md) and `--topic` (search backend), a scriptwriter (LLM backend, or a deterministic extractive
   fallback) that writes `script.json` (claim -> source id -> quoted passage) to a target length, a `citation` check

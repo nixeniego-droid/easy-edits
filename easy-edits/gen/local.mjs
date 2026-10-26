@@ -124,7 +124,7 @@ const TTS_ENGINES = {
   kokoro: {
     available: () => fs.existsSync(kokoroBin()),
     voice: (req) => req.voice || (req.speaker === 'B' ? 'af_heart' : process.env.EASY_EDITS_TTS_VOICE || 'am_michael'),
-    run(textFile, raw, voice) { const r = spawnSync(kokoroBin(), ['tts', textFile, '-o', raw, '-v', voice], { encoding: 'utf8' }); if (r.status !== 0) throw new Error(`kokoro TTS failed: ${(r.stderr || '').trim().split('\n').pop()}`); },
+    run(textFile, raw, voice) { const r = spawnSync(kokoroBin(), ['tts', textFile, '-o', raw, '-v', voice], { encoding: 'utf8' }); if (r.status !== 0) throw new Error(`kokoro TTS failed: ${`${r.stderr || ''}\n${r.stdout || ''}`.split('\n').map((l) => l.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/^[^A-Za-z]+/, '').trim()).filter(Boolean).pop() || `exit ${r.status}`}`); },
   },
   piper: {
     available: (req = {}) => has('piper') && !!piperModel(req.voice),
@@ -161,17 +161,24 @@ export function pickTtsEngine(req = {}) {
 
 const NO_TTS = 'no local TTS engine found. Install one of: Kokoro (npm ci in the repo; HyperFrames TTS), Piper (piper on PATH + EASY_EDITS_PIPER_MODEL=<voice>.onnx), eSpeak NG (apt install espeak-ng), or an ffmpeg built with libflite';
 
+/** The engines to try, in order: the forced one only, else every available one (a failing engine falls through). */
+const ttsCandidates = (req) => (process.env.EASY_EDITS_LOCAL_TTS ? [pickTtsEngine(req)].filter(Boolean) : TTS_ORDER.filter((e) => TTS_ENGINES[e].available(req)));
+
 function synth(req, file) {
-  const engine = pickTtsEngine(req);
-  if (!engine) throw new Error(process.env.EASY_EDITS_LOCAL_TTS ? `EASY_EDITS_LOCAL_TTS=${process.env.EASY_EDITS_LOCAL_TTS} is not available here; ${NO_TTS}` : NO_TTS);
+  const engines = ttsCandidates(req);
+  if (!engines.length) throw new Error(process.env.EASY_EDITS_LOCAL_TTS ? `EASY_EDITS_LOCAL_TTS=${process.env.EASY_EDITS_LOCAL_TTS} is not available here; ${NO_TTS}` : NO_TTS);
   const text = String(req.text || '').trim();
   if (!text) throw new Error('tts: empty text');
   const dir = tmp();
   try {
     const tf = path.join(dir, 'text.txt'), raw = path.join(dir, 'raw.wav');
     fs.writeFileSync(tf, text);
-    const voice = TTS_ENGINES[engine].voice(req);
-    TTS_ENGINES[engine].run(tf, raw, voice);
+    const failed = [];
+    let engine = null, voice = null;
+    for (const e of engines) {
+      try { voice = TTS_ENGINES[e].voice(req); TTS_ENGINES[e].run(tf, raw, voice); engine = e; break; } catch (err) { failed.push(err.message); }
+    }
+    if (!engine) throw new Error(failed.join('; '));
     const rate = Number(req.rate) > 0 ? Math.min(2, Math.max(0.5, Number(req.rate))) : 1;
     ff(['-i', raw, '-af', `aresample=48000${rate !== 1 ? `,atempo=${rate}` : ''}`, '-ac', '1', '-c:a', 'pcm_s16le', path.resolve(file)]);
     return { engine, voice: engine === 'piper' ? path.basename(voice) : voice };
