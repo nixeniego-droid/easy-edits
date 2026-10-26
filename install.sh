@@ -96,21 +96,45 @@ MSG
   fi
 }
 
+# faster-whisper needs ctranslate2, whose wheels cover CPython 3.$PY_MIN..3.$PY_MAX. A newer python3 (a fresh Homebrew
+# python, say) makes pip fail with "No matching distribution found for ctranslate2", so pick a supported interpreter.
+PY_MIN=9 PY_MAX=14
+# (version only: a python without venv/ensurepip gets its own error when the venv is created)
+py_ok() { "$1" -c "import sys; sys.exit(not ((3, $PY_MIN) <= sys.version_info[:2] <= (3, $PY_MAX)))" >/dev/null 2>&1; }
+pick_python() {
+  local c m
+  for c in python3 $(m=$PY_MAX; while [ "$m" -ge "$PY_MIN" ]; do printf 'python3.%s ' "$m"; m=$((m - 1)); done); do
+    have "$c" && py_ok "$c" && { command -v "$c"; return 0; }
+  done
+  return 1
+}
 install_python() {
   if ! have python3; then
     if have apt-get && as_root true; then
       as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 python3-venv
-    else die "python3 missing; install python3 (+ python3-venv) and re-run"; fi
+    elif ! have brew; then die "python3 missing; install Python 3.$PY_MIN-3.$PY_MAX (+ python3-venv) and re-run"; fi
   fi
-  if ! python3 -c 'import venv, ensurepip' 2>/dev/null; then
-    if have apt-get && as_root true; then
-      as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv
-    else die "python3 venv/ensurepip missing; install python3-venv and re-run"; fi
+  if have python3 && ! python3 -c 'import venv, ensurepip' 2>/dev/null && have apt-get && as_root true; then
+    as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv
+  fi
+  # a venv left by an unsupported python (an earlier failed run) is rebuilt
+  if [ -x "$VENV/bin/python" ] && ! py_ok "$VENV/bin/python"; then
+    log "venv $VENV uses $("$VENV/bin/python" --version 2>&1), which faster-whisper can't install on; rebuilding it"
+    rm -rf "$VENV"
   fi
   if [ ! -x "$VENV/bin/python" ]; then
-    log "creating venv $VENV"
+    local py
+    if ! py="$(pick_python)"; then
+      if have brew; then
+        log "no Python 3.$PY_MIN-3.$PY_MAX found (python3 is $(python3 --version 2>&1)); installing python@3.13 with Homebrew"
+        brew install python@3.13 && py="$(brew --prefix python@3.13)/bin/python3.13" && py_ok "$py" || die "brew install python@3.13 failed"
+      else die "need Python 3.$PY_MIN-3.$PY_MAX (python3 is $(python3 --version 2>&1)); install one (e.g. python3.12 python3.12-venv) and re-run"; fi
+    fi
+    "$py" -c 'import venv, ensurepip' >/dev/null 2>&1 \
+      || die "$py ($("$py" --version 2>&1)) can't create a venv: its venv/ensurepip module is missing; install it (e.g. python3-venv or python3.12-venv) and re-run"
+    log "creating venv $VENV ($("$py" --version 2>&1))"
     mkdir -p "$EASY_EDITS_HOME"
-    python3 -m venv "$VENV"
+    "$py" -m venv "$VENV" || die "creating the venv $VENV with $py failed (see the error above)"
   fi
   if "$VENV/bin/python" -c "import faster_whisper,sys; sys.exit(faster_whisper.__version__!='$FASTER_WHISPER_VERSION')" 2>/dev/null; then
     log "faster-whisper $FASTER_WHISPER_VERSION OK"
@@ -198,15 +222,22 @@ ENV
 # commit, sha256-checked); installed per user with its licence next to it.
 FONT_COMMIT=47d54ca1ebb14fd864695f1d39dc734f39017c33
 FONT_SHA=0f7b311b2f3279e4eef9b2f968bcdbab6e28f4daeb1f049f4f278a902bcd82f7
-have_montserrat() { if have fc-list; then fc-list : family | grep -x 'Montserrat\(,.*\)\{0,1\}' >/dev/null; else ls "$HOME/Library/Fonts"/Montserrat* /Library/Fonts/Montserrat* >/dev/null 2>&1; fi; }
+MONTSERRAT_FILE='Montserrat[wght].ttf'   # the exact file name the macOS check looks for (FONT_FILES in style-pack.mjs)
+# macOS: Chrome finds fonts through CoreText (~/Library/Fonts, /Library/Fonts), so check those folders first; a
+# Homebrew fc-list may not index ~/Library/Fonts and would report an installed font as missing.
+font_file_present() { [ -e "$HOME/Library/Fonts/$1" ] || [ -e "/Library/Fonts/$1" ]; }
+have_montserrat() {
+  [ "$(uname)" = Darwin ] && font_file_present "$MONTSERRAT_FILE" && return 0
+  have fc-list && fc-list : family | grep -x 'Montserrat\(,.*\)\{0,1\}' >/dev/null
+}
 install_font() {
   if have_montserrat; then log "font Montserrat OK"; return 0; fi
   local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
   local base="https://raw.githubusercontent.com/google/fonts/$FONT_COMMIT/ofl/montserrat"
   mkdir -p "$d"; log "installing font Montserrat (OFL) into $d"
-  curl -fsSL -o "$d/Montserrat[wght].ttf.part" "$base/Montserrat%5Bwght%5D.ttf" || die "font download failed"
-  echo "$FONT_SHA  $d/Montserrat[wght].ttf.part" | { have sha256sum && sha256sum -c --quiet - || shasum -a 256 -c --quiet -; } || die "font checksum mismatch"
-  mv "$d/Montserrat[wght].ttf.part" "$d/Montserrat[wght].ttf"
+  curl -fsSL -o "$d/$MONTSERRAT_FILE.part" "$base/Montserrat%5Bwght%5D.ttf" || die "font download failed"
+  echo "$FONT_SHA  $d/$MONTSERRAT_FILE.part" | { have sha256sum && sha256sum -c --quiet - || shasum -a 256 -c --quiet -; } || die "font checksum mismatch"
+  mv "$d/$MONTSERRAT_FILE.part" "$d/$MONTSERRAT_FILE"
   curl -fsSL -o "$d/Montserrat-OFL.txt" "$base/OFL.txt" || true
   have fc-cache && fc-cache -f "$d" >/dev/null 2>&1 || true
 }
@@ -218,7 +249,10 @@ install_font() {
 STYLE_FONTS="Playfair Display|playfairdisplay|PlayfairDisplay[wght].ttf|c40f2293766a503bc70cce9e512ef844a4ccb7cbcde792fe2ea31d191917d8d6
 JetBrains Mono|jetbrainsmono|JetBrainsMono[wght].ttf|48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda"
 # (grep >/dev/null, not grep -q: -q exits on the first match, fc-list gets SIGPIPE and pipefail calls it missing)
-have_family() { if have fc-list; then fc-list : family | tr ',' '\n' | grep -x "$1" >/dev/null; else ls "$HOME/Library/Fonts/$2" "/Library/Fonts/$2" >/dev/null 2>&1; fi; }
+have_family() {
+  [ "$(uname)" = Darwin ] && font_file_present "$2" && return 0
+  have fc-list && fc-list : family | tr ',' '\n' | grep -x "$1" >/dev/null
+}
 install_style_fonts() {
   local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
   local fam dir file sha url added=0
@@ -248,7 +282,7 @@ c_node()    { load_node || { echo "need node >= $NODE_MAJOR (have $(have node &&
 c_npm()     { load_node && npm -v; }
 c_ffmpeg()  { ffmpeg -hide_banner -version | head -n1; }
 c_ffprobe() { ffprobe -hide_banner -version | head -n1; }
-c_python()  { python3 --version; }
+c_python()  { [ -x "$VENV/bin/python" ] && py_ok "$VENV/bin/python" && { "$VENV/bin/python" --version; return; }; echo "venv python missing or not 3.$PY_MIN-3.$PY_MAX (run ./install.sh)"; return 1; }
 c_fw()      { "$VENV/bin/python" -c 'import faster_whisper,ctranslate2; print("faster-whisper", faster_whisper.__version__, "ctranslate2", ctranslate2.__version__)'; }
 c_yunet()   { f="$EASY_EDITS_HOME/models-cv/face_detection_yunet_2023mar.onnx"; [ -f "$f" ] && echo "$f"; }
 c_ytdlp()   { "$VENV/bin/yt-dlp" --version | sed 's/^/yt-dlp /'; }
@@ -258,9 +292,10 @@ c_deps()    { load_node && cd "$REPO" && npm ls --depth=0 >/dev/null && echo "no
 c_hf()      { load_node && cd "$REPO" && node_modules/.bin/hyperframes --version; }
 c_gsap()    { load_node && cd "$REPO" && node -p 'require("gsap/package.json").version'; }
 c_chrome()  { load_node && cd "$REPO" && p="$(node_modules/.bin/hyperframes browser path 2>/dev/null | tail -n1)" && [ -x "$p" ] && echo "$p"; }
-c_font()    { have_montserrat && echo "Montserrat (Clean cut captions)" || { echo "Montserrat missing: captions would fall back (run ./install.sh)"; return 1; }; }
+font_where() { [ "$(uname)" = Darwin ] && echo "~/Library/Fonts, /Library/Fonts or fc-list" || echo "fc-list (fontconfig)"; }
+c_font()    { have_montserrat && echo "Montserrat (Clean cut captions)" || { echo "Montserrat not found in $(font_where): captions would fall back (run ./install.sh)"; return 1; }; }
 c_sfonts()  { local fam dir file sha miss=(); while IFS='|' read -r fam dir file sha; do have_family "$fam" "$file" || miss+=("$fam"); done <<< "$STYLE_FONTS"
-              [ ${#miss[@]} -eq 0 ] && echo "Playfair Display, JetBrains Mono (style packs)" || { echo "missing: ${miss[*]}: style packs that use them are refused (run ./install.sh)"; return 1; }; }
+              [ ${#miss[@]} -eq 0 ] && echo "Playfair Display, JetBrains Mono (style packs)" || { echo "not found in $(font_where): ${miss[*]}: style packs that use them are refused (run ./install.sh)"; return 1; }; }
 c_cli()     { load_node && "$REPO/bin/easy-edits" --help | head -n1; }
 c_env()     { [ -f "$EASY_EDITS_HOME/env.sh" ] && echo "$EASY_EDITS_HOME/env.sh"; }
 c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$EASY_EDITS_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
@@ -291,6 +326,9 @@ doctor() {
   if [ "$FAILS" -gt 0 ]; then echo "doctor: $FAILS FAIL"; exit 1; fi
   echo "doctor: all PASS"
 }
+
+# Sourced (`. ./install.sh`, as the tests do): only define the functions and settings above, run nothing.
+(return 0 2>/dev/null) && return 0
 
 NO_MODELS=0 MODE=install
 for a in "$@"; do

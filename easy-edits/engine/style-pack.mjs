@@ -18,6 +18,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const PACK_DIR = path.resolve(HERE, '../styles/packs');
 export const SCHEMA_FILE = path.resolve(HERE, '../styles/pack.schema.json');
 export const SCHEMA = JSON.parse(fs.readFileSync(SCHEMA_FILE, 'utf8'));
+/** every font family a pack may use (install.sh installs them all) */
+export const FONT_FAMILIES = [...SCHEMA.$defs.font.properties.family.enum];
 export const userDir = () => process.env.EASY_EDITS_STYLES || path.join(process.env.EASY_EDITS_HOME || path.join(process.env.HOME || os.homedir(), '.easy-edits'), 'styles');
 /** weight range of each font ./install.sh installs (variable fonts). */
 export const FONT_WEIGHTS = { Montserrat: [100, 900], 'Playfair Display': [400, 900], 'JetBrains Mono': [100, 800] };
@@ -145,11 +147,26 @@ export function listPacks() {
   return out;
 }
 
-/** font families installed for Chrome (fontconfig); null when fc-list is missing (not checkable). */
-export function installedFonts() {
+/** macOS font folders Chrome reads through CoreText (install.sh puts the fonts in the first one). */
+export const MAC_FONT_DIRS = [path.join(os.homedir(), 'Library/Fonts'), '/Library/Fonts'];
+/** the exact file ./install.sh installs for each family; its macOS doctor checks the same names (a test keeps them in sync). */
+export const FONT_FILES = { Montserrat: 'Montserrat[wght].ttf', 'Playfair Display': 'PlayfairDisplay[wght].ttf', 'JetBrains Mono': 'JetBrainsMono[wght].ttf' };
+/**
+ * Families whose FONT_FILES file is in one of `dirs` (exact name: "MontserratAlternates-Bold.otf" is not Montserrat):
+ * macOS has no fc-list of its own, and a Homebrew fc-list may not index ~/Library/Fonts.
+ */
+export function fontsInDirs(families, dirs = MAC_FONT_DIRS) {
+  return new Set(families.filter((fam) => FONT_FILES[fam] && dirs.some((d) => fs.existsSync(path.join(d, FONT_FILES[fam])))));
+}
+/**
+ * Font families installed for Chrome: fontconfig on Linux; on macOS, fontconfig (when present) plus the font
+ * folders Chrome reads. null when nothing can tell (Linux without fc-list: not checkable).
+ */
+export function installedFonts({ platform = process.platform, families = FONT_FAMILIES, dirs = MAC_FONT_DIRS } = {}) {
   const r = spawnSync('fc-list', [':', 'family'], { encoding: 'utf8' });
-  if (r.status !== 0) return null;
-  return new Set(r.stdout.split('\n').flatMap((l) => l.split(',')).map((x) => x.trim()).filter(Boolean));
+  const fc = r.status === 0 ? r.stdout.split('\n').flatMap((l) => l.split(',')).map((x) => x.trim()).filter(Boolean) : null;
+  if (platform !== 'darwin') return fc && new Set(fc);
+  return new Set([...(fc || []), ...fontsInDirs(families, dirs)]);
 }
 /** pack font families that are not installed ([] when they all are, or fontconfig can't tell). */
 export function missingFonts(pack, have = installedFonts()) {

@@ -1,4 +1,4 @@
-Easy Edits v1.3.0
+Easy Edits v1.3.1
 ==============
 
 Zero-instruction video editing: point it at a talking-head video, get a finished edit back.

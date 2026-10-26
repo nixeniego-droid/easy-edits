@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SCHEMA, PACK_DIR, validatePack, loadPack, listPacks, resolvePack, checkRequest, stylePlan, missingFonts, builtinIds, StyleError } from '../../engine/style-pack.mjs';
+import { spawnSync } from 'node:child_process';
+import { SCHEMA, PACK_DIR, validatePack, loadPack, listPacks, resolvePack, checkRequest, stylePlan, missingFonts, installedFonts, fontsInDirs, FONT_FAMILIES, FONT_FILES, builtinIds, StyleError } from '../../engine/style-pack.mjs';
 import { contrastRatio } from '../../engine/contrast.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -165,4 +166,66 @@ test('install.sh installs the fonts the packs use (pinned, checksummed) and the 
   // under pipefail, `fc-list | grep -q` can report a found font as missing (SIGPIPE): the font checks read all input
   assert.doesNotMatch(sh, /fc-list[^\n]*\|[^\n]*grep -q/);
   assert.deepEqual([...SCHEMA.$defs.font.properties.family.enum].sort(), ['JetBrains Mono', 'Montserrat', 'Playfair Display']);
+});
+
+const INSTALL_SH = path.join(HERE, '../../../install.sh');
+/** run `script` in bash after sourcing install.sh (its source guard defines the functions and runs nothing) */
+const withInstallSh = (script, env = {}) => spawnSync('bash', ['-c', `set -euo pipefail\n. "$1"\n${script}`, 'bash', INSTALL_SH],
+  { encoding: 'utf8', env: { ...process.env, ...env } });
+
+test('macOS: the exact installed font files count as installed, even when fc-list does not list them', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-fonts-'));
+  // look-alikes that must not count: another family with the same prefix, other cuts, the licence text
+  for (const f of ['PlayfairDisplay[wght].ttf', 'MontserratAlternates-Bold.otf', 'Montserrat-Bold.otf', 'JetBrainsMono-OFL.txt']) fs.writeFileSync(path.join(dir, f), '');
+  assert.deepEqual([...fontsInDirs(FONT_FAMILIES, [dir, '/nonexistent'])], ['Playfair Display']);
+  assert.ok(installedFonts({ platform: 'darwin', dirs: [dir] }).has('Playfair Display')); // plus whatever this machine's fc-list has
+  fs.writeFileSync(path.join(dir, 'Montserrat[wght].ttf'), '');
+  const found = fontsInDirs(FONT_FAMILIES, [dir]);
+  assert.deepEqual([...found].sort(), ['Montserrat', 'Playfair Display']);
+  assert.deepEqual(missingFonts(loadPack('terminal'), found), ['JetBrains Mono']);
+  assert.deepEqual(missingFonts(loadPack('broadsheet'), found), []);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('install.sh and style-pack.mjs look for the same font files', () => {
+  const r = withInstallSh('echo "Montserrat|$MONTSERRAT_FILE"; while IFS="|" read -r fam dir file sha; do echo "$fam|$file"; done <<< "$STYLE_FONTS"');
+  assert.equal(r.status, 0, r.stderr);
+  const sh = Object.fromEntries(r.stdout.trim().split('\n').map((l) => l.split('|')));
+  assert.deepEqual(sh, FONT_FILES);
+  assert.deepEqual(Object.keys(FONT_FILES).sort(), [...FONT_FAMILIES].sort());
+});
+
+test('install.sh doctor on macOS finds the exact font files in ~/Library/Fonts when fc-list does not list them', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-doctor-'));
+  const bin = path.join(tmp, 'bin'), fonts = path.join(tmp, 'Library/Fonts');
+  fs.mkdirSync(bin); fs.mkdirSync(fonts, { recursive: true });
+  fs.writeFileSync(path.join(bin, 'uname'), '#!/bin/sh\necho Darwin\n', { mode: 0o755 });
+  fs.writeFileSync(path.join(bin, 'fc-list'), '#!/bin/sh\necho "DejaVu Sans"\n', { mode: 0o755 }); // a Homebrew fc-list that skips ~/Library/Fonts
+  const run = () => {
+    const r = withInstallSh('have_montserrat && echo M=1 || echo M=0\nhave_family "Playfair Display" "PlayfairDisplay[wght].ttf" && echo P=1 || echo P=0',
+      { HOME: tmp, EASY_EDITS_HOME: path.join(tmp, '.easy-edits'), PATH: `${bin}:${process.env.PATH}` });
+    assert.equal(r.status, 0, r.stderr);
+    return r.stdout;
+  };
+  fs.writeFileSync(path.join(fonts, 'MontserratAlternates-Bold.otf'), ''); // not Montserrat, for the shell either
+  assert.match(run(), /M=0[\s\S]*P=0/);
+  for (const f of ['Montserrat[wght].ttf', 'PlayfairDisplay[wght].ttf']) fs.writeFileSync(path.join(fonts, f), '');
+  assert.match(run(), /M=1[\s\S]*P=1/);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('install.sh py_ok decides on the Python version only', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-py-'));
+  // fake pythons without venv/ensurepip: py_ok must pass the 3.12 one and refuse the 3.15 one on the version alone
+  const fake = (name, ok) => { const f = path.join(tmp, name); fs.writeFileSync(f, `#!/bin/sh\ncase "$2" in *ensurepip*) exit 1 ;; esac\nexit ${ok ? 0 : 1}\n`, { mode: 0o755 }); return f; };
+  const r = withInstallSh(`py_ok "$PY12" && echo ok12; py_ok "$PY15" || echo no15`, { PY12: fake('py12', true), PY15: fake('py15', false) });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /ok12[\s\S]*no15/);
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('sourcing install.sh runs no install step', () => {
+  const r = withInstallSh('echo sourced', { EASY_EDITS_HOME: path.join(os.tmpdir(), 'ee-none-' + process.pid) });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stdout, 'sourced\n');
 });
