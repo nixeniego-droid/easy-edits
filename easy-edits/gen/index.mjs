@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { xaiAdapter } from './xai.mjs';
 
 export const KINDS = ['video', 'image', 'tts', 'avatar', 'llm', 'search'];
 
@@ -41,7 +42,7 @@ function mockAdapter(kind) {
   };
 }
 
-const registry = { none: noneAdapter, mock: mockAdapter };
+const registry = { none: noneAdapter, mock: mockAdapter, xai: xaiAdapter };
 export function registerAdapter(name, factory) { registry[name] = factory; }
 export function listBackends() { return Object.keys(registry); }
 export function getBackend(kind, { name } = {}) {

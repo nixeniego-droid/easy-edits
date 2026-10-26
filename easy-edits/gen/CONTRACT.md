@@ -18,7 +18,7 @@ Request shapes:
 - search: { query, limit } -> { results:[{title,url,snippet}] }
 
 Built-in adapters: `none` (refuses cleanly), `mock` (deterministic, offline, ffmpeg testsrc/sine, cost 0),
-`local` (ffmpeg stills + Ken Burns, Kokoro/Piper TTS, still+audio avatar), `http-generic` (REST config).
+`local` (ffmpeg stills + Ken Burns, Kokoro/Piper TTS, still+audio avatar), `http-generic` (REST config), `xai` (hosted image + video, BYO key XAI_API_KEY; model ids in providers.json).
 Config: env vars and `~/.easy-edits/providers.json` (mode 600) only. Keys never logged or written to outputs.
 Cache: `~/.easy-edits/cache` (override EASY_EDITS_CACHE) keyed by sha256 of (adapter, model, request).
 `offline:true` makes any adapter with capabilities.network refuse.
