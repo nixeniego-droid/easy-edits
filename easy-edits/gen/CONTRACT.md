@@ -23,3 +23,12 @@ Config: env vars and `~/.easy-edits/providers.json` (mode 600) only. Keys never 
 Cache: `~/.easy-edits/cache` (override EASY_EDITS_CACHE) keyed by sha256 of (adapter, model, request).
 `offline:true` makes any adapter with capabilities.network refuse.
 Env override for tests: EASY_EDITS_BACKEND=mock forces mock for every kind.
+
+## Default: `host` adapter (image + video)
+Easy Edits usually runs inside an AI assistant that has built-in image/video generation. The `host` adapter
+never calls a network: each image/video request is appended to `<out>/GENERATION_MANIFEST.json`
+(id, type, prompt, durationSec, aspect, referenceImages, firstFrame, file) and returns `{ pending: true, file }`.
+A recipe that gets any pending result finishes planning, prints the manifest path and exits with status 3
+("waiting for assets"). The assistant generates each asset with its own tools and saves it at `file`;
+then `easy-edits resume <out>` re-runs the approved plan, finds the files (cached:true) and finishes the
+edit, captions and QA. `xai` is an optional hosted fallback for running outside an assistant.

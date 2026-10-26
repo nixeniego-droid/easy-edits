@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { xaiAdapter } from './xai.mjs';
+import { hostAdapter } from './host.mjs';
 
 export const KINDS = ['video', 'image', 'tts', 'avatar', 'llm', 'search'];
 
@@ -42,12 +43,12 @@ function mockAdapter(kind) {
   };
 }
 
-const registry = { none: noneAdapter, mock: mockAdapter, xai: xaiAdapter };
+const registry = { none: noneAdapter, mock: mockAdapter, xai: xaiAdapter, host: hostAdapter };
 export function registerAdapter(name, factory) { registry[name] = factory; }
 export function listBackends() { return Object.keys(registry); }
 export function getBackend(kind, { name } = {}) {
   if (!KINDS.includes(kind)) throw new Error(`unknown backend kind ${kind}`);
-  const n = process.env.EASY_EDITS_BACKEND || name || 'none';
+  const n = process.env.EASY_EDITS_BACKEND || name || ((kind === 'image' || kind === 'video') ? 'host' : 'none');
   const f = registry[n]; if (!f) throw new Error(`unknown backend ${n}`);
   const b = f(kind);
   const gen = b.generate.bind(b);
