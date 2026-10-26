@@ -29,6 +29,13 @@
   claim, `[n] Source title` chips, captions from the script, a Sources end card, `SOURCES.txt` and `.srt` / `.vtt`
   (9:16, 16:9; -14 LUFS / -1.5 dBTP; BT.709). Recipe `easy-edits/new/recipes/explainer-cited.mjs`; standalone runner
   `node easy-edits/research/run.mjs`.
+- **Presenter shorts with likeness consent** (preview; `easy-edits/presenter/`, recipe `new/recipes/presenter.mjs`).
+  Script -> tts -> avatar -> captions from the script, 9:16, 15-90 s (`--length`), -14 LUFS / -1.5 dBTP, BT.709.
+  A fictional host comes from the image backend or a licensed `--host-image` with `--host-license`; `--likeness
+  self` needs a consent record and refuses before any generation without a matching, unexpired, self-attested
+  record with intact reference hashes. Voice cloning uses the tts `voiceClone` capability. `report.json` says
+  `synthetic: true`, with an on-screen "AI-generated presenter" label by default. `easy-edits consent create |
+  verify | show` writes and checks the records. See [docs/CONSENT.md](docs/CONSENT.md).
 
 ## 1.3.1 (2026-10-26)
 

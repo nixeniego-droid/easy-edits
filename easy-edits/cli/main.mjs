@@ -26,6 +26,7 @@ usage: easy-edits <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--no
        easy-edits new <type> -o <out-dir> ...   make a video from a brief / script / brand (plan, then
                           --approve; types explainer-cited presenter podcast story promo music-video other;
                           easy-edits new --help)
+       easy-edits consent create | verify | show   (likeness consent for a presenter; easy-edits consent --help)
 
 modes
   clean-cut     APPROVED default. Fillers, dead air and clear slips removed; clean minimal captions.
@@ -142,6 +143,7 @@ async function main() {
   if (process.argv[2] === 'style') process.exit(styleMain(process.argv.slice(3)));
   if (process.argv[2] === 'backends') process.exit(await backendsMain(process.argv.slice(3)));
   if (process.argv[2] === 'new') process.exit(await newMain(process.argv.slice(3)));
+  if (process.argv[2] === 'consent') process.exit((await import('../presenter/consent-cli.mjs')).consentMain(process.argv.slice(3)));
   let o;
   try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(`easy-edits: ${e.message}`); process.exit(2); }
   if (o.help || !o.input) { process.stdout.write(HELP); process.exit(o.help ? 0 : 2); }

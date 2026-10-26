@@ -28,6 +28,7 @@ Easy Edits automates.
 | `tools/` | Source prep, cut candidates, name / verbatim / sibling guards, DOM sampler |
 | `smoke/` | Local faster-whisper word transcript (`asr_words.py`) and an experimental smoke render |
 | `research/` | Cited explainer: sources store, scriptwriter, citation check, render ([research/README.md](research/README.md)); recipe `new/recipes/explainer-cited.mjs` |
+| `presenter/` | Presenter shorts (plan, render, still-motion fallback) and likeness consent records; `run.mjs` is the standalone runner, `../new/recipes/presenter.mjs` the recipe ([docs/CONSENT.md](../docs/CONSENT.md)) |
 | `briefs/` | Prompts for the experimental one-shot agent edit (`bin/edit.sh` without `--style`) |
 | `gen/` | Generation backends: registry (`index.mjs`), `local`, `http-generic`, providers.json / keys / redaction / cache (`config.mjs`); [gen/BACKENDS.md](gen/BACKENDS.md). `cli/backends.mjs` is `easy-edits backends` |
 

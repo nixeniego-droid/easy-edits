@@ -175,6 +175,18 @@ social|podcast|LUFS` picks the finish (social -14 LUFS, podcast -16 LUFS, both -
 `POST_DRAFT.txt` labelled DRAFT (never posted). Each run writes `report.json` (with `WEAK_SHOTS`), `REVIEW.txt` and
 `DELIVERY.json`. Details: [easy-edits/new/README.md](easy-edits/new/README.md).
 
+### Presenter shorts (preview)
+
+A 9:16, 15-90 s short read by a synthetic presenter, captioned from the script: a fictional host (generated, or a
+licensed image you supply) or your own face and voice with a consent record. Every one is labelled synthetic.
+
+```sh
+node easy-edits/presenter/run.mjs --script script.md -o out/ --length 30
+easy-edits consent create --subject "Your Name" --allow face,voice --ref me.jpg --ref voice.wav --expires 2027-06-30 --i-am-the-subject
+```
+
+Third-party and public-figure likeness is always refused. Details: [docs/CONSENT.md](docs/CONSENT.md).
+
 ### From a URL
 
 Every mode also takes a YouTube (or other yt-dlp-supported) link instead of a file:
