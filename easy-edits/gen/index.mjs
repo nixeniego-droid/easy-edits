@@ -51,7 +51,10 @@ export function registerAdapter(name, factory) { registry[name] = factory; }
 export function listBackends() { return Object.keys(registry); }
 export function getBackend(kind, { name } = {}) {
   if (!KINDS.includes(kind)) throw new Error(`unknown backend kind ${kind}`);
-const registry = { none: noneAdapter, mock: mockAdapter, local: localAdapter, 'http-generic': httpGenericAdapter, xai: xaiAdapter, host: hostAdapter };
+  const n = process.env.EASY_EDITS_BACKEND || name || 'none';
+  const [base, sub] = registry[n] ? [n] : n.split(/:(.*)/s);
+  const f = registry[base]; if (!f) throw new Error(`unknown backend ${n}`);
+  const b = f(kind, sub);
   const gen = b.generate.bind(b);
   b.generate = async (req, opts = {}) => {
     if (opts.offline && b.capabilities.network) throw new Error(`backend ${n} needs network; refused by --offline`);
