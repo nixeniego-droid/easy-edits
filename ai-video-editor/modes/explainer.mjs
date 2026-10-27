@@ -23,7 +23,7 @@ export default async function explainer(o) {
     if (!fs.existsSync(voice)) {
       const text = fs.readFileSync(o.input, 'utf8').replace(/^#+\s*/gm, '').trim();
       fs.writeFileSync(path.join(o.work, 'script.txt'), text);
-      log('voiceover (HyperFrames TTS, Kokoro-82M, local) ...');
+      log('Recording the voiceover…');
       run(path.join(REPO, 'node_modules/.bin/hyperframes'), ['tts', path.join(o.work, 'script.txt'), '-o', path.join(o.work, 'tts.wav'), '-v', process.env.AI_VIDEO_EDITOR_TTS_VOICE || 'am_michael'], { label: 'TTS', logFile: o.logFile });
       execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', path.join(o.work, 'tts.wav'), '-af', 'aresample=48000,adelay=150:all=1,apad=pad_dur=0.6', '-ac', '2', voice]);
     }

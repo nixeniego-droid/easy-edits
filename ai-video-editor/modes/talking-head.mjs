@@ -20,7 +20,7 @@ export function cleanBuild(o) {
     if (o.lang) args.push('--lang', o.lang);
     if (o.modeCut) args.push('--mode', o.modeCut);
     if (o.names) args.push('--names', o.names);
-    log('clean cut (build only) ...');
+    log('Building the talking-head base…');
     // one retry: on a loaded box a transient failure (an ffmpeg killed under memory pressure) is not a verdict
     const r = run('bash', args, { label: 'clean-cut build', logFile: o.logFile, allowFail: true });
     if (r.status !== 0) { log(`clean cut failed (exit ${r.status}); retrying once`); run('bash', args, { label: 'clean-cut build', logFile: o.logFile }); }
