@@ -21,7 +21,9 @@ import { finalOutputProblems, modeFinalFiles, FinalOutputError, NoSpeechError, E
 import { withProgress } from '../engine/progress.mjs';
 import { publicReport } from '../engine/report.mjs';
 
-const HELP = `AI Video Editor: one CLI for talking-head editing, built on Herk Edit Kit (Nate Herk) + HyperFrames.
+const pkgVersion = () => { try { return JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8')).version; } catch { return '0.0.0'; } };
+
+const helpText = () => `AI Video Editor ${pkgVersion()}
 
 usage: ai-video-editor <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--notes "..."] [options]
        ai-video-editor <input> -o <out-dir> ...            (mode defaults to clean-cut)
@@ -99,6 +101,7 @@ options
                           and flips to dark text with a light edge on bright footage; clean-cut 9:16 keeps white)
   --agent claude|codex|none        planner agent (default: auto = first installed; none = heuristic only)
   -h, --help
+  -V, --version            print version from package.json (not git describe) and exit
 
 examples
   ai-video-editor samples/talk.mp4 -o out/                      # clean cut, 9:16
@@ -121,6 +124,7 @@ export function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') o.help = true;
+    else if (a === '--version' || a === '-V') o.version = true;
     // --hook alone = the clip's own hook line; --hook "text" = that text (a following path / URL / flag is not text)
     else if (a === '--hook') { const nx = argv[i + 1]; if (nx != null && !nx.startsWith('-') && !/^https?:\/\//i.test(nx) && !fs.existsSync(nx)) { o.hook = nx; i++; } else o.hook = true; }
     // --preview alone = about 20 s; --preview 30 = about 30 s (from the first speech to a pause)
@@ -202,8 +206,9 @@ async function main() {
   if (process.argv[2] === 'consent') process.exit((await import('../presenter/consent-cli.mjs')).consentMain(process.argv.slice(3)));
   let o;
   try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(`ai-video-editor: ${e.message}`); process.exit(2); }
+  if (o.version) { process.stdout.write(pkgVersion() + '\n'); process.exit(0); }
   if (o.help || !o.input) {
-    process.stdout.write(HELP);
+    process.stdout.write(helpText());
     if (!o.help) console.error(`ai-video-editor: needs a video (a file or URL). Try the bundled sample:\n  ai-video-editor ${o.mode} ${SAMPLE} -o out/`);
     process.exit(o.help ? 0 : 2);
   }
@@ -242,7 +247,7 @@ async function main() {
   let res;
   try {
     const stageMsg = ({ 'clean-cut': 'Cleaning up your video…', captions: 'Adding captions…', shorts: 'Making short clips…', 'talking-head': 'Rendering your talking-head edit…', explainer: 'Rendering your explainer…' })[o.mode] || 'Working on your video…';
-    res = await withProgress(o.mode, stageMsg, () => mod.default(o));
+    res = await withProgress(o.mode, stageMsg, (p) => { o._progress = p; return mod.default(o); });
   } catch (e) {
     if (!(e instanceof NoSpeechError)) throw e;
     console.error(`ai-video-editor: ${e.message}\nNothing was rendered (exit 2). Try the bundled sample:\n  ai-video-editor ${o.mode} ${SAMPLE} -o ${path.relative(process.cwd(), o.out) || '.'}/`);
