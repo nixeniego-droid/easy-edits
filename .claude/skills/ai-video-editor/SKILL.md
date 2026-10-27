@@ -70,11 +70,14 @@ Match the user's words to a row; ask (with a choice card) only when two rows fit
 `ai-video-editor` is the command in every row (`ai-video-editor shorts ...`). Use `-o` folders outside the
 checkout, e.g. `~/ai-video-editor-work/<name>`.
 
-### Choice cards at every decision
+### Choice cards at every decision (mandatory)
 
-At every decision, offer tap-to-pick choices (your chat's question / choice widget; if there is none, a short
-numbered list) with the recommended option first and marked "(recommended)". One plain question per card. If
-the user has a saved preference, make that the recommended option. The decisions and their default:
+**At every decision you MUST send a question / choice widget** (your chat's tap-to-pick card). If the chat has no
+widget, send a short numbered list with the same options. Do not improvise different wording: use the **exact**
+question and option strings from the table below (and from getting-started for first-run cards). Put the recommended
+option first and mark it "(recommended)". One plain question per card.
+
+If the user has a saved preference, make that the recommended option. The decisions and their default:
 
 | decision                 | card                                                                                              |
 |--------------------------|---------------------------------------------------------------------------------------------------|
@@ -87,7 +90,7 @@ the user has a saved preference, make that the recommended option. The decisions
 | after delivery           | What's next? / one or two fitting next steps (recommended first) \| I'm good                      |
 | an error                 | How should we fix this? / the fixes from the error table below (likeliest first)                   |
 
-Shorts pick cards come from `OUT/proposals.json` (written by `--propose`, next to `PROPOSALS.txt`): a list of
+After `shorts … --propose`, you MUST send a choice widget built from `OUT/proposals.json` (written by `--propose`, next to `PROPOSALS.txt`): a list of
 `{id, rank, score, start, end, durationSec, sourceDurationSec, hook, hookCard, reason, previewPath}`. Show the
 short `hookCard` text and `durationSec` (the length after the clean cut) on each option; attach each
 `previewPath` clip so they can watch before picking; `id` is the number for `--pick`.
@@ -112,7 +115,7 @@ from the log, never pasted from it:
 ### Quick preview, then the full render
 
 Before a full render of captions, a clean cut or a talking-head edit, make a quick preview (about 20
-seconds, from the first words to a pause), attach it with its sheet and ask the "Look good?" card. Then run the
+seconds, from the first words to a pause), attach it with its sheet, then MUST send the exact "Look good?" card below. Then run the
 same command without `--preview`.
 
 ```sh
@@ -126,9 +129,11 @@ render checks again. Shorts already preview: `--propose` writes one low-res prev
 
 ### After delivery
 
-Attach the files (bold rule above), say in one sentence what you made, relay any check FAIL in plain words
-(section 3), then a "What's next?" card that fits, e.g. "Make 3 shorts from this", "Add a hook line", "Try a
-different look", "Same video in square", "Start another video", "I'm good".
+Attach the files (bold rule above), say in one sentence what you made, then a "What's next?" card that
+fits, e.g. "Make 3 shorts from this", "Add a hook line", "Try a different look", "Same video in square",
+"Start another video", "I'm good". When delivery PASSed (`pass: true` / "DELIVERY PASS"), do **not** mention
+internal gate FAIL lines (cuts, disfl, room, face, …) — those live under `diagnostics` in report.json for you.
+Relay a FAIL in plain words only when delivery failed (`pass: false` / exit 1); see section 3 and the error card.
 
 ### Errors: a choice card, never the raw error
 
@@ -163,7 +168,7 @@ example when Claude Code was started in the cloned repo), skip the `git clone` a
 commands in that folder.
 
 ```sh
-git clone --branch v1.4.2 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor
+git clone --branch v1.4.3 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor
 cd ~/ai-video-editor
 ./install.sh            # safe to re-run; takes a while (downloads ~2 GB of Whisper models)
 . ~/.ai-video-editor/env.sh  # run in EVERY new shell: puts ai-video-editor, Node 22 and the venv python on PATH
@@ -178,7 +183,7 @@ skips what is already installed. Only call setup done after `./install.sh --doct
 `./install.sh` turns off the renderer's (HyperFrames) anonymous usage telemetry itself: it sets
 `HYPERFRAMES_NO_TELEMETRY=1` and `DO_NOT_TRACK=1` before anything runs and keeps them in `~/.ai-video-editor/env.sh`.
 
-If the clone fails because `~/ai-video-editor` already exists, run `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.2` instead.
+If the clone fails because `~/ai-video-editor` already exists, run `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.3` instead.
 
 `./install.sh` also registers this skill as `~/.claude/skills/ai-video-editor` (a copy that names the checkout), so new
 Claude Code sessions in any folder can load it; `./install.sh --skill-only` refreshes just that, and the doctor's

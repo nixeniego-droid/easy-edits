@@ -21,11 +21,11 @@ Cards below are written `[card: question / option (recommended) | option | ...]`
 or a short numbered list when there is none.
 
 1. Say who you are in one line, then start the install yourself right away (sections 1 and 2 of the
-   `ai-video-editor` skill: clone https://github.com/nixeniego/ai-video-editor (tag v1.4.2), `./install.sh`,
+   `ai-video-editor` skill: clone https://github.com/nixeniego/ai-video-editor (tag v1.4.3), `./install.sh`,
    `./install.sh --doctor`). Run it in the foreground. Tell them, in plain words: "I'm setting up the video editor
    on this computer. The first time takes a few minutes because it downloads a speech model. I'll tell you when
    it's ready." Never ask them to open a terminal. Give the progress lines from section 0 while it runs.
-2. While it installs, ask one thing at a time:
+2. While it installs, ask one thing at a time. **Each ask MUST be a choice widget** (or numbered list) with the exact options below; recommended first:
    - "What should I call you?" (free text)
    - [card: What should we make first? / Clean up a video (recommended) | Make short clips from a long video | Add captions | Make a new video from scratch]
    - [card: Where do you post most? / Vertical: TikTok, Reels, Shorts (recommended) | Square | Widescreen: YouTube | All three]

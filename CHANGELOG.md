@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.3 (2026-10-27)
+
+Stranger-test fixes on top of 1.4.2.
+
+- Captions: the approved clean-cut 9:16 burn path now uses the same `pickCaptionY` / `captionKeepOut` face
+  keep-out as compose, so captions stay clear of a tight talking-head crop (sticky above/below; floor over
+  bottom UI when neither band fits).
+- Progress: plain-English stage lines on stderr about every 10 s (`--progress plain|json` or
+  `AI_VIDEO_EDITOR_PROGRESS`), with percent or elapsed time; JSON lines are machine-readable for the bot.
+- Report: when delivery PASSes, internal clean-cut gate FAIL lines move under `diagnostics.gates` and are not
+  shown in user-facing report fields.
+- Skills: choice cards are mandatory widgets with exact option strings; `skill-cards` test covers them.
+  Install pins tag `v1.4.3`.
+
 ## 1.4.2 (2026-10-27)
 
 Install polish: the move to `~/.ai-video-editor` always happens, and the local TTS has a real voice out of the box.

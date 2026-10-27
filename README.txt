@@ -1,4 +1,4 @@
-AI Video Editor v1.4.2
+AI Video Editor v1.4.3
 ==============
 
 Zero-instruction video editing: point it at a talking-head video, get a finished edit back.
@@ -11,7 +11,7 @@ Known flaws: KNOWN_ISSUES.txt.
 
 INSTALL (Linux or macOS; needs git and curl)
 
-  git clone --branch v1.4.2 https://github.com/nixeniego/ai-video-editor ai-video-editor
+  git clone --branch v1.4.3 https://github.com/nixeniego/ai-video-editor ai-video-editor
   cd ai-video-editor
   ./install.sh                     # Node 22, ffmpeg, faster-whisper + models, OpenCV, yt-dlp, npm deps, Chrome, fonts
   . ~/.ai-video-editor/env.sh              # in every new shell (puts ai-video-editor on your PATH)

@@ -1,6 +1,6 @@
 {
   "name": "ai-video-editor",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "private": true,
   "type": "commonjs",
   "description": "AI Video Editor: one CLI for editing talking-head video (clean cuts, captions, motion design, explainers, shorts), built on Herk Edit Kit by Nate Herk.",
