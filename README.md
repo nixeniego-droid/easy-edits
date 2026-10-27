@@ -122,9 +122,10 @@ ai-video-editor <mode> <video-or-url> -o <out-dir> [--format 9x16|1x1|16x9|all] 
 ai-video-editor samples/talk.mp4 -o out/                                  # clean cut, 9:16
 ai-video-editor talking-head samples/talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"
 ai-video-editor explainer screen-recording.mp4 -o out/ --script script.md
-ai-video-editor shorts podcast.mp4 -o out/ --propose                      # PROPOSALS.txt + a preview per candidate
+ai-video-editor shorts podcast.mp4 -o out/ --propose                      # PROPOSALS.txt + proposals.json + a preview per candidate
 ai-video-editor shorts podcast.mp4 -o out/ --pick 1,3 --hook              # render proposals 1 and 3 with a hook card
 ai-video-editor captions samples/talk.mp4 -o out/ --format 16x9
+ai-video-editor captions samples/talk.mp4 -o out/ --preview             # a quick ~20 s look in out/preview/ first
 ```
 
 Every export is mastered to -14 LUFS / -1.5 dBTP and goes through a delivery check (speech at the edges, dead tail,
@@ -132,7 +133,8 @@ dropouts, repeated phrases, loudness). Per format you get `ai-video-editor_<mode
 contact sheet, `.srt` / `.vtt`, a `report.json`, and a `CREDITS.txt` when music is used.
 
 Useful options (`ai-video-editor --help` has them all): `--title`, `--speaker` / `--role` (names are never guessed),
-`--plan-only` then `--plan FILE` (review or hand-edit the motion plan), `--transcript FILE`, `--review-patch FILE`,
+`--preview [SECONDS]` (captions / clean-cut / talking-head: about 20 s from the first speech to a pause, into
+`out/preview/`, exit 0), `--plan-only` then `--plan FILE` (review or hand-edit the motion plan), `--transcript FILE`, `--review-patch FILE`,
 `--no-review`, `--style PACK` (below), `--face top|center|bottom|X,Y`, `--caption-color auto|white|black|#RRGGBB`,
 `--music "query"` / `--no-music`, `--preset FILE` (your own watermark / accent / call to action; keep
 it outside the repo), `--lang`, `--agent claude|codex|none`.
@@ -141,7 +143,8 @@ it outside the repo), `--lang`, `--agent claude|codex|none`.
 
 1. `--propose` reads the whole transcript (with an agent CLI if one is installed, else the built-in scorer) and
    writes `PROPOSALS.txt`: ranked candidates with a 0-100 score, timestamps, the hook line and why, plus a
-   low-res preview of each. `--clips N`, `--min` / `--max` seconds, `--range 22:05-26:00`, `--notes` steer it.
+   low-res preview of each. `proposals.json` has the same list for an assistant's pick cards: `id` (the number
+   for `--pick`), `start`, `end`, `durationSec`, `hook`, `hookCard`, `reason`, `previewPath`. `--clips N`, `--min` / `--max` seconds, `--range 22:05-26:00`, `--notes` steer it.
 2. `--pick 1,3` renders those proposals: clean cut, speaker-following 9:16 reframe, captions, -14 LUFS.
    `--hook ["text"]` adds a hook card over the first 3 s. `--speaker "Name" --role "Role" --speaker-at 25:40`
    (or `--people people.json`) adds lower thirds.

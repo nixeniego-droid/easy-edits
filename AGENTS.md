@@ -133,6 +133,20 @@ voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up 
   (`ai-video-editor consent create ... --i-am-the-subject`, docs/CONSENT.md). Never a third party or a public figure.
 - `--i-own-this-music` only when the user has said they own or licensed the track.
 
+## Talking with the user
+
+The user may never have used a terminal: you run everything (install included) and they chat and tap. The skill's
+section 0 has the details: the plain-English -> mode table, the choice cards, progress lines and error cards.
+
+- **Always attach the finished video(s), the `.srt` and the contact sheet to the chat. Never reply with only a path.**
+- Plain words, one sentence per step. Never show flags, subcommands, file paths, exit codes or raw errors.
+- Every decision is a tap-to-pick choice card with the recommended option first (what to make, shape, hook line,
+  kind of new video, which shorts, "Look good?", "What's next?").
+- Shorts pick cards come from `<out>/proposals.json` (`id`, `start`, `end`, `durationSec`, `hook`, `hookCard`,
+  `previewPath` per candidate; written by `--propose`).
+- Before a full captions / clean-cut / talking-head render, `--preview` makes about 20 s (from the first speech to a pause) into `<out>/preview/`
+  (exit 0) to show first.
+
 ## Review (your main job)
 
 1. Open every `*_sheet.png` contact sheet and look at faces, captions, cards and crops.

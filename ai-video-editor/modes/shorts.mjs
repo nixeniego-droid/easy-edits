@@ -279,6 +279,13 @@ export function proposalsText(src, P, { min, max, used }) {
   return head + P.map((c) => `\n#${c.rank}  score ${c.score}/100  ${hms(c.start)}-${hms(c.end)} (source ${c.start.toFixed(1)}-${c.end.toFixed(1)} s)  ~${Math.round(c.est)} s after the clean cut\n    hook line: "${c.hook}"\n    hook card: "${c.title}"\n    why:       ${c.reason}${c.endFix ? `\n    ending:    ${c.endFix}` : ''}${c.review?.notes ? `\n    edits:     ${c.review.notes}` : ''}\n    preview:   ${c.preview ? path.basename(c.preview) : '- (span edited since the preview; --propose makes a new one)'}`).join('\n') + '\n';
 }
 
+/** <out>/proposals.json: the same candidates as PROPOSALS.txt, machine-readable for an assistant's pick cards
+ * (id = the number --pick takes; durationSec = the estimated length after the clean cut). */
+export function proposalsJson(P) {
+  return P.map((c) => ({ id: c.rank, rank: c.rank, score: c.score, start: r3(c.start), end: r3(c.end), durationSec: Math.round(c.est * 10) / 10,
+    sourceDurationSec: r3(c.end - c.start), hook: c.hook, hookCard: c.title, reason: c.reason, previewPath: c.preview && fs.existsSync(c.preview) ? c.preview : null }));
+}
+
 // ---------- fast low-res preview ----------
 const assTime = (t) => { const cs = Math.round(Math.max(0, t) * 100); return `${Math.floor(cs / 360000)}:${pad(Math.floor(cs / 6000) % 60)}:${pad(Math.floor(cs / 100) % 60)}.${pad(cs % 100)}`; };
 const assEsc = (s) => String(s).replace(/[{}]/g, '').replace(/\n/g, '\\N');
@@ -554,7 +561,8 @@ export default async function shorts(o) {
   const pinFile = savePin('shorts', key, saved, { source: o.input, from: plan ? plan.from : 'picker' });
   if (!plan) log(`shorts: plan pinned ${pinFile} (re-runs of this source reuse it; --replan to pick again)`);
   fs.writeFileSync(path.join(o.out, 'PROPOSALS.txt'), proposalsText(path.basename(o.input), P, { min: saved.min, max: saved.max, used }));
-  if (o.propose) { log(`proposals: ${path.join(o.out, 'PROPOSALS.txt')} (render: --pick 1,3)`); return { proposals: P.map(({ rank, score, start, end, est, hook, title, reason, preview }) => ({ rank, score, start, end, est, hook, title, reason, preview })), exports: [] }; }
+  fs.writeFileSync(path.join(o.out, 'proposals.json'), JSON.stringify(proposalsJson(P), null, 1));
+  if (o.propose) { log(`proposals: ${path.join(o.out, 'PROPOSALS.txt')} + proposals.json (render: --pick 1,3)`); return { proposals: P.map(({ rank, score, start, end, est, hook, title, reason, preview }) => ({ rank, score, start, end, est, hook, title, reason, preview })), exports: [] }; }
   if (o.pick) {
     const want = String(o.pick).split(',').map((x) => Number(x.trim())).filter(Boolean);
     P = want.map((r) => P.find((p) => p.rank === r) || (() => { throw new Error(`--pick ${r}: no such proposal (1-${P.length})`); })());
