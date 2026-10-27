@@ -1,4 +1,4 @@
-Easy Edits v1.3.1: known issues
+Easy Edits v1.4.0: known issues
 ============================
 
 Install (macOS, fixed in 1.3.1)
@@ -85,3 +85,20 @@ Tests
   reported as skipped.
 - A few ASR-dependent tests depend on what faster-whisper hears on a given machine and can fail on a correct
   install (asr-disfluent, verbatim-final). They are skipped when their local test media is absent.
+
+New videos: easy-edits new (new in 1.4.0)
+- Tested with the mock backend and with the host flow fed test-pattern assets. The quality of real generated
+  pictures (your assistant's, or a hosted backend's) is untested; read REVIEW.txt's WEAK SHOTS and watch the video.
+- story, music-video and presenter make one format per plan (re-plan for another aspect). Presenter is 9:16 only.
+- The local avatar is a still with a slow zoom, not lip-synced. Beat tracking is energy based (tested on a click
+  track).
+- Identity drift in story QA is not face recognition. With OpenCV installed it compares the colours of the face and
+  the torso under it (YuNet face boxes) and ignores the background (limit 0.55); without a face in the frame or the
+  reference (a back view, a prop, no OpenCV) it falls back to the character's colours with the reference backdrop
+  removed (limit 0.5). Calibrated on a real story (a grey-backdrop studio portrait vs cinematic shots: the old
+  whole-frame score flagged the right character at 0.67 / 0.71 and could not tell it from unrelated pictures).
+  It catches a changed outfit, a greyscale shot or an unrelated scene. It misses a different person in the same
+  colours, and, in the colour fallback, a scene that shares the character's palette (yellow bees vs a yellow
+  raincoat). Watch every character shot anyway.
+- Exit 3 from --approve or resume means "waiting for generated assets" (GENERATION_MANIFEST.json), not a failure.
+- resume makes the narration voice again before it renders (usually seconds with the local voice).

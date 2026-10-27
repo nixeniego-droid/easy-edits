@@ -1,7 +1,7 @@
 // Loudness master: two-pass (measure -> gain) to -14 LUFS integrated with a
 // 4x-oversampled limiter as true-peak control, then re-measure the encoded AAC
 // and correct the residual, so the final file lands within +-0.4 LU of the
-// target with true peak <= -1 dBTP.
+// target with true peak at or under the -1.5 dBTP ceiling.
 //
 //   node easy-edits/audio/master.mjs <video.mp4> [target-LUFS=-14] [true-peak=-1.5]
 // Masters the audio of <video.mp4> in place and prints {I, TP, LRA, passes} as JSON.
@@ -23,8 +23,8 @@ export function measure(file) {
  * Master `pre` (wav) into the audio track of `video`: two-pass loudness
  * (measure -> gain) with a 4x-oversampled limiter as true-peak control, then
  * measure the encoded AAC and correct the residual. Lands within +-0.5 LU of
- * `target` with true peak <= -1 dBTP. A correction pass only runs when the
- * encoded result is more than `tolerance` LU off (or over -1 dBTP), up to `maxPasses`.
+ * `target` with true peak under the `truePeak` ceiling (-1.5 dBTP). A correction pass only runs when the
+ * encoded result is more than `tolerance` LU off (or over the `truePeak` ceiling, -1.5 dBTP), up to `maxPasses`.
  */
 export function masterTo(pre, video, { duration, target = -14, truePeak = -1.5, maxPasses = 4, tolerance = 0.4 }) {
   const ceiling = Math.pow(10, (truePeak - 0.3) / 20).toFixed(4);
@@ -36,9 +36,10 @@ export function masterTo(pre, video, { duration, target = -14, truePeak = -1.5, 
     const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-i', video, '-i', pre, '-filter_complex', chain, '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-t', String(duration), '-movflags', '+faststart', out], { encoding: 'utf8' });
     if (r.status !== 0) throw new Error(`master failed: ${r.stderr}`);
     last = measure(out);
-    const ok = Math.abs(last.I - target) <= tolerance && last.TP <= -1;
+    const ok = Math.abs(last.I - target) <= tolerance && last.TP <= truePeak;
     if (ok || pass === maxPasses - 1) { renameSync(out, video); return { ...last, passes: pass + 1 }; }
     gain += target - last.I;
+    if (last.TP > truePeak) gain -= last.TP - truePeak;   // over the ceiling: come down by the overshoot
   }
   return last;
 }

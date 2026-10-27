@@ -16,16 +16,22 @@ Easy Edits automates.
 | `cli/style.mjs` | `easy-edits style list \| validate \| skill` (the skill generator) |
 | `modes/` | `clean-cut`, `talking-head`, `explainer`, `shorts`, `captions` |
 | `engine/` | Shared stages: source normalisation + SDR tone-map, ASR, face track (`facetrack.py`, YuNet), screen-activity track (`activity.py`), motion plan (`plan.mjs`, pinned plans in `plan-store.mjs`), HyperFrames composition per format (`compose.mjs`), soundtrack (`audio.mjs`), export + delivery check (`export.mjs`, `media.mjs`) |
+| `new/` | `easy-edits new <type>` and `easy-edits resume`: plan.json + PLAN.txt + storyboard, the approval gate, the recipe registry (`new/recipes/`), the host generation flow and generation session (`hostflow.mjs`: GENERATION_MANIFEST.json, exit 3, resume), generated-clip audio (`clip-audio.mjs`), the ffmpeg assembler and finish presets ([new/README.md](new/README.md)) |
 | `bin/clean-cut.sh` | The approved Clean cut pipeline (9:16), also used as the cut stage of talking-head |
 | `styles/pack.schema.json`, `styles/packs/` | Style pack schema and the built-in packs (`punch`, `broadsheet`, `terminal`) |
 | `styles/clean-cut/` | Deterministic cut list (`cut.mjs`), build, caption burn-in, review briefs |
 | `presets/` | Caption presets (`captions-default`, `captions-layout`, ASS export), the locked Clean cut preset, look specs |
-| `audio/` | Loudness master (-14 LUFS / -1 dBTP), Openverse music fetch (CC0 / CC BY only), synth SFX |
+| `audio/` | Loudness master (-14 LUFS / -1.5 dBTP), Openverse music fetch (CC0 / CC BY only), synth SFX |
+| `story/` | Multi-shot story and music video: shot lists + character lock (`shots.mjs`), sources with video / still / card fallback (`sources.mjs`), per-shot QA (`qa.mjs`), beat detection (`beats.mjs`), assembly (`assemble.mjs`), `run.mjs` runner; see [story/README.md](story/README.md) |
+| `new/recipes/` | One file per type: `explainer-cited`, `presenter`, `story`, `music-video` (each wraps its pipeline in `research/`, `presenter/`, `story/` and exports the registry `recipe`), `podcast`, `promo` |
 | `post/` | Lead-in and the post-pass (lead-in, optional music, master, delivery check) |
 | `check/` | Delivery check and the quality gates (captions vs faces, cards, panels, verbatim, dead air, ...) |
 | `tools/` | Source prep, cut candidates, name / verbatim / sibling guards, DOM sampler |
 | `smoke/` | Local faster-whisper word transcript (`asr_words.py`) and an experimental smoke render |
+| `research/` | Cited explainer: sources store, scriptwriter, citation check, render ([research/README.md](research/README.md)); recipe `new/recipes/explainer-cited.mjs` |
+| `presenter/` | Presenter shorts (plan, render, still-motion fallback) and likeness consent records; `run.mjs` is the standalone runner, `../new/recipes/presenter.mjs` the recipe ([docs/CONSENT.md](../docs/CONSENT.md)) |
 | `briefs/` | Prompts for the experimental one-shot agent edit (`bin/edit.sh` without `--style`) |
+| `gen/` | Generation backends ([gen/CONTRACT.md](gen/CONTRACT.md)): registry (`index.mjs`), `none`, `mock`, `host` (the driving assistant's built-in image/video generation; the default for image and video), `local`, `http-generic`, `xai` (opt-in hosted), providers.json / keys / redaction / cache (`config.mjs`); [gen/BACKENDS.md](gen/BACKENDS.md). `cli/backends.mjs` is `easy-edits backends` |
 
 ## Clean cut (approved)
 
@@ -105,7 +111,7 @@ PASS/FAIL. It is a fault detector: read the check text before trusting a FAIL (s
 | `first-word` | the first word starts before 0.15 s |
 | `last-word` | the last word ends within 0.15 s of the end |
 | `no-repeat` | a phrase is heard twice that the reference transcript says only once |
-| `loudness` | integrated loudness is outside -14 +-1 LUFS or true peak is above -1 dBTP |
+| `loudness` | integrated loudness is outside -14 +-1 LUFS or true peak overshoots the master's -1.5 dBTP ceiling by more than 0.5 dB (so this only trips on a real overshoot) |
 
 Segments not backed by speech-band activity (e.g. a phantom "thanks for watching" decoded from a music tail) are
 dropped and listed as `dropped`. Standalone: `node easy-edits/check/delivery.mjs out.mp4 [--script narr.txt]`.

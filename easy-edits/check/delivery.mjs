@@ -29,7 +29,8 @@
 //                but not in --script (the composition's narration text or {words}/{text} JSON). Without --script
 //                it is a WARN line only.
 // plus ebur128 (easy-edits/audio/master.mjs measure):
-//   loudness     integrated -14 +-1 LUFS, true peak <= -1 dBTP
+//   loudness     integrated -14 +-1 LUFS; true peak FAILs only on a real overshoot (> 0.5 dB over the -1.5 dBTP
+//                ceiling; --tp sets the limit)
 // Prints PASS/FAIL per check; exit 1 on any FAIL, 2 on usage/tool errors.
 import fs from 'node:fs';
 import os from 'node:os';

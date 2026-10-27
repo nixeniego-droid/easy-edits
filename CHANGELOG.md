@@ -1,5 +1,83 @@
 # Changelog
 
+## 1.4.0 (2026-10-26)
+
+Make new videos, not just edit them: `easy-edits new` plans, waits for approval, has your AI assistant generate the
+pictures, and finishes the edit. Tested with the mock backend and the host flow fed with test-pattern assets;
+the quality of real generated pictures and hosted backends is untested.
+
+- Every mode, `new` and `resume` now check that the final file is in the `-o` folder, non-empty and readable
+  (ffprobe); otherwise they exit 5 with the file named (`report.json` `finalOutput`). A run that only left
+  `.work/` intermediates no longer looks done.
+- `./install.sh` registers the skill as `~/.claude/skills/easy-edits` (names the checkout; `--skill-only`,
+  `EASY_EDITS_NO_SKILL=1`; doctor line `claude-skill`), and README opens with install steps for AI assistants, so
+  "Install Easy Edits from <url>" in an empty folder finds the skill and later sessions can load it.
+- Story QA identity drift compares face and torso regions (background ignored), with a colour fallback; calibrated
+  on a real story (see KNOWN_ISSUES.txt).
+- **Host generation is the default for images and video.** After `--approve`, every image / video request goes
+  into `GENERATION_MANIFEST.json` in the output folder (id, type, prompt, durationSec, aspect, referenceImages,
+  firstFrame, file) and the run exits with code 3. The assistant driving Easy Edits makes each asset with its own
+  built-in image/video generation and saves it at `file`; **`easy-edits resume <out>`** checks the approved plan's
+  hash and every asset (exit 3 with the list while any are missing or unreadable) and finishes the edit, captions,
+  QA, `report.json`, `REVIEW.txt` and `DELIVERY.json`. Voice and avatar default to `local`; `xai` and
+  `http-generic` stay opt-in. Per-kind backend flags: `--video-backend`, `--image-backend`, `--tts-backend`, ...
+- **Every type goes through the recipe registry**: `explainer-cited`, `presenter`, `podcast`, `story`, `promo`,
+  `music-video` and `other`, with the same plan -> storyboard -> approval -> render -> report flow. Hand edits to
+  `plan.json` shots (re-pinned) reach the story and music-video renderers. The standalone runners still work.
+- **Generated-clip audio**: `--clip-audio auto|keep|duck|drop`. By default a clip's own ambient audio is dropped
+  under narration or a song, ducked -18 dB under music, and kept as-is when it is the only sound; then the
+  finish preset masters it (social -14 LUFS / -1.5 dBTP, podcast -16 LUFS / -1.5 dBTP).
+- The master (`audio/master.mjs`) now runs its correction pass whenever true peak is over the requested ceiling
+  (-1.5 dBTP by default), not only above -1.
+- Story QA flags a held last frame when a shot is longer than its generated clip.
+- The cited explainer generates one still per claim and crops it for each format (half the image generations for
+  `--format all`), and renders custom `WxH` sizes.
+- Skill, README, AGENTS.md / CLAUDE.md and `gen/BACKENDS.md` describe the `new` types and the plan -> approve ->
+  generate -> resume -> deliver flow, consent for a presenter's likeness and `--i-own-this-music`.
+- **Generation backends (bring your own key).** `local` (ffmpeg title-card stills, Ken Burns clips, Kokoro / Piper /
+  eSpeak / flite TTS, a synthetic still + zoom avatar mastered to -14 LUFS / -1.5 dBTP, BT.709) and `http-generic`
+  (any REST API from `~/.easy-edits/providers.json`: endpoint, auth header, env-var key, JSON body template,
+  response path to a URL / base64 / binary) join `none` and `mock`. Keys come from env vars or providers.json only and
+  are redacted everywhere; results are cached by content hash in `~/.easy-edits/cache` (`cached: true`, cost 0 on a
+  re-run). `easy-edits backends [list | try | init]`; the doctor has a `backends` line (key present yes/no only).
+  Docs: `easy-edits/gen/BACKENDS.md`.
+- `npm run lint` (`easy-edits/tools/lint-repo.mjs`, CI workflow `lint.yml`): fails on key-like strings and absolute
+  home paths.
+- **`easy-edits new <type>`** (explainer-cited, presenter, podcast, story, promo, music-video, other): plan first
+  (`plan.json` with `shots[]`, `PLAN.txt` with `generations: N video, M image, K TTS`, estimated cost and wall time,
+  `will send: ...` lines, `storyboard.png`), then `--approve plan.json` (sha256 pin; `new repin` after an edit),
+  `--max-generations N`, `--offline`. Recipes register in `easy-edits/new/recipes/`.
+- **Promo** from `--brand brand.json --assets DIR`: code-drawn scenes, zero generations, brand colours contrast-checked.
+- **Podcast** from a speaker-tagged script: two voices, turn gaps, room tone; waveform video with speaker-named
+  captions, or `--audio-only` WAV + MP3 at -16 LUFS.
+- Shared assembler (BT.709 conform, crossfades, captions from the known script), finish presets (social -14 LUFS,
+  podcast -16 LUFS, both -1.5 dBTP), `--loudness`, `--length`, 4:5 and custom `WxH` formats, `report.json`
+  `WEAK_SHOTS`, `REVIEW.txt`, `DELIVERY.json` and opt-in `--post-draft` (`POST_DRAFT.txt`, labelled DRAFT).
+- Docs: every true-peak figure now says -1.5 dBTP, the master's ceiling.
+- **Cited explainer (research stream).** `easy-edits/research/`: a sources store from `--source URL|FILE` (HTML, PDF
+  via pdftotext, txt, md) and `--topic` (search backend), a scriptwriter (LLM backend, or a deterministic extractive
+  fallback) that writes `script.json` (claim -> source id -> quoted passage) to a target length, a `citation` check
+  that FAILs any quote not found verbatim in its source, and a render with TTS narration, a still or code card per
+  claim, `[n] Source title` chips, captions from the script, a Sources end card, `SOURCES.txt` and `.srt` / `.vtt`
+  (9:16, 16:9; -14 LUFS / -1.5 dBTP; BT.709). Recipe `easy-edits/new/recipes/explainer-cited.mjs`; standalone runner
+  `node easy-edits/research/run.mjs`.
+- **Presenter shorts with likeness consent** (preview; `easy-edits/presenter/`, recipe `new/recipes/presenter.mjs`).
+  Script -> tts -> avatar -> captions from the script, 9:16, 15-90 s (`--length`), -14 LUFS / -1.5 dBTP, BT.709.
+  A fictional host comes from the image backend or a licensed `--host-image` with `--host-license`; `--likeness
+  self` needs a consent record and refuses before any generation without a matching, unexpired, self-attested
+  record with intact reference hashes. Voice cloning uses the tts `voiceClone` capability. `report.json` says
+  `synthetic: true`, with an on-screen "AI-generated presenter" label by default. `easy-edits consent create |
+  verify | show` writes and checks the records. See [docs/CONSENT.md](docs/CONSENT.md).
+- **Multi-shot story and music video** (`easy-edits/story/`, recipes `easy-edits/new/recipes/story.mjs` and
+  `music-video.mjs`; standalone runner `node easy-edits/story/run.mjs`). Story: a brief or `shotlist.json`,
+  `characters.json` descriptions on every shot prompt and reference images to backends that take them, long beats
+  split at the backend's max clip length, video -> still + Ken Burns -> text card fallback, transitions, narration
+  and captions. Music video: `--song FILE` only with `--i-own-this-music` (recorded in `report.json`), local beat
+  detection, cuts snapped to beats with the snap error reported, length = song, lyric captions from your own
+  lyrics file. Any aspect (9:16, 16:9, 1:1, 4:5, W:H, WxH). Per-shot QA (black / frozen frames, duration match,
+  flicker, identity drift) feeds `WEAK_SHOTS` in `report.json` and `REVIEW.txt`. Finished at -14 LUFS / -1.5 dBTP,
+  tagged BT.709.
+
 ## 1.3.1 (2026-10-26)
 
 macOS font checks, supported Python, install CI. The macOS font fix and the install CI come from PR #1 (squashed).

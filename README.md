@@ -1,6 +1,36 @@
 # Easy Edits
 
+## For AI assistants: install steps
+
+Asked to "install Easy Edits" (from this repo's URL, in an empty folder or anywhere else)? Do this:
+
+1. `git clone https://github.com/nixeniego-droid/easy-edits ~/easy-edits` (it exists: `cd ~/easy-edits && git pull`).
+   Use a permanent folder, not `/tmp`: the `easy-edits` command runs from this checkout.
+2. Read `~/easy-edits/.claude/skills/easy-edits/SKILL.md` with your file-reading tool and follow it (sections 1-3).
+   Claude Code only lists a repo's skills in sessions started inside that checkout, so the Skill tool can't load it
+   in the session that cloned it.
+3. `cd ~/easy-edits && ./install.sh` in the foreground with a long timeout (a first install takes 5-15 min), then
+   `./install.sh --doctor` until it ends with "doctor: all PASS".
+4. `./install.sh` also registers the skill for this checkout as `~/.claude/skills/easy-edits` (or
+   `$CLAUDE_CONFIG_DIR/skills/easy-edits`), so every NEW Claude Code session, in any folder, can load it with the
+   Skill tool or `/easy-edits`. Re-register only the skill: `./install.sh --skill-only`; opt out:
+   `EASY_EDITS_NO_SKILL=1 ./install.sh`. The doctor's `claude-skill` line checks it.
+5. Every new shell: `. ~/.easy-edits/env.sh`, then `easy-edits ...`. Keep the command's exit status (don't pipe it
+   into `tail`): 0 = done, 1 = a delivery FAIL to report (the file is written), 5 = no final file in the `-o` folder.
+   Files under `<out>/.work/` are intermediates, never the result. Exit 137 / 143 means your shell tool killed the
+   render: re-run the same command (finished steps are reused), in the foreground with a 30-minute timeout or with
+   `nohup ... > LOG 2>&1 &`.
+
 ## Quickstart
+
+**One line** (Claude Code, in any folder):
+
+```sh
+claude -p "Install Easy Edits from https://github.com/nixeniego-droid/easy-edits"
+```
+
+It clones to `~/easy-edits`, runs the install and the doctor, and registers the skill, so the next session can just
+say *"Use Easy Edits to add captions to clip.mp4"*.
 
 **Use with Claude Code**
 
@@ -93,7 +123,7 @@ easy-edits shorts podcast.mp4 -o out/ --pick 1,3 --hook              # render pr
 easy-edits captions talk.mp4 -o out/ --format 16x9
 ```
 
-Every export is mastered to -14 LUFS / -1 dBTP and goes through a delivery check (speech at the edges, dead tail,
+Every export is mastered to -14 LUFS / -1.5 dBTP and goes through a delivery check (speech at the edges, dead tail,
 dropouts, repeated phrases, loudness). Per format you get `easy-edits_<mode>_<clip>[_<fmt>].mp4`, a `_sheet.png`
 contact sheet, `.srt` / `.vtt`, a `report.json`, and a `CREDITS.txt` when music is used.
 
@@ -155,6 +185,66 @@ plan only the beats the style allows, and review the result against that style.
 - **Manual face position.** When face detection is wrong (a poster, a second person, a dark shot), `--face
   top|center|bottom` or `--face X,Y` (fractions of the frame, e.g. `--face 0.3,0.4`) puts the framing, punch-ins,
   caption keep-out and pops on that point.
+
+### Make a video from a brief: `easy-edits new`
+
+`easy-edits new <type>` builds a video without source footage:
+
+| Type | From | What you get |
+| --- | --- | --- |
+| `explainer-cited` | `--source URL\|FILE` (repeatable), `--topic` | every claim quotes a passage from a source; `[n] Source title` chips, a Sources end card, `SOURCES.txt`; zero video generations |
+| `presenter` | `--script FILE` | a 9:16, 15-90 s short read by a synthetic host (fictional, or your own face / voice with a consent record) |
+| `podcast` | `--script FILE` with `A:` / `B:` lines | two voices, turn gaps, room tone; waveform video with speaker-named captions, or `--audio-only` WAV + MP3 at -16 LUFS |
+| `story` | `--brief`, `--script` or `--shotlist FILE`, `--characters FILE` | a multi-shot video, characters kept consistent with reference images, per-shot QA |
+| `promo` | `--brand brand.json --assets DIR` | code-drawn scenes, zero generations, brand colours contrast-checked |
+| `music-video` | `--song FILE --i-own-this-music`, `--lyrics FILE` | cuts snapped to the beat, length = the song, lyric captions |
+| `other` | `--brief "..."` | mapped to the closest type; the plan shows the mapping |
+
+**Plan, approve, generate, resume.** `new` always stops after planning: `plan.json`, `PLAN.txt` (generation count,
+estimated cost and time, what would be sent to any online backend) and a `storyboard.png`. Nothing is generated
+until you approve the pinned plan. Images and video clips are made by **your AI assistant's built-in image/video
+generation** (the default `host` backend): after `--approve`, Easy Edits writes `GENERATION_MANIFEST.json` in the
+output folder (one entry per asset: id, type, prompt, duration, aspect, reference images, first frame, file) and
+exits with code 3. The assistant generates each asset and saves it at its `file`; `easy-edits resume` then checks
+the approved plan and the assets and finishes the edit, captions, QA, `report.json` and `DELIVERY.json`. Voice
+comes from the local TTS. Hosted APIs are opt-in with your own key (`--backend NAME`,
+[easy-edits/gen/BACKENDS.md](easy-edits/gen/BACKENDS.md)); none is used unless you choose it.
+
+```sh
+easy-edits new story -o out/story --brief "A lighthouse at dusk. Waves hit the rocks. The light turns on."
+cat out/story/PLAN.txt                                   # and look at out/story/storyboard.png
+easy-edits new --approve out/story/plan.json             # exit 3: out/story/GENERATION_MANIFEST.json lists the clips
+#   ... the assistant generates each clip and saves it at its "file" ...
+easy-edits resume out/story                              # exit 3 + the list while any are missing; then renders
+
+easy-edits new promo -o out/promo --brand brand.json --assets brand/ --format 9x16,1x1   # zero generations
+easy-edits new podcast -o out/pod --script episode.txt --audio-only
+easy-edits new explainer-cited -o out/bees --source notes.pdf --source https://example.org/article --topic "how bees find food"
+```
+
+Formats: 9:16, 16:9, 1:1, 4:5 or a custom `WxH` (presenter is 9:16; story, presenter and music-video make one format
+per plan). `--length S|MIN-MAX` is checked at delivery, `--loudness social|podcast|LUFS` picks the finish (social -14
+LUFS, podcast -16 LUFS, both -1.5 dBTP, BT.709 video), `--max-generations N` and `--offline` refuse plans over budget
+or needing the network, and `--post-draft` writes a `POST_DRAFT.txt` labelled DRAFT (never posted). Generated clips'
+own ambient audio is dropped under narration or a song, ducked -18 dB under music and kept when it is the only sound
+(`--clip-audio keep|duck|drop`). Each run writes `report.json` (with `WEAK_SHOTS`), `REVIEW.txt` and
+`DELIVERY.json`; weak shots are named plainly so you can regenerate them. Details:
+[easy-edits/new/README.md](easy-edits/new/README.md).
+
+- **Cited explainer.** A claim whose quoted passage isn't found word for word in its source FAILs the `citation`
+  check. Details: [easy-edits/research/README.md](easy-edits/research/README.md).
+- **Presenter.** Every presenter is labelled synthetic. Your own face and voice need a consent record you create
+  as the subject; third-party and public-figure likeness is always refused. Details: [docs/CONSENT.md](docs/CONSENT.md).
+
+  ```sh
+  easy-edits consent create --subject "Your Name" --allow face,voice --ref me.jpg --ref voice.wav --expires 2027-06-30 --i-am-the-subject
+  easy-edits new presenter -o out/me --script script.md --likeness self --consent ~/.easy-edits/consent/your-name.json --subject "Your Name"
+  ```
+- **Story and music video.** Music video takes only music you own or have licensed (`--i-own-this-music`, recorded in
+  `report.json`). Every shot is checked (black / frozen frames, duration, flicker, character drift). Details:
+  [easy-edits/story/README.md](easy-edits/story/README.md).
+- The standalone runners still work: `node easy-edits/research/run.mjs`, `node easy-edits/presenter/run.mjs`,
+  `node easy-edits/story/run.mjs story|music-video`.
 
 ### From a URL
 
@@ -227,6 +317,8 @@ composition per format (GSAP), the soundtrack (voice, an Openverse bed fetched a
 the loudness master and the delivery check. Details: [easy-edits/README.md](easy-edits/README.md).
 
 Tests: `npm test` (tests that need media not shipped in the repo are reported as skipped).
+Generation backends (bring your own key; local ones need none): `easy-edits backends`, docs in
+[easy-edits/gen/BACKENDS.md](easy-edits/gen/BACKENDS.md). `npm run lint` is the open-source check (no keys, no home paths).
 Known limitations: [KNOWN_ISSUES.txt](KNOWN_ISSUES.txt).
 
 ## Credits and licence

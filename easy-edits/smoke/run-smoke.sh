@@ -2,7 +2,7 @@
 # Easy Edits smoke test: trim a source clip to ~10 s (ending in a pause), transcribe it
 # locally with faster-whisper, build a HyperFrames composition with the default
 # caption preset (easy-edits/presets/captions-default), lint and render it with the
-# kit's pinned HyperFrames, then master loudness to -14 LUFS / <= -1 dBTP.
+# kit's pinned HyperFrames, then master loudness to -14 LUFS / -1.5 dBTP.
 #
 #   easy-edits/smoke/run-smoke.sh <source.mp4> <output.mp4> [target-seconds]
 #   EASY_EDITS_MUSIC="calm piano" adds an Openverse music bed (off by default).
@@ -57,7 +57,7 @@ mkdir -p "$(dirname "$OUT")"; cp renders/smoke.mp4 "$OUT"
 
 # 6. Easy Edits post-pass (easy-edits/post/postpass.mjs): lead-in (EASY_EDITS_LEADIN, default 0.2 s, 0 = off),
 # optional Openverse CC0/CC BY music bed (EASY_EDITS_MUSIC, CREDITS.txt next to the output), then the
-# two-pass loudness master to -14 LUFS, true peak <= -1 dBTP, then the delivery check (exit status kept)
+# two-pass loudness master to -14 LUFS, true peak <= -1.5 dBTP, then the delivery check (exit status kept)
 CHECK=0; node "$HERE/../post/postpass.mjs" "$OUT" || CHECK=$?
 
 # 7. report

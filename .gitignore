@@ -29,3 +29,4 @@ Thumbs.db
 .vscode/
 .claude/settings.local.json
 test-media/
+consent*.json
