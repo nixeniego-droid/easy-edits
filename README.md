@@ -4,7 +4,7 @@
 
 Asked to "install AI Video Editor" (from this repo's URL, in an empty folder or anywhere else)? Do this:
 
-1. `git clone https://github.com/nixeniego/easy-edits ~/ai-video-editor` (it exists: `cd ~/ai-video-editor && git pull`).
+1. `git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor` (it exists: `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.1`).
    Use a permanent folder, not `/tmp`: the `ai-video-editor` command runs from this checkout.
 2. Read `~/ai-video-editor/.claude/skills/ai-video-editor/SKILL.md` with your file-reading tool and follow it (sections 1-3).
    Claude Code only lists a repo's skills in sessions started inside that checkout, so the Skill tool can't load it
@@ -26,7 +26,7 @@ Asked to "install AI Video Editor" (from this repo's URL, in an empty folder or 
 **One line** (Claude Code, in any folder):
 
 ```sh
-claude -p "Install AI Video Editor from https://github.com/nixeniego/easy-edits"
+claude -p "Install AI Video Editor from https://github.com/nixeniego/ai-video-editor (tag v1.4.1)"
 ```
 
 It clones to `~/ai-video-editor`, runs the install and the doctor, and registers the skill, so the next session can just
@@ -35,7 +35,7 @@ say *"Use AI Video Editor to add captions to clip.mp4"*.
 **Use with Claude Code**
 
 ```sh
-git clone https://github.com/nixeniego/easy-edits ai-video-editor
+git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ai-video-editor
 cd ai-video-editor
 claude
 ```
@@ -52,7 +52,7 @@ A template is coming soon.
 captions, motion design, explainers and shorts.**
 
 ```sh
-ai-video-editor talk.mp4 -o out/
+ai-video-editor samples/talk.mp4 -o out/        # samples/talk.mp4: a tiny synthetic clip; point it at your own video
 ```
 
 That's the whole brief. No prompt, no timeline, no settings: AI Video Editor transcribes the video locally, cuts the
@@ -68,7 +68,7 @@ playbook, house style, style library and HyperFrames (HTML-to-video) render work
 Needs `git`, `curl` and Linux (Debian/Ubuntu; `sudo` for apt) or macOS (Homebrew).
 
 ```sh
-git clone https://github.com/nixeniego/easy-edits ai-video-editor
+git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ai-video-editor
 cd ai-video-editor
 ./install.sh              # one command, safe to re-run; ~2.5 GB (Whisper models, Chrome for rendering)
 . ~/.ai-video-editor/env.sh       # in every new shell: puts ai-video-editor, Node 22 and the Python venv on your PATH
@@ -119,12 +119,12 @@ ai-video-editor <mode> <video-or-url> -o <out-dir> [--format 9x16|1x1|16x9|all] 
 | `captions` | Captions only, no cuts: burned in, plus `.srt` / `.vtt`. |
 
 ```sh
-ai-video-editor talk.mp4 -o out/                                          # clean cut, 9:16
-ai-video-editor talking-head talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"
+ai-video-editor samples/talk.mp4 -o out/                                  # clean cut, 9:16
+ai-video-editor talking-head samples/talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"
 ai-video-editor explainer screen-recording.mp4 -o out/ --script script.md
 ai-video-editor shorts podcast.mp4 -o out/ --propose                      # PROPOSALS.txt + a preview per candidate
 ai-video-editor shorts podcast.mp4 -o out/ --pick 1,3 --hook              # render proposals 1 and 3 with a hook card
-ai-video-editor captions talk.mp4 -o out/ --format 16x9
+ai-video-editor captions samples/talk.mp4 -o out/ --format 16x9
 ```
 
 Every export is mastered to -14 LUFS / -1.5 dBTP and goes through a delivery check (speech at the edges, dead tail,
@@ -148,7 +148,7 @@ it outside the repo), `--lang`, `--agent claude|codex|none`.
 3. Rendered clips are logged in `out/<source-id>/used_clips.json` so later proposals don't repeat them
    (`--reset-used` clears it).
 
-AI Video Editor never posts, schedules or writes social copy: it writes files for you to review.
+AI Video Editor never posts or schedules for you. With `--post-draft` it only writes a local `POST_DRAFT.txt` (labelled DRAFT) for you to edit and publish yourself — it never publishes on your behalf.
 
 ### Styles
 
@@ -163,7 +163,7 @@ punch-ins may land, how far punch-ins zoom), which scenes it allows, and its sou
 | `terminal` | near-black navy, cyan / magenta, JetBrains Mono, lowercase captions typed on, glowing key words | RGB-split glitch | digits decode through random numbers | HUD brackets lock onto the face |
 
 ```sh
-ai-video-editor talking-head talk.mp4 -o out/ --style broadsheet    # captions / talking-head / explainer / shorts
+ai-video-editor talking-head samples/talk.mp4 -o out/ --style broadsheet    # captions / talking-head / explainer / shorts
 ai-video-editor style list                                          # built-in packs and yours
 ai-video-editor style validate my-brand.json                        # schema + readability checks, every problem listed
 ai-video-editor style skill punch                                   # a Claude Code skill that edits in that style

@@ -31,7 +31,7 @@ example when Claude Code was started in the cloned repo), skip the `git clone` a
 commands in that folder.
 
 ```sh
-git clone https://github.com/nixeniego-droid/easy-edits ~/ai-video-editor
+git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor
 cd ~/ai-video-editor
 ./install.sh            # safe to re-run; takes a while (downloads ~2 GB of Whisper models)
 . ~/.ai-video-editor/env.sh  # run in EVERY new shell: puts ai-video-editor, Node 22 and the venv python on PATH
@@ -46,7 +46,7 @@ skips what is already installed. Only call setup done after `./install.sh --doct
 `./install.sh` turns off the renderer's (HyperFrames) anonymous usage telemetry itself: it sets
 `HYPERFRAMES_NO_TELEMETRY=1` and `DO_NOT_TRACK=1` before anything runs and keeps them in `~/.ai-video-editor/env.sh`.
 
-If the clone fails because `~/ai-video-editor` already exists, run `cd ~/ai-video-editor && git pull` instead.
+If the clone fails because `~/ai-video-editor` already exists, run `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.1` instead.
 
 `./install.sh` also registers this skill as `~/.claude/skills/ai-video-editor` (a copy that names the checkout), so new
 Claude Code sessions in any folder can load it; `./install.sh --skill-only` refreshes just that, and the doctor's

@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased (1.5.0-dev)
+## 1.4.1 (2026-10-27)
 
-Renamed from Easy Edits to **AI Video Editor**.
+Renamed from Easy Edits to **AI Video Editor**, plus stranger-test fixes after the public rename.
 
 - The command is now `ai-video-editor` (`bin/ai-video-editor`; package `ai-video-editor`). `easy-edits` stays as an
   alias for one release (`bin/easy-edits` runs `ai-video-editor` with the same arguments); the doctor checks both
@@ -11,12 +11,17 @@ Renamed from Easy Edits to **AI Video Editor**.
   `.claude/skills/ai-video-editor` and `.claude/commands/ai-video-editor.md`, and `./install.sh` registers
   `~/.claude/skills/ai-video-editor` (it removes the copy it registered as `~/.claude/skills/easy-edits` before).
 - Outputs are named `ai-video-editor_<mode>_<clip>...` (was `easy-edits_...`); the log tag is `[ai-video-editor]`.
-- Config home: `~/.ai-video-editor` (`AI_VIDEO_EDITOR_HOME`). An existing `~/.easy-edits` keeps being used (no
-  re-download) while `~/.ai-video-editor` doesn't exist; `EASY_EDITS_HOME` still works.
-- Env vars: `AI_VIDEO_EDITOR_*` (`HOME`, `MODELS`, `WHISPER`, `PYTHON`, `AGENT`, `PLANS`, `NO_SKILL`, `BACKEND`, ...).
-  Every old `EASY_EDITS_*` name still works for one release; the new name wins when both are set. `env.sh` exports
-  both.
-- The GitHub repo keeps its `easy-edits` name for now; clone URLs are unchanged.
+- Config home is always `~/.ai-video-editor` (`AI_VIDEO_EDITOR_HOME`). A pre-rename `~/.easy-edits` is moved there on
+  install (venv, node and models kept) and left as a symlink, so `. ~/.easy-edits/env.sh` still works. `EASY_EDITS_HOME`
+  and every old `EASY_EDITS_*` name still work for one release; the new name wins when both are set. `env.sh` exports both.
+- Public repo: https://github.com/nixeniego/ai-video-editor (tag `v1.4.1`). Clone URLs and the skill point at that tag.
+- `samples/talk.mp4`: a small CC0 synthetic demo clip for help/README examples (regenerate with `samples/make-talk.sh`).
+- Doctor TTS is honest: Kokoro is only "ready" when HyperFrames' Python deps (`kokoro-onnx`, `soundfile`) import; Piper
+  on PATH without `AI_VIDEO_EDITOR_PIPER_MODEL` is reported as such instead of being silent.
+- `ai-video-editor new promo --init-brand [DIR]` writes a starter `brand.json` (+ `assets/`) you can fill in; no plan.
+- Delivery FAIL (exit 1) now says the outputs were written under the out dir and to review them rather than re-run.
+- README: never posts or schedules for you; `--post-draft` only writes a local `POST_DRAFT.txt` labelled DRAFT — it never
+  publishes on your behalf.
 
 ## 1.4.0 (2026-10-26)
 

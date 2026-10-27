@@ -22,7 +22,7 @@ ai-video-editor --help
 ```
 
 - Renamed from Easy Edits: the old `easy-edits` command still works as an alias for one release, and so do the old
-  `EASY_EDITS_*` env vars and an existing `~/.easy-edits` (the new `AI_VIDEO_EDITOR_*` names win when both are set).
+  `EASY_EDITS_*` env vars; install always uses `~/.ai-video-editor` and leaves `~/.easy-edits` as a symlink to it (the new `AI_VIDEO_EDITOR_*` names win when both are set).
 
 - Run `./install.sh` in the foreground with a long timeout (a first install takes 5-15 min) and wait for it to
   finish before the doctor; don't background it.

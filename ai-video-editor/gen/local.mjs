@@ -2,7 +2,7 @@
 //   image  : an ffmpeg title-card still from the prompt (seeded gradient + wrapped drawtext; an image ref becomes the
 //            dimmed background)
 //   video  : a still (the image ref, else a generated title card) with a Ken Burns zoompan, H.264, BT.709-tagged
-//   tts    : Kokoro-82M (HyperFrames, as explainer mode uses it), else Piper (on PATH + a voice model), else
+//   tts    : Kokoro-82M (HyperFrames, as explainer mode uses it; needs kokoro-onnx + soundfile), else Piper (on PATH + a voice model), else
 //            eSpeak NG / eSpeak, else ffmpeg's flite filter, else a clear error. AI_VIDEO_EDITOR_LOCAL_TTS forces one.
 //   avatar : host image + audio -> mp4 with a subtle zoom, labelled SYNTHETIC on screen and in meta, audio mastered
 //            to -14 LUFS / -1.5 dBTP (audio/master.mjs), BT.709-tagged. Not lip-synced.
@@ -119,12 +119,24 @@ export function kenBurns(still, file, { width, height, durationSec, seed = 0, ma
 // ---------------------------------------------------------------- TTS engines
 
 const kokoroBin = () => path.join(REPO, 'node_modules', '.bin', 'hyperframes');
-const piperModel = (voice) => (voice && /\.onnx$/.test(voice) && fs.existsSync(voice) ? voice : process.env.AI_VIDEO_EDITOR_PIPER_MODEL || '');
+// AI_VIDEO_EDITOR_<X>, else the pre-rename EASY_EDITS_<X> (read at call time: env-compat only maps at import)
+const envv = (k) => process.env[`AI_VIDEO_EDITOR_${k}`] || process.env[`EASY_EDITS_${k}`] || '';
+const piperModel = (voice) => (voice && /\.onnx$/.test(voice) && fs.existsSync(voice) ? voice : envv('PIPER_MODEL'));
+// HyperFrames TTS needs kokoro_onnx + soundfile in a python 3 and downloads kokoro-v1.0.onnx on first use.
+const kokoroModel = () => path.join(os.homedir(), '.cache', 'hyperframes', 'tts', 'models', 'kokoro-v1.0.onnx');
+const KOKORO_PROBE = 'import importlib.util,sys; sys.exit(0 if all(importlib.util.find_spec(m) for m in ["kokoro_onnx","soundfile"]) else 1)';
+const kokoroPyCache = new Map();
+/** The first python with the Kokoro deps (HYPERFRAMES_PYTHON, AI_VIDEO_EDITOR_PYTHON, python3), or ''. Local probe, no network. */
+function kokoroPython() {
+  const cands = [...new Set([process.env.HYPERFRAMES_PYTHON, envv('PYTHON'), 'python3'].filter(Boolean))], key = `${cands.join('|')}|${process.env.PATH}`;
+  if (!kokoroPyCache.has(key)) kokoroPyCache.set(key, cands.find((py) => spawnSync(py, ['-c', KOKORO_PROBE], { stdio: 'ignore', timeout: 10000 }).status === 0) || '');
+  return kokoroPyCache.get(key);
+}
 const TTS_ENGINES = {
   kokoro: {
-    available: () => fs.existsSync(kokoroBin()),
-    voice: (req) => req.voice || (req.speaker === 'B' ? 'af_heart' : process.env.AI_VIDEO_EDITOR_TTS_VOICE || 'am_michael'),
-    run(textFile, raw, voice) { const r = spawnSync(kokoroBin(), ['tts', textFile, '-o', raw, '-v', voice], { encoding: 'utf8' }); if (r.status !== 0) throw new Error(`kokoro TTS failed: ${`${r.stderr || ''}\n${r.stdout || ''}`.split('\n').map((l) => l.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/^[^A-Za-z]+/, '').trim()).filter(Boolean).pop() || `exit ${r.status}`}`); },
+    available: () => fs.existsSync(kokoroBin()) && !!kokoroPython(),
+    voice: (req) => req.voice || (req.speaker === 'B' ? 'af_heart' : envv('TTS_VOICE') || 'am_michael'),
+    run(textFile, raw, voice) { const r = spawnSync(kokoroBin(), ['tts', textFile, '-o', raw, '-v', voice], { encoding: 'utf8', env: { ...process.env, HYPERFRAMES_PYTHON: kokoroPython() } }); if (r.status !== 0) throw new Error(`kokoro TTS failed: ${`${r.stderr || ''}\n${r.stdout || ''}`.split('\n').map((l) => l.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/^[^A-Za-z]+/, '').trim()).filter(Boolean).pop() || `exit ${r.status}`}`); },
   },
   piper: {
     available: (req = {}) => has('piper') && !!piperModel(req.voice),
@@ -151,7 +163,7 @@ export const TTS_ORDER = ['kokoro', 'piper', 'espeak-ng', 'espeak', 'flite'];
 
 /** The TTS engine local would use for `req` (AI_VIDEO_EDITOR_LOCAL_TTS forces one), or null. */
 export function pickTtsEngine(req = {}) {
-  const forced = process.env.AI_VIDEO_EDITOR_LOCAL_TTS;
+  const forced = envv('LOCAL_TTS');
   if (forced) {
     if (!TTS_ENGINES[forced]) throw new Error(`AI_VIDEO_EDITOR_LOCAL_TTS=${forced}: use one of ${TTS_ORDER.join(', ')}`);
     return TTS_ENGINES[forced].available(req) ? forced : null;
@@ -159,14 +171,25 @@ export function pickTtsEngine(req = {}) {
   return TTS_ORDER.find((e) => TTS_ENGINES[e].available(req)) || null;
 }
 
-const NO_TTS = 'no local TTS engine found. Install one of: Kokoro (npm ci in the repo; HyperFrames TTS), Piper (piper on PATH + AI_VIDEO_EDITOR_PIPER_MODEL=<voice>.onnx), eSpeak NG (apt install espeak-ng), or an ffmpeg built with libflite';
+/** The doctor's TTS text: the engine pickTtsEngine picks, plus why Kokoro / Piper are not used when half set up. */
+export function ttsDoctorDetail(req = {}) {
+  let engine = null;
+  try { engine = pickTtsEngine(req); } catch (e) { return { engine: null, notes: [e.message], text: e.message }; }
+  const notes = [];
+  if (engine === 'kokoro' && !fs.existsSync(kokoroModel())) notes.push('kokoro model not cached yet (downloads on first use)');
+  if (engine !== 'kokoro' && fs.existsSync(kokoroBin()) && !kokoroPython()) notes.push('kokoro: not ready (pip install kokoro-onnx soundfile; model downloads on first use)');
+  if (engine !== 'piper' && has('piper') && !piperModel(req.voice)) notes.push('piper: on PATH, no model (set AI_VIDEO_EDITOR_PIPER_MODEL=/path/to/voice.onnx)');
+  return { engine, notes, text: [engine || 'none', ...notes].join('; ') };
+}
+
+const NO_TTS = 'no local TTS engine found. Install one of: Kokoro (npm ci in the repo + pip install kokoro-onnx soundfile; HyperFrames TTS), Piper (piper on PATH + AI_VIDEO_EDITOR_PIPER_MODEL=<voice>.onnx), eSpeak NG (apt install espeak-ng), or an ffmpeg built with libflite';
 
 /** The engines to try, in order: the forced one only, else every available one (a failing engine falls through). */
-const ttsCandidates = (req) => (process.env.AI_VIDEO_EDITOR_LOCAL_TTS ? [pickTtsEngine(req)].filter(Boolean) : TTS_ORDER.filter((e) => TTS_ENGINES[e].available(req)));
+const ttsCandidates = (req) => (envv('LOCAL_TTS') ? [pickTtsEngine(req)].filter(Boolean) : TTS_ORDER.filter((e) => TTS_ENGINES[e].available(req)));
 
 function synth(req, file) {
   const engines = ttsCandidates(req);
-  if (!engines.length) throw new Error(process.env.AI_VIDEO_EDITOR_LOCAL_TTS ? `AI_VIDEO_EDITOR_LOCAL_TTS=${process.env.AI_VIDEO_EDITOR_LOCAL_TTS} is not available here; ${NO_TTS}` : NO_TTS);
+  if (!engines.length) throw new Error(envv('LOCAL_TTS') ? `AI_VIDEO_EDITOR_LOCAL_TTS=${envv('LOCAL_TTS')} is not available here; ${NO_TTS}` : NO_TTS);
   const text = String(req.text || '').trim();
   if (!text) throw new Error('tts: empty text');
   const dir = tmp();

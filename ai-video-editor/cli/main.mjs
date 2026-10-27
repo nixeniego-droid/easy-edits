@@ -95,14 +95,14 @@ options
   -h, --help
 
 examples
-  ai-video-editor talk.mp4 -o out/                              # clean cut, 9:16
-  ai-video-editor talking-head talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"
+  ai-video-editor samples/talk.mp4 -o out/                      # clean cut, 9:16
+  ai-video-editor talking-head samples/talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"
   ai-video-editor shorts keynote.mp4 -o out/ --clips 5
   ai-video-editor shorts podcast.mp4 -o out/ --propose                 # 4 ranked proposals + previews, then stop
   ai-video-editor shorts podcast.mp4 -o out/ --pick 1,3 --hook         # render those two, hook card on
-  ai-video-editor captions talk.mp4 -o out/ --format 16x9
-  ai-video-editor talking-head talk.mp4 -o out/ --style broadsheet       # in the Broadsheet style
-  ai-video-editor captions talk.mp4 -o out/ --face 0.35,0.3              # face detection was wrong
+  ai-video-editor captions samples/talk.mp4 -o out/ --format 16x9
+  ai-video-editor talking-head samples/talk.mp4 -o out/ --style broadsheet  # in the Broadsheet style
+  ai-video-editor captions samples/talk.mp4 -o out/ --face 0.35,0.3     # face detection was wrong
   ai-video-editor style skill punch                                      # a Claude Code skill for the Punch style
 `;
 
@@ -196,7 +196,11 @@ async function main() {
   for (const e of res.exports || []) log(`${e.pass === false ? 'CHECK FAIL' : 'ok'} ${e.file}${e.note ? ` (${e.note})` : ''}`);
   if (missing.length) { console.error(`ai-video-editor: FAILED: ${new FinalOutputError(missing, o.out).message}\n(work files: ${o.work}; log: ${o.logFile})`); process.exit(EXIT_NO_OUTPUT); }
   log(`done in ${secs} s; report ${rp}`);
-  process.exit((res.exports || []).some((e) => e.pass === false) ? 1 : 0);
+  if ((res.exports || []).some((e) => e.pass === false)) {
+    console.error(`ai-video-editor: delivery FAIL (exit 1): outputs were written under ${o.out}; review the report and exports there — do not re-run blindly.`);
+    process.exit(1);
+  }
+  process.exit(0);
 }
 
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((e) => { console.error(`ai-video-editor: ${e.stack || e.message}`); process.exit(1); });

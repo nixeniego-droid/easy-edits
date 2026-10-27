@@ -4,6 +4,7 @@
 // POST_DRAFT.txt with --post-draft) next to the exports.
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { getBackend } from '../gen/index.mjs';
 import { readManifest } from '../gen/host.mjs';
 import { TYPES, loadRecipes, getRecipe, listRecipes, mapBrief } from './recipes.mjs';
@@ -54,6 +55,7 @@ options
   --voice NAME              TTS voice for narration; podcast: --voices "A=name,B=name", --speakers "A=Ana,B=Ben"
   --audio-only              podcast: WAV + MP3 only, no video
   --brand FILE --assets DIR promo: brand.json (name, colors, logo, product, cta) and your images
+  --init-brand [DIR]        promo: write a starter brand.json + assets/ under DIR (default ./brand); no plan
   --no-music                promo: no music bed
   --song FILE --i-own-this-music   music-video: your own track
   --clip-audio auto|keep|duck|drop  the ambient audio of generated video clips (default auto: dropped under
@@ -65,6 +67,7 @@ host generation (the default for images and video)
   with your assistant's built-in image/video generation, save it at its "file", then run ai-video-editor resume <out>.
 
 examples
+  ai-video-editor new promo --init-brand brand/                 # starter brand.json + assets/
   ai-video-editor new promo -o out/promo --brand brand.json --assets brand/ --format 9x16,1x1
   ai-video-editor new --approve out/promo/plan.json
   ai-video-editor new podcast -o out/pod --script episode.txt --audio-only
@@ -83,6 +86,10 @@ export function parseNewArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') o.help = true;
+    else if (a === '--init-brand') {
+      if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) o.initBrand = argv[++i];
+      else o.initBrand = 'brand';
+    }
     else if (VALUE.has(a)) { if (i + 1 >= argv.length) throw new Error(`${a} needs a value`); o[camel(a)] = argv[++i]; }
     else if (REPEAT.has(a)) { if (i + 1 >= argv.length) throw new Error(`${a} needs a value`); (o[camel(a)] ||= []).push(argv[++i]); }
     else if (a.startsWith('--')) o[camel(a)] = true;
@@ -319,6 +326,38 @@ export async function resumeNew(dir, o = {}) {
   return approveNew(planFile, { ...o, out, resume: true });
 }
 
+
+/** Starter brand.json + assets/ for `new promo --init-brand [DIR]` (no plan, no render). */
+export function initBrandScaffold(dir = 'brand') {
+  const root = path.resolve(dir);
+  const assets = path.join(root, 'assets');
+  fs.mkdirSync(assets, { recursive: true });
+  const brandFile = path.join(root, 'brand.json');
+  if (fs.existsSync(brandFile)) throw new Error(`--init-brand: ${brandFile} already exists (refuse to overwrite)`);
+  const brand = {
+    name: 'Your Brand',
+    tagline: 'One line about what you make',
+    colors: { background: '#0E1116', text: '#FFFFFF', accent: '#FFD60A' },
+    logo: 'assets/logo.png',
+    product: { name: 'Your Product', price: '$X/mo', features: ['Feature one', 'Feature two', 'Feature three'] },
+    cta: 'Try it free',
+    url: 'example.com',
+  };
+  fs.writeFileSync(brandFile, `${JSON.stringify(brand, null, 2)}\n`);
+  // tiny placeholder logo so `new promo --brand` works out of the box; replace with the real mark
+  const logoFile = path.join(assets, 'logo.png');
+  try {
+    const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=#FFD60A:s=256x256', '-frames:v', '1', logoFile], { encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(r.stderr || `exit ${r.status}`);
+  } catch (e) {
+    delete brand.logo;
+    fs.writeFileSync(brandFile, `${JSON.stringify(brand, null, 2)}\n`);
+  }
+  const note = path.join(assets, 'README.txt');
+  fs.writeFileSync(note, 'Replace logo.png with your mark (and add up to 3 product images: .png / .jpg / .webp). Paths in brand.json are relative to brand.json.\n');
+  return { root, brandFile, assets };
+}
+
 /** CLI for `ai-video-editor resume <out-dir>` (exit 0 ok, 1 a delivery FAIL, 2 refused, 3 still waiting for assets, 5 no final file). */
 export async function resumeMain(argv) {
   let o;
@@ -329,7 +368,11 @@ export async function resumeMain(argv) {
   }
   try {
     const r = await resumeNew(o.pos[0], o);
-    return r.pass ? 0 : 1;
+    if (!r.pass) {
+      console.error(`ai-video-editor resume: delivery FAIL (exit 1): plan and exports were written under ${r.out}; review REVIEW.txt and DELIVERY.json — do not re-run the plan.`);
+      return 1;
+    }
+    return 0;
   } catch (e) {
     if (e instanceof PendingAssetsError) { process.stdout.write(pendingMessage(e)); return EXIT_PENDING; }
     if (e instanceof FinalOutputError) { console.error(`ai-video-editor resume: FAILED: ${e.message}`); return EXIT_NO_OUTPUT; }
@@ -342,8 +385,16 @@ export async function resumeMain(argv) {
 export async function newMain(argv) {
   let o;
   try { o = parseNewArgs(argv); } catch (e) { console.error(`ai-video-editor new: ${e.message}`); return 2; }
-  if (o.help || (!o.pos.length && !o.approve)) { process.stdout.write(HELP); return o.help ? 0 : 2; }
+  if (o.help || (!o.pos.length && !o.approve && o.initBrand == null)) { process.stdout.write(HELP); return o.help ? 0 : 2; }
   try {
+    if (o.initBrand != null) {
+      if (o.pos[0] && o.pos[0] !== 'promo') { console.error('ai-video-editor new: --init-brand is for promo (ai-video-editor new promo --init-brand [DIR])'); return 2; }
+      let brandFile, assets;
+      try { ({ brandFile, assets } = initBrandScaffold(o.initBrand)); }
+      catch (e) { console.error(`ai-video-editor new: ${e.message}`); return 2; }
+      process.stdout.write(`Wrote ${brandFile}\nAssets folder: ${assets}\nNext: fill in brand.json and add logo.png, then:\n  ai-video-editor new promo -o out/promo --brand ${brandFile} --assets ${assets} --format 9x16,1x1\n`);
+      return 0;
+    }
     if (o.pos[0] === 'types') {
       await loadRecipes();
       for (const r of listRecipes()) process.stdout.write(`${r.name.padEnd(16)} ${r.description || ''}\n`);
@@ -358,7 +409,11 @@ export async function newMain(argv) {
     }
     if (o.approve) {
       const r = await approveNew(o.approve, { ...o, type: o.pos[0] });
-      return r.pass ? 0 : 1;
+      if (!r.pass) {
+        console.error(`ai-video-editor new: delivery FAIL (exit 1): plan and exports were written under ${r.out}; review REVIEW.txt and DELIVERY.json — do not re-run the plan.`);
+        return 1;
+      }
+      return 0;
     }
     const { planFile } = await planNew(o.pos[0], o);
     assertFinalOutputs([planFile, 'PLAN.txt', 'storyboard.png'], path.dirname(planFile), { expect: 3 });

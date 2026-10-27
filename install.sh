@@ -20,8 +20,10 @@
 #
 # Renamed from Easy Edits (compat for one release): every old EASY_EDITS_<X> (EASY_EDITS_HOME, EASY_EDITS_MODELS,
 # EASY_EDITS_WHISPER, EASY_EDITS_NO_SKILL, ...) still works as AI_VIDEO_EDITOR_<X>; the new name wins when both are set.
-# With no AI_VIDEO_EDITOR_HOME / EASY_EDITS_HOME, an existing ~/.easy-edits is kept (no re-download) until
-# ~/.ai-video-editor exists; a new install uses ~/.ai-video-editor. The `easy-edits` command is an alias of `ai-video-editor`.
+# With no AI_VIDEO_EDITOR_HOME / EASY_EDITS_HOME the home is always ~/.ai-video-editor: an install moves a pre-rename
+# ~/.easy-edits there (no re-download) and leaves ~/.easy-edits as a symlink to it, so `. ~/.easy-edits/env.sh` still
+# works. A ~/.easy-edits that still holds files next to an existing ~/.ai-video-editor is left alone (never deleted).
+# Until that move, --doctor checks the old ~/.easy-edits. The `easy-edits` command is an alias of `ai-video-editor`.
 set -euo pipefail
 # HyperFrames sends anonymous usage telemetry unless opted out; opt out before anything below can run it.
 # (env.sh exports the same, and install_npm also records the opt-out in ~/.hyperframes/config.json)
@@ -31,22 +33,27 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for _v in $(compgen -e | grep '^EASY_EDITS_' || true); do   # old EASY_EDITS_<X> -> AI_VIDEO_EDITOR_<X> unless set
   _n="AI_VIDEO_EDITOR_${_v#EASY_EDITS_}"; [ -n "${!_n+x}" ] || export "$_n=${!_v}"
 done; unset _v _n
-if [ -z "${AI_VIDEO_EDITOR_HOME:-}" ] && [ ! -d "$HOME/.ai-video-editor" ] && [ -d "$HOME/.easy-edits" ]; then
-  AI_VIDEO_EDITOR_HOME="$HOME/.easy-edits"   # an install from before the rename: keep its venv, node and models
-fi
-AI_VIDEO_EDITOR_HOME="${AI_VIDEO_EDITOR_HOME:-$HOME/.ai-video-editor}"
-VENV="$AI_VIDEO_EDITOR_HOME/venv"
-NODE_HOME="$AI_VIDEO_EDITOR_HOME/node"
+DEFAULT_HOME="$HOME/.ai-video-editor" LEGACY_HOME="$HOME/.easy-edits"
+AI_VIDEO_EDITOR_HOME="${AI_VIDEO_EDITOR_HOME:-$DEFAULT_HOME}"
+USER_MODELS="${AI_VIDEO_EDITOR_MODELS:-}"
 NODE_MAJOR=22
 FASTER_WHISPER_VERSION="${FASTER_WHISPER_VERSION:-1.2.1}"
 OPENCV_VERSION="${OPENCV_VERSION:-4.14.0.94}"
 YUNET_COMMIT="main"   # the file is pinned by its sha256 below
 YUNET_SHA="8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
 LOCK_STAMP="$REPO/node_modules/.ai-video-editor-lock.sha256"
-# an earlier env.sh records the model dir; keep it on re-runs
-PREV_MODELS=""   # (a missing env.sh must not trip set -e/pipefail: the fresh-user install died here silently)
-[ -f "$AI_VIDEO_EDITOR_HOME/env.sh" ] && PREV_MODELS="$(sed -n 's/^export \(AI_VIDEO_EDITOR\|EASY_EDITS\)_MODELS="\(.*\)"$/\2/p' "$AI_VIDEO_EDITOR_HOME/env.sh" | head -n1)" || true
-AI_VIDEO_EDITOR_MODELS="${AI_VIDEO_EDITOR_MODELS:-${PREV_MODELS:-${HF_HOME:-$AI_VIDEO_EDITOR_HOME/models}}}"
+# The paths under $AI_VIDEO_EDITOR_HOME (again after migrate_home / the doctor's fallback to the old home).
+set_paths() {
+  VENV="$AI_VIDEO_EDITOR_HOME/venv"
+  NODE_HOME="$AI_VIDEO_EDITOR_HOME/node"
+  # an earlier env.sh records the model dir; keep it on re-runs
+  PREV_MODELS=""   # (a missing env.sh must not trip set -e/pipefail: the fresh-user install died here silently)
+  [ -f "$AI_VIDEO_EDITOR_HOME/env.sh" ] && PREV_MODELS="$(sed -n 's/^export \(AI_VIDEO_EDITOR\|EASY_EDITS\)_MODELS="\(.*\)"$/\2/p' "$AI_VIDEO_EDITOR_HOME/env.sh" | head -n1)" || true
+  # models recorded under the old home moved with it
+  [ "$AI_VIDEO_EDITOR_HOME" = "$DEFAULT_HOME" ] && case "$PREV_MODELS" in "$LEGACY_HOME"/*) PREV_MODELS="$DEFAULT_HOME/${PREV_MODELS#"$LEGACY_HOME"/}" ;; esac
+  AI_VIDEO_EDITOR_MODELS="${USER_MODELS:-${PREV_MODELS:-${HF_HOME:-$AI_VIDEO_EDITOR_HOME/models}}}"
+}
+set_paths
 AI_VIDEO_EDITOR_WHISPER="${AI_VIDEO_EDITOR_WHISPER:-small medium}"
 # nvm and npm refuse to work together when these are set; npm ci here is project-local
 unset NPM_CONFIG_PREFIX npm_config_prefix 2>/dev/null || true
@@ -234,6 +241,33 @@ export DO_NOT_TRACK=1
 ENV
 }
 
+# ---------------------------------------------------------------- home (renamed from ~/.easy-edits)
+# Only for the default home: a custom AI_VIDEO_EDITOR_HOME / EASY_EDITS_HOME leaves ~/.easy-edits alone.
+# Before the install steps: a pre-rename ~/.easy-edits (a real dir) becomes ~/.ai-video-editor (venv, node, models kept).
+migrate_home() {
+  [ "$AI_VIDEO_EDITOR_HOME" = "$DEFAULT_HOME" ] || return 0
+  if [ -d "$LEGACY_HOME" ] && [ ! -L "$LEGACY_HOME" ] && [ ! -e "$DEFAULT_HOME" ] && [ ! -L "$DEFAULT_HOME" ]; then
+    mv "$LEGACY_HOME" "$DEFAULT_HOME"
+    ln -sfn .ai-video-editor "$LEGACY_HOME"
+    log "moved $LEGACY_HOME to $DEFAULT_HOME ($LEGACY_HOME is now a symlink to it)"
+  fi
+  set_paths
+}
+# After write_env: ~/.easy-edits is a symlink to ~/.ai-video-editor, so `. ~/.easy-edits/env.sh` keeps working.
+link_legacy_home() {
+  [ "$AI_VIDEO_EDITOR_HOME" = "$DEFAULT_HOME" ] || return 0
+  if [ -L "$LEGACY_HOME" ]; then
+    [ "$(cd "$LEGACY_HOME" 2>/dev/null && pwd -P)" = "$(cd "$DEFAULT_HOME" && pwd -P)" ] && return 0
+    ln -sfn .ai-video-editor "$LEGACY_HOME"; log "$LEGACY_HOME now links to $DEFAULT_HOME"
+  elif [ -d "$LEGACY_HOME" ] && rmdir "$LEGACY_HOME" 2>/dev/null; then
+    ln -s .ai-video-editor "$LEGACY_HOME"; log "$LEGACY_HOME (empty) is now a symlink to $DEFAULT_HOME"
+  elif [ -e "$LEGACY_HOME" ]; then
+    log "note: $LEGACY_HOME is a legacy home next to $DEFAULT_HOME; left as is (nothing written there; remove it when you no longer need it)"
+  else
+    ln -s .ai-video-editor "$LEGACY_HOME"
+  fi
+}
+
 # ---------------------------------------------------------------- Claude Code skill
 # The repo skill (.claude/skills/ai-video-editor) only loads in a Claude Code session started inside this checkout. An
 # assistant that cloned the repo from another folder ("Install AI Video Editor from <url>") and every later session
@@ -406,8 +440,15 @@ for a in "$@"; do
     *) die "unknown option: $a (see ./install.sh --help)" ;;
   esac
 done
-if [ "$MODE" = doctor ]; then doctor; exit; fi
+if [ "$MODE" = doctor ]; then
+  if [ "$AI_VIDEO_EDITOR_HOME" = "$DEFAULT_HOME" ] && [ ! -e "$DEFAULT_HOME" ] && [ -d "$LEGACY_HOME" ]; then
+    echo "note: checking the pre-rename home $LEGACY_HOME (./install.sh moves it to $DEFAULT_HOME)"
+    AI_VIDEO_EDITOR_HOME="$LEGACY_HOME"; set_paths
+  fi
+  doctor; exit
+fi
 if [ "$MODE" = skill ]; then install_skill; exit; fi
-install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env; install_skill
+migrate_home
+install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env; link_legacy_home; install_skill
 log "done. In each new shell:  . $AI_VIDEO_EDITOR_HOME/env.sh     Verify:  ./install.sh --doctor"
-log "first edit:  ai-video-editor talk.mp4 -o out/        (ai-video-editor --help lists every mode)"
+log "first edit:  ai-video-editor samples/talk.mp4 -o out/        (ai-video-editor --help lists every mode)"

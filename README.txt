@@ -1,9 +1,9 @@
-AI Video Editor v1.4.0
+AI Video Editor v1.4.1
 ==============
 
 Zero-instruction video editing: point it at a talking-head video, get a finished edit back.
 
-  ai-video-editor talk.mp4 -o out/
+  ai-video-editor samples/talk.mp4 -o out/
 
 Built on Herk Edit Kit by Nate Herk + HyperFrames. README.md has the full docs; this is the short version.
 Known flaws: KNOWN_ISSUES.txt.
@@ -11,7 +11,7 @@ Known flaws: KNOWN_ISSUES.txt.
 
 INSTALL (Linux or macOS; needs git and curl)
 
-  git clone https://github.com/nixeniego/easy-edits ai-video-editor
+  git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ai-video-editor
   cd ai-video-editor
   ./install.sh                     # Node 22, ffmpeg, faster-whisper + models, OpenCV, yt-dlp, npm deps, Chrome, fonts
   . ~/.ai-video-editor/env.sh              # in every new shell (puts ai-video-editor on your PATH)
@@ -31,11 +31,11 @@ TRY IT (public-domain NASA clip, 15 s)
 MODES
 
   clean-cut     (default) Removes fillers, dead air and clear slips, adds clean minimal captions.
-                ai-video-editor talk.mp4 -o out/
+                ai-video-editor samples/talk.mp4 -o out/
 
   talking-head  The clean cut plus motion design: title card, kinetic captions, lower third, punch-ins,
                 icon pops, top-box cards, end card, music bed.
-                ai-video-editor talking-head talk.mp4 -o out/ --speaker "Ana Cruz" --role "Founder"
+                ai-video-editor talking-head samples/talk.mp4 -o out/ --speaker "Ana Cruz" --role "Founder"
 
   explainer     Turns a script or transcript into scenes (cards, lists, diagrams, zooms on screen activity),
                 synced to the voiceover. Takes a video, or a .txt script (voiced with local TTS).
@@ -46,7 +46,7 @@ MODES
                 ai-video-editor shorts podcast.mp4 -o out/ --propose
 
   captions      Captions only, no cuts: burned in plus .srt / .vtt.
-                ai-video-editor captions talk.mp4 -o out/
+                ai-video-editor captions samples/talk.mp4 -o out/
 
 
 FORMAT

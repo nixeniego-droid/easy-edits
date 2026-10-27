@@ -1,4 +1,4 @@
-AI Video Editor v1.4.0: known issues
+AI Video Editor v1.4.1: known issues
 ============================
 
 Install (macOS, fixed in 1.3.1)

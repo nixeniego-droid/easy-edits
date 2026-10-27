@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { KINDS, getBackend, listBackends } from '../gen/index.mjs';
 import { configPath, keyPresent, loadProviders, redact } from '../gen/config.mjs';
-import { pickTtsEngine } from '../gen/local.mjs';
+import { pickTtsEngine, ttsDoctorDetail } from '../gen/local.mjs';
 
 const HELP = `ai-video-editor backends: generation backends (BYO key; local and mock need none)
 
@@ -69,7 +69,7 @@ function getBackendNoEnv(kind, name) {
 export function doctorLine() {
   let p;
   try { p = loadProviders({ warn: false }); } catch (e) { return { ok: false, line: e.message }; }
-  const tts = safe(() => pickTtsEngine({})) || 'none';
+  const tts = ttsDoctorDetail().text;
   const base = `local (tts: ${tts}), mock, none`;
   if (!p.exists) return { ok: true, line: `${base}; no providers.json (${p.file}): hosted backends off` };
   const provs = Object.values(p.providers).map((x) => `${x.name} key present: ${keyPresent(x)}`);

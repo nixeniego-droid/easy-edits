@@ -304,3 +304,26 @@ test('CLI: new --help, types list, unknown type', () => {
   assert.equal(ee(['frobnicate', '-o', tmp()]).status, 2);
   assert.match(spawnSync(process.execPath, [MAIN, '--help'], { encoding: 'utf8' }).stdout, /ai-video-editor new <type>/);
 });
+
+test('promo --init-brand: writes brand.json scaffold; subsequent promo plan uses it', () => {
+  const dir = tmp();
+  const brandDir = path.join(dir, 'my-brand');
+  const r = ee(['promo', '--init-brand', brandDir]);
+  assert.equal(r.status, 0, r.stderr + r.stdout);
+  const brandFile = path.join(brandDir, 'brand.json');
+  assert.ok(fs.existsSync(brandFile));
+  const brand = json(brandFile);
+  for (const k of ['name', 'tagline', 'colors', 'logo', 'product', 'cta', 'url']) assert.ok(k in brand, k);
+  for (const k of ['background', 'text', 'accent']) assert.match(brand.colors[k], /^#[0-9A-Fa-f]{6}$/);
+  assert.ok(fs.existsSync(path.join(brandDir, 'assets', 'README.txt')));
+  assert.match(r.stdout, /Next:/);
+  // refuse overwrite
+  assert.equal(ee(['promo', '--init-brand', brandDir]).status, 2);
+  // plan with the scaffold (assets empty of images is fine)
+  const out = path.join(dir, 'out');
+  const plan = ee(['promo', '-o', out, '--brand', brandFile, '--assets', path.join(brandDir, 'assets'), '--format', '9x16', '--length', '6']);
+  assert.equal(plan.status, 0, plan.stderr);
+  assert.ok(fs.existsSync(path.join(out, 'plan.json')));
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+

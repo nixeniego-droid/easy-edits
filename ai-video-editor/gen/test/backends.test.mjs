@@ -18,7 +18,7 @@ process.env.AI_VIDEO_EDITOR_CACHE = path.join(TMP, 'cache');
 process.env.AI_VIDEO_EDITOR_CONFIG = path.join(TMP, 'providers.json');
 const { getBackend, listBackends } = await import('../index.mjs');
 const { loadProviders, keyPresent, redact, redactObject, cacheKey } = await import('../config.mjs');
-const { localAdapter, pickTtsEngine, wrap } = await import('../local.mjs');
+const { localAdapter, pickTtsEngine, ttsDoctorDetail, wrap } = await import('../local.mjs');
 const { httpGenericAdapter, fillTemplate, getPath } = await import('../http-generic.mjs');
 const { measure } = await import('../../audio/master.mjs');
 
@@ -132,6 +132,41 @@ test('local tts: a 48 kHz wav from the first available engine (or a clear error)
     assert.equal(r.meta.engine, engine);
     await assert.rejects(localAdapter('tts').generate({ text: '  ' }, { outDir: out('tts'), noCache: true }), /empty text/);
   } finally { delete process.env.AI_VIDEO_EDITOR_LOCAL_TTS; }
+});
+
+test('local tts readiness: kokoro needs its python deps, piper needs a model; the doctor says which is missing', () => {
+  // fake pythons / piper only: no Kokoro model, no network
+  const bin = out('fake-bin'); fs.mkdirSync(bin, { recursive: true });
+  const sh = (name, code) => { fs.writeFileSync(path.join(bin, name), `#!/bin/sh\nexit ${code}\n`); fs.chmodSync(path.join(bin, name), 0o755); return path.join(bin, name); };
+  const pyNo = sh('python3', 1), pyYes = sh('py-kokoro', 0); sh('piper', 0);
+  const voice = out('voice.onnx'); fs.writeFileSync(voice, '');
+  const keys = ['PATH', 'HYPERFRAMES_PYTHON', 'AI_VIDEO_EDITOR_PYTHON', 'EASY_EDITS_PYTHON', 'AI_VIDEO_EDITOR_PIPER_MODEL', 'EASY_EDITS_PIPER_MODEL', 'AI_VIDEO_EDITOR_LOCAL_TTS', 'EASY_EDITS_LOCAL_TTS'];
+  const saved = Object.fromEntries(keys.map((k) => [k, process.env[k]]));
+  const hfBin = fs.existsSync(fileURLToPath(new URL('../../../node_modules/.bin/hyperframes', import.meta.url)));
+  try {
+    for (const k of keys.slice(1)) delete process.env[k];
+    Object.assign(process.env, { PATH: `${bin}:${saved.PATH}`, HYPERFRAMES_PYTHON: pyNo, AI_VIDEO_EDITOR_PYTHON: pyNo });
+    let d = ttsDoctorDetail();
+    assert.notEqual(d.engine, 'kokoro');
+    assert.notEqual(d.engine, 'piper');
+    if (hfBin) assert.match(d.text, /kokoro: not ready \(pip install kokoro-onnx soundfile/);
+    assert.match(d.text, /piper: on PATH, no model \(set AI_VIDEO_EDITOR_PIPER_MODEL=/);
+    const r = cli(['--doctor'], { PATH: process.env.PATH, HYPERFRAMES_PYTHON: pyNo, AI_VIDEO_EDITOR_PYTHON: pyNo, AI_VIDEO_EDITOR_PIPER_MODEL: '' });
+    assert.match(r.stdout, /^local \(tts: .*piper: on PATH, no model/);
+    process.env.EASY_EDITS_PIPER_MODEL = voice;   // the pre-rename name still works
+    assert.equal(pickTtsEngine({}), 'piper');
+    assert.doesNotMatch(ttsDoctorDetail().text, /piper:/);
+    delete process.env.EASY_EDITS_PIPER_MODEL;
+    process.env.EASY_EDITS_LOCAL_TTS = 'piper';
+    assert.equal(pickTtsEngine({}), null);
+    delete process.env.EASY_EDITS_LOCAL_TTS;
+    if (hfBin) {
+      process.env.HYPERFRAMES_PYTHON = pyYes;
+      d = ttsDoctorDetail();
+      assert.equal(d.engine, 'kokoro');
+      assert.doesNotMatch(d.text, /kokoro: not ready/);
+    }
+  } finally { for (const k of keys) if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
 });
 
 test('local avatar: still + audio -> mp4, -14 LUFS / -1.5 dBTP, BT.709, labelled synthetic', async () => {
