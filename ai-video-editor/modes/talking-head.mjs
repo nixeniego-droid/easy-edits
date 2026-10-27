@@ -6,6 +6,7 @@ import { heuristicPlan, agentPlan, validatePlan, mergePlans, locate } from '../e
 import { sourceHash, wordsKey, loadPin, savePin, stripTimes } from '../engine/plan-store.mjs';
 import { exportFormats } from '../engine/export.mjs';
 import { probe } from '../engine/audio.mjs';
+import { requireSpeech } from '../engine/final-output.mjs';
 
 /** clean-cut.sh --build-only into the work dir: {proj, words (edited), clip, voice} */
 export function cleanBuild(o) {
@@ -25,7 +26,7 @@ export function cleanBuild(o) {
     if (r.status !== 0) { log(`clean cut failed (exit ${r.status}); retrying once`); run('bash', args, { label: 'clean-cut build', logFile: o.logFile }); }
   }
   const tr = JSON.parse(fs.readFileSync(path.join(proj, 'assets/transcript.json'), 'utf8'));
-  const words = tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end }));
+  const words = requireSpeech(tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end })), o.input);
   return { proj, words, clip: path.join(proj, 'assets/clip.mp4'), voice: path.join(proj, 'assets/mix.wav') };
 }
 

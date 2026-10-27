@@ -1,11 +1,17 @@
 #!/usr/bin/env sh
-# Regenerates samples/talk.mp4: 6 s of colour bars with a "SAMPLE" label and a speech-like tone (a wobbling ~160 Hz
-# voice with syllable bursts and two pauses). Synthetic, made only with ffmpeg's lavfi sources; CC0 (see LICENSE).
+# Rebuilds samples/talk.mp4: a 15.4 s trim (0:05.5 to 0:20.9) of NASA SVS14069, Gavin Schmidt's "Where does 2021 rank"
+# interview, downloaded from Wikimedia Commons. Public domain (NASA / US government work); see LICENSE.
+# Needs ffmpeg and curl. Pass a local copy of the .webm as $1 to skip the download.
 set -eu
 cd "$(dirname "$0")"
-ffmpeg -hide_banner -loglevel error -y \
-  -f lavfi -i "smptebars=s=540x960:r=30:d=6" \
-  -f lavfi -i "aevalsrc='0.35*sin(2*PI*(160+25*sin(2*PI*3*t))*t)*(0.55+0.45*sin(2*PI*4.5*t))*lt(mod(t,3),2.3)':s=48000:d=6" \
-  -vf "drawtext=font=Sans:text='SAMPLE':fontsize=72:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=18:x=(w-tw)/2:y=h*0.12,drawtext=font=Sans:text='synthetic test clip (CC0)':fontsize=30:fontcolor=white:box=1:boxcolor=black@0.6:boxborderw=10:x=(w-tw)/2:y=h*0.12+110,format=yuv420p" \
-  -c:v libx264 -preset slow -crf 30 -c:a aac -b:a 64k -ac 1 -colorspace bt709 -color_primaries bt709 -color_trc bt709 \
-  -movflags +faststart -shortest talk.mp4
+url='https://commons.wikimedia.org/wiki/Special:FilePath/The_Numbers_Are_In-_Where_Does_2021_Rank_for_Global_Temperatures_Live_Shots_(SVS14069_-_Gavin_Canned_Interview_pt_2).webm'
+src=${1:-}
+if [ -z "$src" ]; then
+  src=$(mktemp "${TMPDIR:-/tmp}/svs14069.XXXXXX.webm")
+  trap 'rm -f "$src"' EXIT
+  curl -fL --retry 3 -o "$src" "$url"
+fi
+ffmpeg -hide_banner -loglevel error -y -ss 5.5 -i "$src" -t 15.4 \
+  -vf "scale=1280:720:flags=lanczos,format=yuv420p" -r 30 \
+  -c:v libx264 -preset slow -crf 30 -c:a aac -b:a 64k -ac 1 -ar 48000 \
+  -colorspace bt709 -color_primaries bt709 -color_trc bt709 -movflags +faststart talk.mp4

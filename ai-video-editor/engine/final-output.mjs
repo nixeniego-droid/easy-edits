@@ -62,3 +62,18 @@ export function modeFinalFiles(o, res = {}) {
   if (o.mode === 'shorts' && o.propose) return { files: [path.join(o.out, 'PROPOSALS.txt')], expect: 1 };
   return { files: (res.exports || []).map((e) => e.file), expect: 1 };
 }
+
+/** No words came out of the transcript (a silent clip, music only, or the wrong audio track): refused before a render. */
+export class NoSpeechError extends Error {
+  constructor(input) {
+    super(`no speech detected in ${input} (the transcript is empty); use a clip with clear speech (try samples/talk.mp4).\nIf it does have clear speech, re-run with its language, e.g. --lang en`);
+    this.input = input;
+  }
+}
+
+/** Throws NoSpeechError when a mode that captions or cuts speech got no words. Zero-length words only (Whisper
+ * hallucinates one on pure silence, e.g. a stray foreign word at start = end) count as none. */
+export function requireSpeech(words, input) {
+  if (!words?.some((w) => !(w.end <= w.start))) throw new NoSpeechError(input);
+  return words;
+}

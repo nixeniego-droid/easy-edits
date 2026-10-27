@@ -26,6 +26,7 @@ import { sentences, norm, findPhrase, locate } from '../engine/plan.mjs';
 import { probe } from '../engine/audio.mjs';
 import { sourceHash, loadPin, savePin } from '../engine/plan-store.mjs';
 import { captionGroups } from '../presets/captions-default.mjs';
+import { requireSpeech } from '../engine/final-output.mjs';
 
 const r3 = (v) => Math.round(v * 1000) / 1000;
 const pad = (n) => String(n).padStart(2, '0');
@@ -498,8 +499,15 @@ export function loadShortsPlan(o, propFile, key) {
 }
 
 export default async function shorts(o) {
-  const N = Number(o.clips || (o.propose ? 4 : 3)), MIN = Number(o.min || 30), MAX = Number(o.max || 75);
+  const N = Number(o.clips || (o.propose ? 4 : 3));
   const src = normalise(o.input, o.work);
+  // short sources: default 30-75 s moments don't fit; shrink min/max to the available speech so --propose still works
+  const srcDur = Number(src.duration) || 0;
+  let MIN = Number(o.min || 30), MAX = Number(o.max || 75);
+  if (o.min == null && srcDur > 0 && srcDur < MIN) {
+    MIN = Math.max(5, Math.floor(srcDur * 0.85));
+    if (o.max == null) MAX = Math.max(MIN + 1, Math.ceil(srcDur));
+  }
   const sourceId = o.clip;
   const meta = path.join(o.out, sourceId);
   const usedFile = usedPath(o.out, sourceId), propFile = path.join(meta, 'proposals.json');
@@ -514,6 +522,7 @@ export default async function shorts(o) {
   // keep transcript indices (a --review-patch refers to them) while dropping non-words
   const idx = [], words = [];
   raw.forEach((w, i) => { if ((w.type || 'word') === 'word' && String(w.text).trim()) { idx.push(i); words.push({ text: String(w.text).trim(), start: w.start, end: w.end }); } });
+  requireSpeech(words, o.input);
   const range = o.range ? String(o.range).split('-').map(sec) : null;
   if (range && !(range[1] > range[0])) throw new Error(`--range ${o.range}: want START-END, e.g. 22:05-26:00`);
 

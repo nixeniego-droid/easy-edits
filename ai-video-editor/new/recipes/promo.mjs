@@ -43,7 +43,7 @@ export const recipe = {
   keywords: ['promo', 'promotion', 'ad', 'advert', 'commercial', 'product', 'launch', 'brand', 'sale', 'offer', 'teaser', 'app'],
   defaults: { length: [6, 60] },
   plan(o) {
-    if (!o.brand) throw new Error('new promo: needs --brand brand.json (name, colors, logo, product, cta)');
+    if (!o.brand) throw new Error('new promo: needs --brand brand.json (name, colors, logo, product, cta). Make a starter one: ai-video-editor new promo --init-brand brand/');
     let brand;
     try { brand = JSON.parse(fs.readFileSync(o.brand, 'utf8')); } catch (e) { throw new Error(`--brand ${o.brand}: ${e.message}`); }
     if (!brand.name) throw new Error('brand.json needs "name"');

@@ -6,6 +6,7 @@ import path from 'node:path';
 import { REPO, run, log, sdrClip, faceTrack, contactSheet, writeSubtitles, deliveryCheck } from '../engine/media.mjs';
 import { exportFormats, exportName } from '../engine/export.mjs';
 import { measure } from '../audio/master.mjs';
+import { requireSpeech } from '../engine/final-output.mjs';
 
 export default async function cleanCut(o) {
   const proj = path.join(o.work, 'proj'), cutOut = path.join(o.work, 'cut.mp4');
@@ -23,7 +24,7 @@ export default async function cleanCut(o) {
   const r = run('bash', args, { label: 'clean-cut', logFile: o.logFile, allowFail: true, env: o.face ? { AI_VIDEO_EDITOR_FACE: `${o.face.x},${o.face.y}` } : undefined });
   const summary = (r.stderr || '').split('\n').filter((l) => /^clean-cut: (total|gate )/.test(l));
   const tr = JSON.parse(fs.readFileSync(path.join(proj, 'assets/transcript.json'), 'utf8'));
-  const words = tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end }));
+  const words = requireSpeech(tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end })), o.input);
   const exports = [];
   if (want916) {
     const post = `${cutOut.replace(/\.mp4$/, '')}.post.mp4`;

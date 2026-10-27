@@ -183,7 +183,7 @@ export function pinPlan(plan, planFile) {
 
 /** The approval check: plan.json must match the hash pinned next to it. Returns the parsed plan or throws. */
 export function readApproved(planFile) {
-  if (!fs.existsSync(planFile)) throw new PlanError(`missing plan ${planFile}`);
+  if (!fs.existsSync(planFile)) throw new PlanError(`no plan at ${planFile}; plan first: ai-video-editor new <type> -o ${path.dirname(planFile)} ... (ai-video-editor new --help), then approve that plan.json`);
   const pin = `${planFile}.sha256`;
   if (!fs.existsSync(pin)) throw new PlanError(`${path.basename(planFile)} has no pin (${path.basename(pin)}); run: ai-video-editor new repin ${planFile}`);
   const want = fs.readFileSync(pin, 'utf8').trim().split(/\s+/)[0];

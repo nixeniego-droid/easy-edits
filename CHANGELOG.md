@@ -15,8 +15,15 @@ Install polish: the move to `~/.ai-video-editor` always happens, and the local T
   instead of flite. `AI_VIDEO_EDITOR_PIPER_CACHE=<dir>` copies the voice from a local folder instead of downloading it;
   a custom `AI_VIDEO_EDITOR_PIPER_MODEL` is kept. The doctor has a `piper-voice` line and its `backends` line reports
   `tts: piper`.
-- Sample: TODO (WT-B: real-speech `samples/talk.mp4`).
-- Docs and messages: TODO (WT-C).
+- Sample: `samples/talk.mp4` is a ~15 s public-domain NASA talking-head trim (SVS14069 / Wikimedia; see
+  `samples/LICENSE`) with a real face and clear speech, so captions / clean-cut / shorts / talking-head demos work.
+- Shorts: `--propose` also writes machine-readable `proposals.json` (id, hook, durationSec, previewPath) for
+  assistant pick cards; default min/max auto-shrinks when the source is shorter than 30 s so demos still propose.
+- Preview: `--preview` renders ~20 s from the first speech (captions / clean-cut / talking-head) before the full run.
+- Stranger-facing errors: missing input / `-o` / `--brand` / empty speech name the next command; delivery FAIL (exit 1)
+  lists the failing checks and is not phrased as a crash; unexpected errors exit 5 with the stack in the log.
+- Guided chat: skill §0 + getting-started + template STARTER / FIRST_RUN use tap-to-pick choice cards, progress lines,
+  preview-before-final, and error fix cards (never raw errors or CLI flags to the user).
 
 ## 1.4.1 (2026-10-27)
 

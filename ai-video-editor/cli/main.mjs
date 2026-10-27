@@ -11,13 +11,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { log } from '../engine/media.mjs';
+import { log, REPO } from '../engine/media.mjs';
 import { loadPack, checkRequest, missingFonts, StyleError } from '../engine/style-pack.mjs';
 import { parseFace } from '../engine/face-override.mjs';
 import { styleMain } from './style.mjs';
 import { backendsMain } from './backends.mjs';
 import { newMain, resumeMain } from '../new/index.mjs';
-import { finalOutputProblems, modeFinalFiles, FinalOutputError, EXIT_NO_OUTPUT } from '../engine/final-output.mjs';
+import { finalOutputProblems, modeFinalFiles, FinalOutputError, NoSpeechError, EXIT_NO_OUTPUT } from '../engine/final-output.mjs';
 
 const HELP = `AI Video Editor: one CLI for talking-head editing, built on Herk Edit Kit (Nate Herk) + HyperFrames.
 
@@ -198,8 +198,12 @@ async function main() {
   if (process.argv[2] === 'consent') process.exit((await import('../presenter/consent-cli.mjs')).consentMain(process.argv.slice(3)));
   let o;
   try { o = parseArgs(process.argv.slice(2)); } catch (e) { console.error(`ai-video-editor: ${e.message}`); process.exit(2); }
-  if (o.help || !o.input) { process.stdout.write(HELP); process.exit(o.help ? 0 : 2); }
-  if (!o.out) { console.error('ai-video-editor: -o <out-dir> is required'); process.exit(2); }
+  if (o.help || !o.input) {
+    process.stdout.write(HELP);
+    if (!o.help) console.error(`ai-video-editor: needs a video (a file or URL). Try the bundled sample:\n  ai-video-editor ${o.mode} ${SAMPLE} -o out/`);
+    process.exit(o.help ? 0 : 2);
+  }
+  if (!o.out) { console.error(`ai-video-editor: -o <out-dir> is required (the folder the finished video goes in). Run:\n  ai-video-editor ${process.argv.slice(2).map((a) => (/[\s"'$`\\]/.test(a) ? JSON.stringify(a) : a)).join(' ')} -o out/`); process.exit(2); }
   // a YouTube / video URL: download it (<= 1080p mp4 + audio, reused on re-runs) and edit the local file (docs/URL_INPUT.md)
   if (/^https?:\/\//i.test(o.input)) {
     const fetchArgs = [o.input, '--work-dir', path.join(path.resolve(o.out), '.work', 'downloads')];
@@ -209,8 +213,8 @@ async function main() {
     o.input = r.stdout.trim();
   }
   o.input = path.resolve(o.input); o.out = path.resolve(o.out);
-  if (!fs.existsSync(o.input)) { console.error(`ai-video-editor: missing input ${o.input}`); process.exit(2); }
-  for (const k of ['plan', 'transcript', 'reviewPatch', 'preset', 'script', 'names', 'people']) if (o[k]) { o[k] = path.resolve(o[k]); if (!fs.existsSync(o[k])) { console.error(`ai-video-editor: missing ${k} file ${o[k]}`); process.exit(2); } }
+  if (!fs.existsSync(o.input)) { console.error(`ai-video-editor: input not found: ${o.input}\nCheck the path (relative paths start from ${process.cwd()}), or try the bundled sample:\n  ai-video-editor ${o.mode} ${SAMPLE} -o ${path.relative(process.cwd(), o.out) || '.'}/`); process.exit(2); }
+  for (const k of ['plan', 'transcript', 'reviewPatch', 'preset', 'script', 'names', 'people']) if (o[k]) { o[k] = path.resolve(o[k]); if (!fs.existsSync(o[k])) { console.error(`ai-video-editor: --${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)} file not found: ${o[k]}${k === 'plan' ? `\nMake one with: ai-video-editor ${o.mode} ${path.relative(process.cwd(), o.input)} -o ${path.relative(process.cwd(), o.out) || '.'}/ --plan-only` : ''}`); process.exit(2); } }
   o.preset = o.preset ? JSON.parse(fs.readFileSync(o.preset, 'utf8')) : {};
   if (o.style) {
     try { o.style = loadPack(o.style); } catch (e) { if (e instanceof StyleError) { console.error(`ai-video-editor: ${e.message}`); process.exit(2); } throw e; }
@@ -225,10 +229,16 @@ async function main() {
   o.work = path.join(o.out, '.work', `${o.mode}_${o.clip}`);
   fs.mkdirSync(o.work, { recursive: true });
   o.logFile = path.join(o.work, 'ai-video-editor.log');
+  runLog = o.logFile;
   const t0 = Date.now();
   log(`${o.mode} ${o.input} -> ${o.out} [${o.formats.join(', ')}] (log ${o.logFile})`);
   const mod = await import(`../modes/${o.mode}.mjs`);
-  const res = await mod.default(o);
+  let res;
+  try { res = await mod.default(o); } catch (e) {
+    if (!(e instanceof NoSpeechError)) throw e;
+    console.error(`ai-video-editor: ${e.message}\nNothing was rendered (exit 2). Try the bundled sample:\n  ai-video-editor ${o.mode} ${SAMPLE} -o ${path.relative(process.cwd(), o.out) || '.'}/`);
+    process.exit(2);
+  }
   const secs = Math.round((Date.now() - t0) / 1000);
   // the final file(s) must be in the output folder, non-empty and readable (engine/final-output.mjs)
   const fin = modeFinalFiles(o, res);
@@ -245,11 +255,33 @@ async function main() {
     log(`preview: ${o.out}${fails.length ? ` (delivery check on the slice: ${fails.map((e) => e.note || 'FAIL').join('; ')}; the full render checks again)` : ''}; run again without --preview for the final`);
     process.exit(0);
   }
-  if ((res.exports || []).some((e) => e.pass === false)) {
-    console.error(`ai-video-editor: delivery FAIL (exit 1): outputs were written under ${o.out}; review the report and exports there — do not re-run blindly.`);
-    process.exit(1);
-  }
+  const failed = (res.exports || []).filter((e) => e.pass === false);
+  if (failed.length) { console.error(deliveryFailText(failed, o.out, rp)); process.exit(1); }
   process.exit(0);
 }
 
-if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((e) => { console.error(`ai-video-editor: ${e.stack || e.message}`); process.exit(1); });
+/** The exit-1 message: the video was made, some delivery checks failed; which ones and what to open next. */
+export function deliveryFailText(failed, out, reportFile) {
+  const L = [`ai-video-editor: delivery FAIL (exit 1). This is not a crash: the video is written, but ${failed.length} export(s) failed a delivery check:`];
+  for (const e of failed) {
+    L.push(`  ${path.relative(out, e.file) || e.file}: ${e.note || 'FAIL'}`);
+    for (const line of String(e.check || '').split('\n').filter((l) => /^FAIL\b/.test(l))) L.push(`    ${line}`);
+  }
+  if (failed.some((e) => /^FAIL\s+transcript\s+0 words heard/m.test(e.check || ''))) L.push('No speech was heard in the video: use a clip with clear speech (try samples/talk.mp4).');
+  L.push(`Next: open the *_sheet.png contact sheet(s) and ${path.relative(out, reportFile)} in ${out}, watch the video,`,
+    `and check KNOWN_ISSUES.txt for known false alarms. Re-run only after you change the input or the options.`);
+  return L.join('\n');
+}
+
+let runLog = null;
+// the bundled sample, as a path the user can paste from where they are
+const SAMPLE = ((abs) => (path.relative(process.cwd(), abs).startsWith('..') ? abs : path.relative(process.cwd(), abs)))(path.join(REPO, 'samples/talk.mp4'));
+
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((e) => {
+  // an unexpected error: not a delivery FAIL (exit 1 means "the video is written"), so exit 5 (no usable final file)
+  console.error(`ai-video-editor: the run stopped on an error (exit ${EXIT_NO_OUTPUT}; no final video was finished):\n  ${e.message}`);
+  if (runLog) { try { fs.appendFileSync(runLog, `\n${e.stack}\n`); } catch { /* the log folder is gone */ } }
+  if (process.env.AI_VIDEO_EDITOR_DEBUG) console.error(e.stack);
+  else console.error(`The stack trace is ${runLog ? `at the end of ${runLog}` : 'printed with AI_VIDEO_EDITOR_DEBUG=1'}; please include it in a bug report.`);
+  process.exit(EXIT_NO_OUTPUT);
+});

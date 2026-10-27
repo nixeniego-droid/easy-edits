@@ -124,8 +124,8 @@ const capsWith = (names) => (kind) => { try { return getBackend(kind, { name: na
 /** Plan a type: returns { plan, planFile } (writes plan.json + pin, PLAN.txt, storyboard.png). Throws PlanError on a refusal. */
 export async function planNew(type, o) {
   await loadRecipes();
-  if (!TYPES.includes(type) && !getRecipe(type)) throw new PlanError(`unknown type "${type}" (${TYPES.join(', ')})`);
-  if (!o.out) throw new PlanError('-o <out-dir> is required');
+  if (!TYPES.includes(type) && !getRecipe(type)) throw new PlanError(`unknown type "${type}" (${TYPES.join(', ')}); see: ai-video-editor new types`);
+  if (!o.out) throw new PlanError(`-o <out-dir> is required (the folder for the plan and the video); e.g.: ai-video-editor new ${type} -o out/${type} ...`);
   let recipeName = type, mapping = null;
   if (type === 'other') {
     if (!o.brief) throw new PlanError('new other: needs --brief "..." (it is mapped to the closest recipe)');
@@ -358,6 +358,19 @@ export function initBrandScaffold(dir = 'brand') {
   return { root, brandFile, assets };
 }
 
+/** The exit-1 message for `new --approve` / `resume`: the video is written; which checks failed and what to open next. */
+export function deliveryFailText(cmd, r) {
+  const bad = (r.report?.outputs || []).filter((x) => !x.pass);
+  const L = [`ai-video-editor ${cmd}: delivery FAIL (exit 1). This is not a crash: the video is written under ${r.out}, but ${bad.length || 'some'} output(s) failed a delivery check:`];
+  for (const x of bad) {
+    L.push(`  ${x.file}:`);
+    for (const t of x.checks.filter((c) => /\bFAIL\b/.test(c))) L.push(`    ${t}`);
+  }
+  L.push('Next: read REVIEW.txt (every FAIL and the WEAK SHOTS) and DELIVERY.json there, and watch the video. To change it,',
+    'edit plan.json, then `ai-video-editor new repin <plan.json>` and approve again; re-running the same plan gives the same result.');
+  return L.join('\n');
+}
+
 /** CLI for `ai-video-editor resume <out-dir>` (exit 0 ok, 1 a delivery FAIL, 2 refused, 3 still waiting for assets, 5 no final file). */
 export async function resumeMain(argv) {
   let o;
@@ -369,7 +382,7 @@ export async function resumeMain(argv) {
   try {
     const r = await resumeNew(o.pos[0], o);
     if (!r.pass) {
-      console.error(`ai-video-editor resume: delivery FAIL (exit 1): plan and exports were written under ${r.out}; review REVIEW.txt and DELIVERY.json — do not re-run the plan.`);
+      console.error(deliveryFailText('resume', r));
       return 1;
     }
     return 0;
@@ -410,7 +423,7 @@ export async function newMain(argv) {
     if (o.approve) {
       const r = await approveNew(o.approve, { ...o, type: o.pos[0] });
       if (!r.pass) {
-        console.error(`ai-video-editor new: delivery FAIL (exit 1): plan and exports were written under ${r.out}; review REVIEW.txt and DELIVERY.json — do not re-run the plan.`);
+        console.error(deliveryFailText('new', r));
         return 1;
       }
       return 0;
@@ -423,7 +436,7 @@ export async function newMain(argv) {
   } catch (e) {
     if (e instanceof PendingAssetsError) { process.stdout.write(pendingMessage(e)); return EXIT_PENDING; }
     if (e instanceof FinalOutputError) { console.error(`ai-video-editor new: FAILED: ${e.message}`); return EXIT_NO_OUTPUT; }
-    if (e instanceof PlanError || /^(unknown format|custom format|--loudness|--length|unknown backend|--format)/.test(e.message)) { console.error(`ai-video-editor new: ${e.message}`); return 2; }
+    if (e instanceof PlanError || /^(unknown format|custom format|--loudness|--length|unknown backend|--format)/.test(e.message)) { console.error(/^new [a-z-]+:/.test(e.message) ? `ai-video-editor ${e.message}` : `ai-video-editor new: ${e.message}`); return 2; }
     throw e;
   }
 }

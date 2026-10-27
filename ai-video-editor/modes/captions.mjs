@@ -8,6 +8,7 @@ import { normalise, sdrClip, asr, faceTrack, log } from '../engine/media.mjs';
 import { exportFormats } from '../engine/export.mjs';
 import { probe } from '../engine/audio.mjs';
 import { TAIL_HOLD } from '../styles/clean-cut/build.mjs';
+import { requireSpeech } from '../engine/final-output.mjs';
 
 export default async function captions(o) {
   const src = normalise(o.input, o.work);
@@ -23,6 +24,7 @@ export default async function captions(o) {
     const j = JSON.parse(fs.readFileSync(o.transcript, 'utf8'));
     words = j.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end }));
   } else { log('transcribing ...'); words = asr(src.file, path.join(o.work, 'source.words.json'), { lang: o.lang || 'auto', logFile: o.logFile }); }
+  requireSpeech(words, o.input);
   // --review-patch: only its caption text fixes apply here (index = word index of the transcript; "" blanks a
   // caption word, the audio is never touched); keep / remove are ignored: captions mode never cuts
   if (o.reviewPatch) {
