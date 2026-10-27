@@ -18,6 +18,8 @@ import { styleMain } from './style.mjs';
 import { backendsMain } from './backends.mjs';
 import { newMain, resumeMain } from '../new/index.mjs';
 import { finalOutputProblems, modeFinalFiles, FinalOutputError, NoSpeechError, EXIT_NO_OUTPUT } from '../engine/final-output.mjs';
+import { withProgress } from '../engine/progress.mjs';
+import { publicReport } from '../engine/report.mjs';
 
 const HELP = `AI Video Editor: one CLI for talking-head editing, built on Herk Edit Kit (Nate Herk) + HyperFrames.
 
@@ -61,6 +63,7 @@ options
                           every re-run of the same source reuses it, so re-runs are deterministic
   --replan                plan again (agent / picker) instead of reusing the pinned plan (also shorts --graphics)
   --plan-only             stop after planning: print the plan path for review, then re-run (it is pinned)
+  --progress plain|json   stage lines on stderr every ~10 s (default plain; json = machine-readable). Also AI_VIDEO_EDITOR_PROGRESS.
   --preview [SECONDS]     captions / clean-cut / talking-head: a quick look before the full render: edits about
                           SECONDS (default 20) from the first speech to a pause, in the first format, into
                           <out-dir>/preview/ (mp4, contact sheet, .srt), exit 0; then run again without --preview
@@ -111,7 +114,7 @@ examples
 
 const MODES = ['clean-cut', 'talking-head', 'explainer', 'shorts', 'captions'];
 const PREVIEW_MODES = ['captions', 'clean-cut', 'talking-head'], PREVIEW_SECS = 20;
-const FLAGS_WITH_VALUE = new Set(['-o', '--out', '--format', '--notes', '--title', '--speaker', '--role', '--plan', '--transcript', '--review-patch', '--mode-cut', '--lang', '--music', '--preset', '--clips', '--min', '--max', '--script', '--agent', '--subtitle', '--cta', '--names', '--cookies', '--range', '--pick', '--speaker-at', '--people', '--style', '--face', '--caption-color']);
+const FLAGS_WITH_VALUE = new Set(['-o', '--out', '--format', '--notes', '--title', '--speaker', '--role', '--plan', '--transcript', '--review-patch', '--mode-cut', '--lang', '--music', '--preset', '--clips', '--min', '--max', '--script', '--agent', '--subtitle', '--cta', '--names', '--cookies', '--range', '--pick', '--speaker-at', '--people', '--style', '--face', '--caption-color', '--progress']);
 
 export function parseArgs(argv) {
   const o = { pos: [] };
@@ -133,6 +136,7 @@ export function parseArgs(argv) {
   o.formats = f === 'all' ? ['9x16', '1x1', '16x9'] : f.split(',');
   for (const x of o.formats) if (!['9x16', '1x1', '16x9'].includes(x)) throw new Error(`unknown format ${x} (9x16, 1x1, 16x9, all)`);
   if (o.agent) process.env.AI_VIDEO_EDITOR_AGENT = o.agent;
+  if (o.progress != null && !['plain', 'json'].includes(String(o.progress))) throw new Error('--progress: use plain or json');
   if (o.face != null) o.face = parseFace(o.face);
   if (o.preview != null) {
     if (!PREVIEW_MODES.includes(o.mode)) throw new Error(`--preview: works with ${PREVIEW_MODES.join(', ')} (shorts: --propose already makes a preview per candidate)`);
@@ -225,6 +229,8 @@ async function main() {
     log(`style: ${o.style.name} (${o.style.file})`);
   }
   o.clip = path.basename(o.input).replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9_-]+/g, '-');
+  if (o.progress) process.env.AI_VIDEO_EDITOR_PROGRESS = String(o.progress);
+  else if (!process.env.AI_VIDEO_EDITOR_PROGRESS) process.env.AI_VIDEO_EDITOR_PROGRESS = 'plain';
   if (o.preview != null) previewInput(o);
   o.work = path.join(o.out, '.work', `${o.mode}_${o.clip}`);
   fs.mkdirSync(o.work, { recursive: true });
@@ -234,7 +240,10 @@ async function main() {
   log(`${o.mode} ${o.input} -> ${o.out} [${o.formats.join(', ')}] (log ${o.logFile})`);
   const mod = await import(`../modes/${o.mode}.mjs`);
   let res;
-  try { res = await mod.default(o); } catch (e) {
+  try {
+    const stageMsg = ({ 'clean-cut': 'Cleaning up your video…', captions: 'Adding captions…', shorts: 'Making short clips…', 'talking-head': 'Rendering your talking-head edit…', explainer: 'Rendering your explainer…' })[o.mode] || 'Working on your video…';
+    res = await withProgress(o.mode, stageMsg, () => mod.default(o));
+  } catch (e) {
     if (!(e instanceof NoSpeechError)) throw e;
     console.error(`ai-video-editor: ${e.message}\nNothing was rendered (exit 2). Try the bundled sample:\n  ai-video-editor ${o.mode} ${SAMPLE} -o ${path.relative(process.cwd(), o.out) || '.'}/`);
     process.exit(2);
@@ -243,7 +252,7 @@ async function main() {
   // the final file(s) must be in the output folder, non-empty and readable (engine/final-output.mjs)
   const fin = modeFinalFiles(o, res);
   const missing = finalOutputProblems(fin.files, o.out, { expect: fin.expect });
-  const report = { mode: o.mode, input: o.input, formats: o.formats, seconds: secs, ...res, finalOutput: { ok: !missing.length, files: fin.files, problems: missing } };
+  const report = publicReport({ mode: o.mode, input: o.input, formats: o.formats, seconds: secs, ...res, finalOutput: { ok: !missing.length, files: fin.files, problems: missing } });
   const rp = path.join(o.out, `ai-video-editor_${o.mode}_${o.clip}.report.json`);
   fs.writeFileSync(rp, JSON.stringify(report, null, 1));
   for (const e of res.exports || []) log(`${e.pass === false ? 'CHECK FAIL' : 'ok'} ${e.file}${e.note ? ` (${e.note})` : ''}`);
