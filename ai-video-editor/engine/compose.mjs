@@ -29,21 +29,58 @@ export function geometry(fmt) {
   if (fmt === '9x16') return {
     w, h, full: { x: 0, y: 0, w, h },
     panel: { x: 0, y: 0, w, h: 790 }, seamY: 862, split: { x: 0, y: 930, w, h: h - 930 },
-    capY: 1290, capMinY: 1180, capMaxY: 1480, safeTop: 250, capSize: 96, capBox: 960, minSize: 66, minBox: 900, minY: 1400,
+    capY: 1290, capMinY: 1180, capMaxY: 1480, safeTop: 250, capSize: 96, capBox: 960, minSize: 66, minBox: 900, minY: 1400, capBottom: 1640, capFloor: 1850,
     lower: { x: 60, y: 1030 }, popZone: { x0: 120, x1: 960, y0: 300, y1: 1080 }, faceY: 0.36,
   };
   if (fmt === '1x1') return {
     w, h, full: { x: 0, y: 0, w, h },
     panel: { x: 0, y: 0, w: 560, h }, seamY: null, split: { x: 560, y: 0, w: w - 560, h },
-    capY: 900, capMinY: 760, capMaxY: 990, safeTop: 60, capSize: 78, capBox: 980, minSize: 56, minBox: 960, minY: 930,
+    capY: 900, capMinY: 760, capMaxY: 990, safeTop: 60, capSize: 78, capBox: 980, minSize: 56, minBox: 960, minY: 930, capBottom: 1040, capFloor: 1064,
     lower: { x: 50, y: 690 }, popZone: { x0: 110, x1: 970, y0: 110, y1: 640 }, faceY: 0.36,
   };
   return {
     w, h, full: { x: 0, y: 0, w, h },
     panel: { x: 0, y: 0, w: 1000, h }, seamY: null, split: { x: 1000, y: 0, w: w - 1000, h },
-    capY: 900, capMinY: 780, capMaxY: 990, safeTop: 60, capSize: 80, capBox: 1500, minSize: 56, minBox: 1500, minY: 950,
+    capY: 900, capMinY: 780, capMaxY: 990, safeTop: 60, capSize: 80, capBox: 1500, minSize: 56, minBox: 1500, minY: 950, capBottom: 1040, capFloor: 1064,
     lower: { x: 80, y: 700 }, popZone: { x0: 120, x1: 1800, y0: 100, y1: 660 }, faceY: 0.38,
   };
+}
+
+/** face keep-out for captions (output px): forehead over the face centre, the chin under it, plus a margin; the
+ * union of every face sample `fs` ({cx, cy, fw}) while the caption is on screen. Covers compose's face rect. */
+export const CAP_FOREHEAD = 0.75, CAP_CHIN = 0.85, CAP_MARGIN = 0.02;
+export function captionKeepOut(fs, W) {
+  const m = CAP_MARGIN * W, ok = fs.filter((f) => f?.cy && f.fw > 0);
+  if (!ok.length) return null;
+  return {
+    x0: Math.min(...ok.map((f) => f.cx - f.fw / 2)) - m, x1: Math.max(...ok.map((f) => f.cx + f.fw / 2)) + m,
+    y0: Math.min(...ok.map((f) => f.cy - f.fw * CAP_FOREHEAD)) - m, y1: Math.max(...ok.map((f) => f.cy + f.fw * CAP_CHIN)) + m,
+  };
+}
+
+/** caption centre y next to the face keep-out `ko` ({y0, y1}, null = no face): the band below the chin (to `bottom`)
+ * or above the forehead (from `top`, under the platform's top bar), whichever holds the caption height `ch`. Sticky:
+ * the previous caption's side (`prev` {side, y}) is kept while it fits, and its y while it is clear and within `hyst`
+ * px of the new one, so captions don't jitter or flip-flop when the face moves a little. Both sides fit and none
+ * held: below when roomy, else the larger band. Neither fits (a face filling the frame): the bottom band reaches
+ * down to `floor` (over the platform's bottom UI rather than the face); still none: the larger band, pressed to its
+ * outer edge. No face: `want` clamped to [lo, hi] (the default band). Returns { y, side }. */
+export function pickCaptionY({ want, ch, ko, top, bottom, floor = bottom, lo = -Infinity, hi = Infinity, prev = null, hyst = 40 }) {
+  if (!ko) return { y: Math.max(lo, Math.min(hi, want)), side: prev?.side || null };
+  const room = { below: bottom - ko.y1, above: ko.y0 - top }, fits = (s) => room[s] >= ch;
+  if (!fits('below') && !fits('above') && floor > bottom) return pickCaptionY({ want, ch, ko, top, bottom: floor, lo, hi, prev, hyst });
+  let side;
+  if (prev?.side && fits(prev.side)) side = prev.side;
+  else if (fits('below') && fits('above')) side = room.below >= 2 * ch || room.below >= room.above ? 'below' : 'above';
+  else if (fits('below') || fits('above')) side = fits('below') ? 'below' : 'above';
+  else side = prev?.side && room[prev.side] + hyst >= Math.max(room.below, room.above) ? prev.side : (room.below >= room.above ? 'below' : 'above');
+  // placed with a little slack off the keep-out (when the band has it), so the next caption's wobble keeps this y
+  const h = ch / 2, pad = Math.max(0, Math.min(hyst / 3, room[side] - ch));
+  const place = (s) => (s === 'below' ? Math.min(Math.max(want, ko.y1 + h + pad), bottom - h) : Math.max(Math.min(want, ko.y0 - h - pad), top + h));
+  const clear = (s, y) => (s === 'below' ? y - h >= ko.y1 && y + h <= bottom : y + h <= ko.y0 && y - h >= top);
+  let y = place(side);
+  if (prev?.side === side && prev.y != null && Math.abs(prev.y - y) < hyst && clear(side, prev.y)) y = prev.y;
+  return { y, side };
 }
 
 /** face track sample at clip time t (nearest). */
@@ -540,24 +577,26 @@ ${b.sub ? `<div id="${id}sb" style="font-weight:600;font-size:${Math.round(big *
     const emph = new Set();
     for (const b of beats) { for (const k of ['anchor']) if (b[k] && (b.type === 'icon' || b.type === 'stat')) norm(b[k]).split(' ').forEach((x) => emph.add(x)); if (b.type === 'compare') { emph.add(norm(b.left?.title || '')); emph.add(norm(b.right?.title || '')); } }
     const key = (w) => emph.has(norm(w.text)) || /\d/.test(w.text);
-    let prevInk = null;
+    let prevInk = null, capSide = null; // capSide: the last caption's side of the face (sticky placement)
     caps.forEach((c, i) => {
       const t0 = c.words[0].start + 0.02; // the spoken start: a caption leads its word by 2 frames, never into another layout
       const lay = segs.find((s) => t0 >= s.start && t0 < s.end) || segs.at(-1);
       const f = faceOutAt(t0);
       let y, size = C ? Math.round((C.size * G.capSize) / 96) : (kin ? G.capSize : G.minSize), box = one ? G.capBox : G.minBox, left = Math.round((G.w - box) / 2);
-      if (lay?.kind === 'split') {
-        if (G.seamY) y = G.seamY;
-        else { y = G.h - 150; box = Math.min(box, G.split.w - 40); left = Math.round(G.split.x + (G.split.w - box) / 2); size = Math.round(size * 0.85); }
-      } else {
-        y = one ? G.capY : G.minY;
-        if (SCREEN) y = G.screenCapY;
-        else if (f?.cy) { const chin = f.cy + f.fw * 0.8; if (chin + size * 0.9 > y) y = chin + size * 0.9; }
-        if (!SCREEN) y = clamp(y, G.capMinY, G.capMaxY);
-      }
+      if (lay?.kind === 'split' && !G.seamY) { box = Math.min(box, G.split.w - 40); left = Math.round(G.split.x + (G.split.w - box) / 2); size = Math.round(size * 0.85); }
       const lines = one ? 1 : Math.max(1, Math.ceil((c.text.length * size * 0.55) / box));
       const ch = size * (one ? 1.05 : 1.18) * lines;
-      if (underBar(c.start, c.end)) y = Math.min(y, G.h - LB.h - 16 - ch / 2);
+      const barTop = underBar(c.start, c.end) ? G.h - LB.h - 16 : G.h;
+      if (lay?.kind === 'split') y = G.seamY || G.h - 150;
+      else if (SCREEN) y = G.screenCapY;
+      else {
+        // the face's keep-out over the whole caption (start, every 0.25 s, end), only where it is under the caption box
+        const ts = [c.start, t0]; for (let t = c.start + 0.25; t < c.end; t += 0.25) ts.push(t); ts.push(Math.max(c.start, c.end - 0.02));
+        const ko = captionKeepOut(ts.map(faceOutAt).filter((x) => x && x.kind !== 'split'), G.w);
+        const pick = pickCaptionY({ want: one ? G.capY : G.minY, ch, ko: ko && ko.x0 < left + box && ko.x1 > left ? ko : null, top: G.safeTop, bottom: Math.min(G.capBottom, barTop), floor: Math.min(G.capFloor, barTop), lo: G.capMinY, hi: G.capMaxY, prev: capSide });
+        y = pick.y; capSide = { side: pick.side, y };
+      }
+      if (barTop < G.h) y = Math.min(y, barTop - ch / 2);
       // auto contrast: what the text will sit on (its estimated width, not the whole caption box)
       const tw0 = Math.min(box, (c.text.length * size * ((C ? C.case === 'upper' : kin) ? 0.72 : 0.58)) / lines);
       const bg = behind(c.start, c.end, { x: left + (box - tw0) / 2, y: y - ch / 2, w: tw0, h: ch });
