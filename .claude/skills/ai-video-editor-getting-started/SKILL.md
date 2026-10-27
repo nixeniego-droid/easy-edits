@@ -2,7 +2,7 @@
 name: ai-video-editor-getting-started
 description: >-
   Use for the first conversation with a new AI Video Editor owner: install the tool for them,
-  learn their preferences with tap-to-pick choices, and get them a first great edit in as few taps as possible.
+  learn their preferences with tap-to-pick choices, and get them a first edit in as few taps as possible.
 ---
 
 # AI Video Editor: getting started
@@ -21,23 +21,23 @@ Cards below are written `[card: question / option (recommended) | option | ...]`
 or a short numbered list when there is none.
 
 1. Say who you are in one line, then start the install yourself right away (sections 1 and 2 of the
-   `ai-video-editor` skill: clone https://github.com/nixeniego/ai-video-editor, `./install.sh`,
+   `ai-video-editor` skill: clone https://github.com/nixeniego/ai-video-editor (tag v1.4.2), `./install.sh`,
    `./install.sh --doctor`). Run it in the foreground. Tell them, in plain words: "I'm setting up the video editor
-   on this computer. It takes a few minutes the first time (it downloads a speech model); I'll tell you when it's
-   ready." Never ask them to open a terminal. Give the progress lines from section 0 while it runs.
+   on this computer. The first time takes a few minutes because it downloads a speech model. I'll tell you when
+   it's ready." Never ask them to open a terminal. Give the progress lines from section 0 while it runs.
 2. While it installs, ask one thing at a time:
    - "What should I call you?" (free text)
    - [card: What should we make first? / Clean up a video (recommended) | Make short clips from a long video | Add captions | Make a new video from scratch]
    - [card: Where do you post most? / Vertical: TikTok, Reels, Shorts (recommended) | Square | Widescreen: YouTube | All three]
-   - Only if they picked short clips: [card: Big hook line over the first seconds of each short? / Yes (recommended) | No]
-   - Only if they picked a new video: [card: What kind? / Promo for my brand (recommended) | Presenter reads my script | Explainer with sources | Story | Podcast]
-     and [card: OK if I make the pictures and clips with my built-in tools on your plan? / Yes (recommended) | I'll use my own xAI key later]
+   - Only if they picked short clips: [card: Big hook line over the first seconds? / Yes (recommended) | No]
+   - Only if they picked a new video: [card: What kind of video? / Promo for my brand (recommended) | Presenter reads my script | Explainer with sources | Story | Podcast]
+     and [card: OK if I make the pictures and clips with my built-in tools, included in your bot plan? / Yes (recommended) | Use your own xAI key later]
    - Lower-third name: only ask if they want their name on screen, and use exactly what they type (never guess).
 3. Save each answer as a memory (name, usual intent, default format, hook default, lower-third name, generation
    preference) and make it the recommended option next time.
 4. When the doctor prints "doctor: all PASS", say "Ready." and ask: "Drop a video here, or paste a link to one you
    own." Offer [card: No video handy? / Try it on the sample clip (recommended) | I'll upload one].
-5. Fewest taps to a first great result:
+5. Fewest taps to a result:
    - Clean up / captions / talking head: run a quick preview (about 20 s from the first words, section 0), attach it with its sheet,
      then [card: Look good? / Make the full version (recommended) | Change the shape | Try a different look].
      A clip under ~30 s needs no preview: go straight to the full render.
@@ -49,4 +49,4 @@ or a short numbered list when there is none.
    in one plain sentence what it flagged and whether it's a known false alarm (KNOWN_ISSUES.txt); never call a FAIL
    "done". Then [card: What's next? / Make 3 shorts from this (recommended) | Try a different look | Same video in another shape | Start another video | I'm good].
 7. Errors: never paste the error. Say what went wrong in one sentence and offer the fixes as a card (section 0,
-   "Errors"), e.g. [card: I couldn't download that link. / Upload the file instead (recommended) | Try a different link | Use the sample clip].
+   "Errors"), e.g. "I couldn't download that link." then [card: How should we fix this? / Upload the file instead (recommended) | Try a different link | Use the sample clip].

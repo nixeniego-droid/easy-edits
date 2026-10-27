@@ -49,22 +49,22 @@ Match the user's words to a row; ask (with a choice card) only when two rows fit
 
 | the user says (examples)                                             | you do (say it like this)                                      | internal: what you run |
 |----------------------------------------------------------------------|----------------------------------------------------------------|------------------------|
-| "make 3 shorts from this", "clip the best moments", "find the good bits", "shorts", "reels" | find the best moments, show them as pick cards, render the picks | `shorts VIDEO -o OUT --propose --clips 3` -> read `OUT/proposals.json` -> pick card -> `shorts VIDEO -o OUT --pick N[,M] [--hook]` |
-| "clean this up", "tighten this", "cut the ums", "remove the pauses", "just edit it" | a clean cut: fillers, long pauses and slips out, clean captions | `clean-cut VIDEO -o OUT` (the default; no mode = clean-cut) |
+| "make 3 shorts from this", "clip the best moments", "find the good bits", "shorts", "reels" | find moments to clip, show them as pick cards, render the picks | `shorts VIDEO -o OUT --propose --clips 3` -> read `OUT/proposals.json` -> pick card -> `shorts VIDEO -o OUT --pick N[,M] [--hook]` |
+| "clean this up", "tighten this", "cut the ums", "remove the pauses", "just edit it" | a clean cut: fillers, long pauses and slips out, with captions | `clean-cut VIDEO -o OUT` (the default; no mode = clean-cut) |
 | "add captions", "subtitle this", "put text on it", "I need an .srt"  | captions only, nothing cut                                     | `captions VIDEO -o OUT` |
-| "talking head", "follow my face", "make it look pro", "motion graphics", "animated titles" | a motion-design edit that follows their face            | `talking-head VIDEO -o OUT` (+ `--speaker/--role` only with names they gave) |
-| "screen recording", "tutorial", "explain this with diagrams"         | an explainer edit over their recording                         | `explainer VIDEO -o OUT [--script FILE]` |
-| "make a new video", "from scratch", "I don't have footage", "promo", "ad for my brand" | plan a new video; nothing is made until they say yes | `new promo -o OUT --brand F --assets DIR` (section 6) |
+| "talking head", "follow my face", "make it look pro", "motion graphics", "animated titles" | a motion-graphics edit that follows your face            | `talking-head VIDEO -o OUT` (+ `--speaker/--role` only with names they gave) |
+| "screen recording", "tutorial", "explain this with diagrams"         | an explainer edit over your recording                         | `explainer VIDEO -o OUT [--script FILE]` |
+| "make a new video", "from scratch", "I don't have footage", "promo", "ad for my brand" | plan a new video first; nothing gets made until you say yes | `new promo -o OUT --brand F --assets DIR` (section 6) |
 | "presenter", "an AI host reads my script", "avatar"                  | plan a presenter video                                         | `new presenter -o OUT --script F` (own face/voice: consent first) |
-| "explainer about X", "explain this topic with sources"               | plan a sourced explainer                                       | `new explainer-cited -o OUT --source F --topic "..."` |
+| "explainer about X", "explain this topic with sources"               | plan an explainer that cites your sources                                       | `new explainer-cited -o OUT --source F --topic "..."` |
 | "podcast", "two voices"                                              | plan a two-voice podcast                                       | `new podcast -o OUT --script F` |
 | "a story", "short film", "music video" (their own song)              | plan a story or music video                                    | `new story ...` / `new music-video --song F --i-own-this-music` (only on their word) |
 | "fix this", "vertical", "for TikTok", "for Reels", "for Shorts"      | make it vertical                                               | `--format 9x16` (the default) |
 | "square", "for Instagram feed"; "widescreen", "for YouTube"; "all sizes" | square, widescreen or all three                           | `--format 1x1` / `--format 16x9` / `--format all` |
-| "add a hook", "big text at the start"                                | a hook line over the first 3 seconds                           | shorts: `--hook` |
-| "put my name on it" (with the name)                                  | a name and title lower third                                   | `--speaker "Name" --role "Role"` (never guess a name) |
-| "make it look like X", "punchy", "calm", "techy"                     | offer the matching look                                        | `--style punch` / `broadsheet` / `terminal` (not clean-cut) |
-| "show me first", "preview"                                           | a quick preview before the full render                         | `--preview` (captions / clean-cut / talking-head); shorts previews come with `--propose` |
+| "add a hook", "big text at the start"                                | a big hook line over the first 3 seconds                           | shorts: `--hook` |
+| "put my name on it" (with the name)                                  | your name and title on screen                                   | `--speaker "Name" --role "Role"` (never guess a name) |
+| "make it look like X", "punchy", "calm", "techy"                     | offer the look that matches                                        | `--style punch` / `broadsheet` / `terminal` (not clean-cut) |
+| "show me first", "preview"                                           | a quick preview before the full video                         | `--preview` (captions / clean-cut / talking-head); shorts previews come with `--propose` |
 | a link to their video                                                | fetch it, then the same flow                                   | pass the URL as VIDEO (only their own or public-domain / CC videos) |
 
 `ai-video-editor` is the command in every row (`ai-video-editor shorts ...`). Use `-o` folders outside the
@@ -79,7 +79,7 @@ the user has a saved preference, make that the recommended option. The decisions
 | decision                 | card                                                                                              |
 |--------------------------|---------------------------------------------------------------------------------------------------|
 | intent                   | What should we make? / Clean up a video (recommended) \| Make short clips \| Add captions \| Make a new video from scratch |
-| format                   | Which shape? / Vertical for TikTok, Reels, Shorts (recommended) \| Square \| Widescreen \| All three |
+| format                   | Which shape? / Vertical: TikTok, Reels, Shorts (recommended) \| Square \| Widescreen: YouTube \| All three |
 | hook (shorts)            | Big hook line over the first seconds? / Yes (recommended) \| No                                    |
 | new-video type           | What kind of video? / Promo for my brand (recommended when they gave a brand) \| Presenter reads my script \| Explainer with sources \| Story \| Podcast |
 | shorts pick              | Which clips? / one option per candidate: `#id "hookCard" · durationSec s` (recommended = rank 1) \| All of them |
@@ -99,13 +99,13 @@ from the log, never pasted from it:
 
 | what's happening (log)                         | say                                                                     |
 |------------------------------------------------|-------------------------------------------------------------------------|
-| `./install.sh` starting                        | "Setting things up. It takes a few minutes the first time; I'll tell you when it's ready." |
+| `./install.sh` starting                        | "Setting things up. The first time takes a few minutes. I'll tell you when it's ready." |
 | install: Node / Python / packages              | "Installing the editing tools…"                                         |
 | install: Whisper models (~2 GB)                | "Downloading the speech model that writes your captions. This is the slow part." |
-| install: Chrome / fonts                        | "Almost there: adding the renderer and caption font."                   |
+| install: Chrome / fonts                        | "Almost there: adding the video renderer and caption font."                   |
 | doctor: all PASS                               | "Ready."                                                                |
 | `transcribing` / ASR                           | "Listening to your video and writing the captions…"                     |
-| `picking` / proposals                          | "Finding the best moments…"                                             |
+| `picking` / proposals                          | "Finding moments to clip…"                                             |
 | `render` / HyperFrames frames                  | "Rendering your video…"                                                 |
 | delivery check / loudness                      | "Checking the sound level and captions…"                                |
 
@@ -128,7 +128,7 @@ render checks again. Shorts already preview: `--propose` writes one low-res prev
 
 Attach the files (bold rule above), say in one sentence what you made, relay any check FAIL in plain words
 (section 3), then a "What's next?" card that fits, e.g. "Make 3 shorts from this", "Add a hook line", "Try a
-different look", "Same edit in square", "Start another video", "I'm good".
+different look", "Same video in square", "Start another video", "I'm good".
 
 ### Errors: a choice card, never the raw error
 
@@ -137,25 +137,25 @@ on your own anything that needs no decision from them (a missing `env.sh`, a re-
 
 | what happened (internal)                                   | say + card                                                                                  |
 |------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| a link won't download (bot check, private, geo-blocked)    | "I couldn't download that link." / Upload the file instead (recommended) \| Try a different link \| Use the sample video |
-| exit 1, a delivery check FAIL (files written)              | "It's done, but one check flagged <plain reason>." / Keep it (recommended if KNOWN_ISSUES says false alarm) \| Fix and render again \| Show me the details |
-| exit 2, refused (style can't do it, bad option)            | "That look can't do <thing>." / Drop <thing> (recommended) \| Use another look \| No look |
+| a link won't download (bot check, private, geo-blocked)    | "I couldn't download that link." / Upload the file instead (recommended) \| Try a different link \| Use the sample clip |
+| exit 1, a delivery check FAIL (files written)              | "I made the video, but one check flagged <plain reason>." / Keep it (recommended if KNOWN_ISSUES says false alarm) \| Fix and render again \| Show me the details |
+| exit 2, refused (style can't do it, bad option)            | "That look doesn't support <thing>." / Skip <thing> (recommended) \| Try another look \| Keep it plain |
 | exit 5 / 137 / 143, the run stopped                        | "The render stopped before it finished." / Try again (recommended) \| Try a shorter part \| Make a smaller version |
-| no shorts found (`no ... moment left`)                     | "I couldn't find a clean moment of that length." / Allow shorter or longer clips (recommended) \| Use the whole video \| Clean it up instead |
-| doctor FAIL that needs `sudo`                              | "I need your computer password once to install <tool>." / I'll type it (recommended) \| Skip for now |
+| no shorts found (`no ... moment left`)                     | "I couldn't find a moment of that length that starts and ends cleanly." / Allow shorter or longer clips (recommended) \| Use the whole video \| Clean it up instead |
+| doctor FAIL that needs `sudo`                              | "To install <tool>, I need your computer password once." / I'll type it (recommended) \| Skip for now |
 
-### First run: fewest taps to a great result
+### First run: fewest taps to a result
 
 1. Install (section 1) while you ask their name and the intent card.
-2. Ask for a video ("drop a video here or paste a link to one you own"), or offer the built-in sample.
+2. Ask for a video ("Drop a video here, or paste a link to one you own."), or offer the built-in sample clip.
 3. Format card (vertical recommended), then the quick preview, then "Look good?".
 4. Full render; attach video + `.srt` + sheet; "What's next?" card.
 
 ## 1. Install (once per machine)
 
 You run the install yourself, from the chat, in one go; the user never opens a terminal. Tell them first, in
-plain words: "I'm setting up the video editor on this computer. It takes a few minutes the first time (it
-downloads a speech model of about 2 GB); I'll tell you when it's ready." Give the progress lines from section 0
+plain words: "I'm setting up the video editor on this computer. The first time takes a few minutes because it
+downloads a speech model of about 2 GB. I'll tell you when it's ready." Give the progress lines from section 0
 while it runs, ask the first-run questions meanwhile, and say "Ready." only after the doctor prints "doctor: all PASS".
 
 If you are already inside an AI Video Editor checkout (the folder has `install.sh` and `ai-video-editor/cli/main.mjs`, for
@@ -163,7 +163,7 @@ example when Claude Code was started in the cloned repo), skip the `git clone` a
 commands in that folder.
 
 ```sh
-git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor
+git clone --branch v1.4.2 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor
 cd ~/ai-video-editor
 ./install.sh            # safe to re-run; takes a while (downloads ~2 GB of Whisper models)
 . ~/.ai-video-editor/env.sh  # run in EVERY new shell: puts ai-video-editor, Node 22 and the venv python on PATH
@@ -178,7 +178,7 @@ skips what is already installed. Only call setup done after `./install.sh --doct
 `./install.sh` turns off the renderer's (HyperFrames) anonymous usage telemetry itself: it sets
 `HYPERFRAMES_NO_TELEMETRY=1` and `DO_NOT_TRACK=1` before anything runs and keeps them in `~/.ai-video-editor/env.sh`.
 
-If the clone fails because `~/ai-video-editor` already exists, run `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.1` instead.
+If the clone fails because `~/ai-video-editor` already exists, run `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.2` instead.
 
 `./install.sh` also registers this skill as `~/.claude/skills/ai-video-editor` (a copy that names the checkout), so new
 Claude Code sessions in any folder can load it; `./install.sh --skill-only` refreshes just that, and the doctor's
