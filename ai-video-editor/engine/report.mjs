@@ -29,17 +29,17 @@ function scrubCheck(check, pass) {
     .map((l) => {
       const m = /^NOTE\s+no-repeat\s+(.*)$/i.exec(l);
       if (!m) return l;
-      const jm = JARGON_NOTE.exec(m[1]) || /"([^"]+)"\s*x(\d+)/i.exec(m[1]);
-      if (jm) return `NOTE  ${reusedPhraseNote(jm[1], Number(jm[2]) || 2)}`;
-      if (/reused|two different places/i.test(m[1])) {
-        const k = /"([^"]+)"/.exec(m[1]);
-        return `NOTE  ${reusedPhraseNote(k?.[1] || '', 2)}`;
-      }
       if (/heard repeat|ASR mishearing|misheard|delivery check heard/i.test(m[1])) {
         const k = /"([^"]+)"/.exec(m[1]);
         return `NOTE  ${misheardPhraseNote(k?.[1] || '')}`;
       }
       if (/^The (phrase|delivery check)/.test(m[1])) return `NOTE  ${m[1]}`;
+      const jm = JARGON_NOTE.exec(m[1]) || (/reused|two different places/i.test(m[1]) ? /"([^"]+)"\s*x?(\d+)?/i.exec(m[1]) : null);
+      if (jm && /reused|two different places|phrase\(s\)/i.test(m[1])) return `NOTE  ${reusedPhraseNote(jm[1], Number(jm[2]) || 2)}`;
+      if (/reused|two different places/i.test(m[1])) {
+        const k = /"([^"]+)"/.exec(m[1]);
+        return `NOTE  ${reusedPhraseNote(k?.[1] || '', 2)}`;
+      }
       return l;
     })
     .filter((l) => !/^FAIL\b/.test(l))

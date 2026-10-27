@@ -40,5 +40,5 @@ test('plain misheard note on delivery PASS', () => {
   });
   assert.match(r.exports[0].note, /delivery check heard "warmest year on record"/);
   assert.doesNotMatch(r.exports[0].note, /ASR mishearing/);
-  assert.match(r.exports[0].check, /NOTE  The delivery check heard/);
+  assert.match(r.exports[0].check, /NOTE  The delivery check heard "warmest year on record"/);
 });
