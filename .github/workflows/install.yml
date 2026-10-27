@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # the tiny Whisper model keeps the run short; the doctor checks whichever models AI_VIDEO_EDITOR_WHISPER names
-  AI_VIDEO_EDITOR_WHISPER: tiny
+  # the tiny Whisper model keeps the run short; the doctor checks whichever models EASY_EDITS_WHISPER names
+  EASY_EDITS_WHISPER: tiny
 
 jobs:
   install:
@@ -49,11 +49,11 @@ jobs:
           chmod +x "$RUNNER_TEMP/shim/fc-list"
           PATH="$RUNNER_TEMP/shim:$PATH" ./install.sh --doctor
 
-      - name: ai-video-editor CLI works from env.sh
+      - name: easy-edits CLI works from env.sh
         run: |
-          . ~/.ai-video-editor/env.sh
-          ai-video-editor --help | head -n 5
-          ai-video-editor style list
+          . ~/.easy-edits/env.sh
+          easy-edits --help | head -n 5
+          easy-edits style list
 
   test:
     name: npm test
