@@ -71,3 +71,54 @@ test('install home: a custom AI_VIDEO_EDITOR_HOME never touches ~/.easy-edits', 
   assert.ok(!fs.lstatSync(old).isSymbolicLink() && !fs.existsSync(path.join(h, '.ai-video-editor')));
   fs.rmSync(h, { recursive: true, force: true });
 });
+
+// A stale shell (or an old env.sh) still exporting the pre-rename home: the move to ~/.ai-video-editor still happens.
+for (const name of ['EASY_EDITS_HOME', 'AI_VIDEO_EDITOR_HOME']) {
+  test(`install home: ${name}=~/.easy-edits is moved to ~/.ai-video-editor like the default home`, () => {
+    const h = home(), old = path.join(h, '.easy-edits');
+    fs.mkdirSync(path.join(old, 'models'), { recursive: true });
+    fs.writeFileSync(path.join(old, 'models', 'keep'), 'x');
+    fs.writeFileSync(path.join(old, 'env.sh'), `export EASY_EDITS_MODELS="${old}/models"\n`);
+    const r = spawnSync('bash', ['-c', 'set -euo pipefail\n. "$1"\nmigrate_home; write_env; link_legacy_home; echo "home=$AI_VIDEO_EDITOR_HOME models=$AI_VIDEO_EDITOR_MODELS"', 'bash', INSTALL_SH],
+      { encoding: 'utf8', env: { ...env(h), [name]: `${old}/` } });
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /moved .*\.easy-edits to .*\.ai-video-editor/);
+    assert.match(r.stdout, new RegExp(`home=${h}/\\.ai-video-editor models=${h}/\\.ai-video-editor/models`));
+    assert.equal(fs.readFileSync(path.join(h, '.ai-video-editor', 'models', 'keep'), 'utf8'), 'x');
+    assert.ok(fs.lstatSync(path.join(h, '.ai-video-editor')).isDirectory());
+    assert.equal(fs.readlinkSync(old), '.ai-video-editor');
+    assert.equal(realEnv(h, '.easy-edits'), realEnv(h, '.ai-video-editor'));
+    const e = fs.readFileSync(path.join(h, '.ai-video-editor', 'env.sh'), 'utf8');
+    assert.match(e, new RegExp(`export AI_VIDEO_EDITOR_HOME="${h}/\\.ai-video-editor"`));
+    assert.match(e, new RegExp(`export AI_VIDEO_EDITOR_PIPER_MODEL="${h}/\\.ai-video-editor/models/piper/en_US-amy-low\\.onnx"`));
+    assert.match(e, /export EASY_EDITS_PIPER_MODEL=/);
+    fs.rmSync(h, { recursive: true, force: true });
+  });
+}
+
+// The piper voice comes from AI_VIDEO_EDITOR_PIPER_CACHE when it holds the pinned files (no network); a bad copy is refused.
+test('install piper: the voice is copied from AI_VIDEO_EDITOR_PIPER_CACHE and checked against its sha256', () => {
+  const h = home(), cache = path.join(h, 'cache'), bin = path.join(h, 'fakebin');
+  fs.mkdirSync(cache); fs.mkdirSync(bin);
+  fs.writeFileSync(path.join(bin, 'piper'), '#!/bin/sh\nexit 0\n', { mode: 0o755 });   // a piper on PATH: no pip install
+  fs.writeFileSync(path.join(cache, 'en_US-amy-low.onnx'), 'x'); fs.writeFileSync(path.join(cache, 'en_US-amy-low.onnx.json'), '{}');
+  // hashes of the stand-in files replace the real pins, so the test needs neither the 60 MB voice nor the network
+  const script = `PIPER_ONNX_SHA=$(sha256sum "${cache}/en_US-amy-low.onnx" | cut -d' ' -f1); PIPER_JSON_SHA=$(sha256sum "${cache}/en_US-amy-low.onnx.json" | cut -d' ' -f1)
+    install_piper; write_env; echo "model=$PIPER_MODEL"`;
+  const run = (extra = {}) => spawnSync('bash', ['-c', `set -euo pipefail\n. "$1"\n${script}`, 'bash', INSTALL_SH],
+    { encoding: 'utf8', env: { ...env(h), PATH: `${bin}:${process.env.PATH}`, AI_VIDEO_EDITOR_PIPER_CACHE: cache, ...extra } });
+  let r = run();
+  assert.equal(r.status, 0, r.stderr);
+  const model = path.join(h, '.ai-video-editor', 'models', 'piper', 'en_US-amy-low.onnx');
+  assert.match(r.stdout, /piper voice: copying/);
+  assert.equal(fs.readFileSync(model, 'utf8'), 'x');
+  assert.ok(fs.existsSync(`${model}.json`));
+  assert.match(fs.readFileSync(path.join(h, '.ai-video-editor', 'env.sh'), 'utf8'), new RegExp(`AI_VIDEO_EDITOR_PIPER_MODEL="${model}"`));
+  r = run(); assert.equal(r.status, 0, r.stderr); assert.doesNotMatch(r.stdout, /copying/);   // present and valid: kept
+  fs.rmSync(model); fs.writeFileSync(path.join(cache, 'en_US-amy-low.onnx'), 'tampered');
+  r = spawnSync('bash', ['-c', `set -euo pipefail\n. "$1"\nPIPER_ONNX_SHA=${'0'.repeat(64)}; PIPER_VOICE_URL=file:///nonexistent; install_piper`, 'bash', INSTALL_SH],
+    { encoding: 'utf8', env: { ...env(h), PATH: `${bin}:${process.env.PATH}`, AI_VIDEO_EDITOR_PIPER_CACHE: cache } });
+  assert.notEqual(r.status, 0);
+  assert.ok(!fs.existsSync(model));
+  fs.rmSync(h, { recursive: true, force: true });
+});
