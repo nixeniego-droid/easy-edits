@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { REPO, run, log, PY, sdrClip, faceTrack, asr } from '../engine/media.mjs';
+import { REPO, run, log, PY, sdrClip, faceTrack, asrAsync } from '../engine/media.mjs';
 import { exportFormats } from '../engine/export.mjs';
 import { cleanBuild, makePlan } from './talking-head.mjs';
 import { probe } from '../engine/audio.mjs';
@@ -29,7 +29,9 @@ export default async function explainer(o) {
       run(path.join(REPO, 'node_modules/.bin/hyperframes'), ['tts', path.join(o.work, 'script.txt'), '-o', path.join(o.work, 'tts.wav'), '-v', process.env.AI_VIDEO_EDITOR_TTS_VOICE || 'am_michael'], { label: 'TTS', logFile: o.logFile });
       execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', path.join(o.work, 'tts.wav'), '-af', 'aresample=48000,adelay=150:all=1,apad=pad_dur=0.6', '-ac', '2', voice]);
     }
-    words = asr(voice, path.join(o.work, 'voice.words.json'), { lang: o.lang || 'en', logFile: o.logFile });
+    o._progress?.stage?.('asr', 'Listening and writing captions…');
+    o._progress?.tick?.(20);
+    words = await asrAsync(voice, path.join(o.work, 'voice.words.json'), { lang: o.lang || 'en', logFile: o.logFile, progress: o._progress });
     const d = probe(voice).duration;
     clip = path.join(o.work, 'bg.mp4');
     if (!fs.existsSync(clip)) execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', `gradients=s=1080x1920:c0=0x0b1020:c1=0x1d2b5a:x0=0:y0=0:x1=1080:y1=1920:d=${d}:speed=0.004,format=yuv420p`, '-t', String(d), '-r', '30', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', clip]);

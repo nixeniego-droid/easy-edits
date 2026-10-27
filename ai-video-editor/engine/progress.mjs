@@ -79,7 +79,7 @@ export function ingestProgressLine(p, line, { weights } = {}) {
       verify: ['verify', 'Checking captions…', 55],
       render: ['render', 'Rendering your video…', 70],
       gates: ['gates', 'Running quality checks…', 85],
-      post: ['post', 'Finishing sound and delivery…', 95],
+      post: ['post', 'Final check…', 95],
     };
     const info = map[m[1]];
     if (info) { p.stage(info[0], info[2] != null ? info[1] : info[1]); p.tick(info[2]); }
@@ -89,11 +89,11 @@ export function ingestProgressLine(p, line, { weights } = {}) {
   m = /out_time_ms=(\d+)/.exec(s);
   if (m) {
     const sec = Number(m[1]) / 1e6;
-    p.tick(null, `encode ${sec.toFixed(1)} s`);
+    p.tick(null, `about ${sec.toFixed(0)} s so far`);
     return;
   }
   m = /frame=\s*(\d+)/.exec(s);
-  if (m) { p.tick(null, `frame ${m[1]}`); return; }
+  if (m) { p.tick(null, `about ${m[1]} frames so far`); return; }
   m = /Listening… segment\s+(\d+).*?(\d+)%/.exec(s);
   if (m) { p.stage('asr', 'Listening and writing captions…'); p.tick(Math.min(50, 15 + Number(m[2]) * 0.35)); }
 }

@@ -92,7 +92,7 @@ HEARD="$(node -e 'try { console.log((JSON.parse(require("fs").readFileSync(proce
 
 PREPC=(node "$T/source-prep.mjs" "$SRC" "$PREP")
 CANDC=(env OMP_NUM_THREADS="${AI_VIDEO_EDITOR_CANDC_THREADS:-4}" node "$T/cut-candidates.mjs" "$SRC" "$PREP")
-ASRC=("$PY" -I "$REPO/ai-video-editor/smoke/asr_words.py" "$SRC" "$WORDS" "${AI_VIDEO_EDITOR_ASR_MODEL:-medium}" --exact --vad --disfluent --lang "$LANGV")
+ASRC=("$PY" -I "$REPO/ai-video-editor/smoke/asr_words.py" "$SRC" "$WORDS" "${AI_VIDEO_EDITOR_ASR_MODEL:-medium}" --exact --vad --lang "$LANGV")
 FROMCAND=(node -e 'const fs = require("fs"), [c, o, l] = process.argv.slice(1); const j = JSON.parse(fs.readFileSync(c, "utf8"));
 if (!j.whole?.length) process.exit(1);
 fs.writeFileSync(o, JSON.stringify({ language_code: l, produced_by: "cut-candidates whole-file disfluent decode (check/asr_excerpts.py)", words: j.whole.map((w) => ({ ...w, type: "word" })) }, null, 1));' "$PREP/source.cut-candidates.json" "$WORDS" "$LANGV")
@@ -153,14 +153,14 @@ if [ "${AI_VIDEO_EDITOR_GATES:-full}" = "delivery" ]; then
     NEW_STG+=("${G_STG[$i]}"); NEW_LBL+=("${G_LBL[$i]}"); NEW_CMD+=("${G_CMD[$i]}")
   done
   G_STG=("${NEW_STG[@]}"); G_LBL=("${NEW_LBL[@]}"); G_CMD=("${NEW_CMD[@]}")
-  echo "clean-cut: using the quick quality checks (full delivery check still runs at the end)" >&2
+  echo "clean-cut: using the quick quality checks (final check still runs at the end)" >&2
 fi
 SKIPPED="$(node -e 'const s=require(process.argv[1]).skipped;console.log(Object.entries(s).map(([k,v])=>`  skip ${k}: ${v}`).join("\n"))' "$STYLE/style.json")"
 
 if [ $DRY = 1 ]; then
   echo "dry run: style clean-cut, mode $MODE, language $LANGV, review $([ $REVIEW = 1 ] && echo on || echo off), run dir $RUN"
   printf 'prep: AI_VIDEO_EDITOR_CUTCAND=0'; printf ' %q' "${PREPC[@]}"; printf ' || '; printf ' %q' "${CANDC[@]}"; echo
-  if [ -n "$TRIN" ]; then echo "asr: reuse $TRIN"; else echo "asr: prep's cut-candidates whole-file disfluent decode -> $WORDS"; printf 'asr fallback:'; printf ' %q' "${ASRC[@]}"; echo; fi
+  if [ -n "$TRIN" ]; then echo "asr: reuse $TRIN"; else echo "asr: shared exact+vad transcript (medium) -> $WORDS"; printf 'asr:'; printf ' %q' "${ASRC[@]}"; echo; fi
   printf 'cut:'; printf ' %q' "${CUTC[@]}"; echo
   if [ $REVIEW = 1 ]; then printf 'review:'; printf ' %q' "${REVC[@]}"; echo; else echo "review: skipped (--no-review)"; fi
   printf 'build:'; printf ' %q' "${BUILDC[@]}"; echo
@@ -185,9 +185,13 @@ wait "$CPID" || echo "clean-cut: cut-candidates failed (see $RUN/cutcand.log); A
 if [ -n "${AI_VIDEO_EDITOR_FACE:-}" ]; then node "$REPO/ai-video-editor/engine/face-override.mjs" prep "$PREP/source-prep.json" "$PREPJ" "$AI_VIDEO_EDITOR_FACE" || exit 2; fi
 phase prep $t
 t=$SECONDS
-if [ -z "$TRIN" ] && ! "${FROMCAND[@]}" 2>/dev/null; then
-  echo "clean-cut: no cut-candidates transcript; running ASR" >&2
-  "${ASRC[@]}" > "$RUN/asr.log" 2>&1 || { echo "clean-cut: ASR failed (see $RUN/asr.log)" >&2; exit 2; }
+if [ -z "$TRIN" ]; then
+  # Shared plain exact+vad transcript (same cache as captions / shorts / …). Cut-candidates still
+  # supply filler/stutter cuts; its disfluent whole is not the caption source (that misheard "here").
+  node --input-type=module -e '
+    import { asr } from process.argv[1];
+    asr(process.argv[2], process.argv[3], { lang: process.argv[4] || "auto" });
+  ' "$REPO/ai-video-editor/engine/media.mjs" "$SRC" "$WORDS" "$LANGV" > "$RUN/asr.log" 2>&1     || { echo "clean-cut: ASR failed (see $RUN/asr.log)" >&2; exit 2; }
 fi
 phase asr $t
 

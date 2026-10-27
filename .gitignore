@@ -32,3 +32,4 @@ test-media/
 consent*.json
 # the synthetic demo clip the help and README use (CC0, samples/LICENSE)
 !samples/talk.mp4
+*.bak*

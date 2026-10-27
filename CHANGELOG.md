@@ -3,7 +3,7 @@
 ## 1.4.3 (2026-10-27)
 
 - Captions / shorts / talking-head / explainer / new: plain-English progress ticks (~10 s) through listen + render (no 0→100 jump; no filenames on stage lines).
-- ASR: shared content cache + `--exact --vad` (medium, beam 5, temp 0) across modes; cut-candidates cache v8.
+- ASR: shared content cache + `--exact --vad` (medium, beam 5, temp 0, empty prompt) for every mode's captions; clean-cut no longer burns the disfluent whole-file decode. cut-candidates cache v9 (exact+vad).
 - User-facing "delivery check" → "Final check".
 
 - Version string: `ai-video-editor --version` / help header read `package.json` (not `git describe`).

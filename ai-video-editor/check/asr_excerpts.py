@@ -1,5 +1,5 @@
 """Re-transcribe short excerpts of a media file with faster-whisper (one model load) -> JSON list of word lists.
-usage: python asr_excerpts.py <media> <model> '<[[a,b],...]>' [--disfluent] [--lang auto|en|tl|...]
+usage: python asr_excerpts.py <media> <model> '<[[a,b],...]>' [--exact] [--vad] [--disfluent] [--lang auto|en|tl|...]
 --lang (default en, the old fixed value): auto = detect once for the whole file (VAD, up to 3 x 30 s windows) and
 decode every excerpt in that language; per-excerpt detection on a 10 s chunk that opens on music/noise picked
 Vietnamese for talk_30s and the decode looped ("I'm I'm I'm ...").
@@ -14,7 +14,8 @@ import numpy as np
 from faster_whisper import WhisperModel
 argv = sys.argv[1:]
 exact = "--exact" in argv
-argv = [a for a in argv if a != "--exact"]
+vad = "--vad" in argv
+argv = [a for a in argv if a not in ("--exact", "--vad")]
 lang = "en"
 if "--lang" in argv:
     i = argv.index("--lang")
@@ -68,6 +69,7 @@ def decode(seg, a, prompt, temp):
     kw = {"initial_prompt": PROMPT} if prompt else {}
     segs, _ = m.transcribe(seg, language=lang, word_timestamps=True, beam_size=5, condition_on_previous_text=False,
                            temperature=(0.0 if exact else temp),
+                           vad_filter=vad,
                            **kw)
     return [{"text": w.word.strip(), "start": round(a + w.start - 0.5, 3), "end": round(a + w.end - 0.5, 3)} for s in segs for w in s.words if w.word.strip()]
 

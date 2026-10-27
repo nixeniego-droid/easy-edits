@@ -44,7 +44,7 @@ export const norm = (s) => (s.toLowerCase().replace(/&/g, ' and ').replace(/['â€
 /** Words of short excerpts [[a, b], ...] of <video>, each decoded alone (check/asr_excerpts.py). */
 export function excerptAsr(video, spans, { model = process.env.AI_VIDEO_EDITOR_ASR_MODEL || 'medium', disfluent = false, lang } = {}) {
   if (!spans.length) return [];
-  const r = spawnSync(PY, ['-I', path.join(HERE, 'asr_excerpts.py'), video, model, JSON.stringify(spans), '--exact', '--lang', resolveLang(lang), ...(disfluent ? ['--disfluent'] : [])], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  const r = spawnSync(PY, ['-I', path.join(HERE, 'asr_excerpts.py'), video, model, JSON.stringify(spans), '--exact', '--vad', '--lang', resolveLang(lang), ...(disfluent ? ['--disfluent'] : [])], { encoding: 'utf8', maxBuffer: 1 << 26 });
   if (r.status !== 0) throw new Error(`asr_excerpts: ${(r.stderr || '').trim().split('\n').at(-1)}`);
   return JSON.parse(r.stdout);
 }
