@@ -188,10 +188,8 @@ t=$SECONDS
 if [ -z "$TRIN" ]; then
   # Shared plain exact+vad transcript (same cache as captions / shorts / …). Cut-candidates still
   # supply filler/stutter cuts; its disfluent whole is not the caption source (that misheard "here").
-  node --input-type=module -e '
-    import { asr } from process.argv[1];
-    asr(process.argv[2], process.argv[3], { lang: process.argv[4] || "auto" });
-  ' "$REPO/ai-video-editor/engine/media.mjs" "$SRC" "$WORDS" "$LANGV" > "$RUN/asr.log" 2>&1     || { echo "clean-cut: ASR failed (see $RUN/asr.log)" >&2; exit 2; }
+  node "$REPO/ai-video-editor/bin/asr-cached.mjs" "$SRC" "$WORDS" --lang "$LANGV" > "$RUN/asr.log" 2>&1 \
+    || { echo "clean-cut: ASR failed (see $RUN/asr.log)" >&2; exit 2; }
 fi
 phase asr $t
 

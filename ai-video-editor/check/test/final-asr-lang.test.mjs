@@ -38,9 +38,9 @@ test('finalAsr cache is keyed by language (en keeps the old key)', () => {
   fs.writeFileSync(v, 'not a video');
   const st = fs.statSync(v), key = `final-${st.size}-${Math.round(st.mtimeMs)}.small`;
   fs.mkdirSync(path.join(dir, 'asr'));
-  fs.writeFileSync(path.join(dir, 'asr', `${key}.json`), JSON.stringify({ words: [{ text: 'english' }] }));
-  fs.writeFileSync(path.join(dir, 'asr', `${key}-tl.json`), JSON.stringify({ words: [{ text: 'tagalog' }] }));
-  fs.writeFileSync(path.join(dir, 'asr', `${key}-auto.json`), JSON.stringify({ words: [{ text: 'detected' }] }));
+  fs.writeFileSync(path.join(dir, 'asr', `${key}-exact-vad.json`), JSON.stringify({ words: [{ text: 'english' }] }));
+  fs.writeFileSync(path.join(dir, 'asr', `${key}-exact-vad-tl.json`), JSON.stringify({ words: [{ text: 'tagalog' }] }));
+  fs.writeFileSync(path.join(dir, 'asr', `${key}-exact-vad-auto.json`), JSON.stringify({ words: [{ text: 'detected' }] }));
   const prev = process.env.AI_VIDEO_EDITOR_CACHE; process.env.AI_VIDEO_EDITOR_CACHE = dir;
   try {
     assert.equal(finalAsr(v, { model: 'small', lang: 'en' }).words[0].text, 'english');

@@ -17,8 +17,8 @@ test('finalAsr returns the cached transcript (plain and --disfluent keyed apart)
   fs.writeFileSync(v, 'not a video');
   const st = fs.statSync(v), key = `final-${st.size}-${Math.round(st.mtimeMs)}.medium`;
   fs.mkdirSync(path.join(dir, 'asr'));
-  fs.writeFileSync(path.join(dir, 'asr', `${key}.json`), JSON.stringify({ model: 'medium', words: [{ text: 'plain' }] }));
-  fs.writeFileSync(path.join(dir, 'asr', `${key}-disfluent.json`), JSON.stringify({ model: 'medium', words: [{ text: 'I' }, { text: 'I' }] }));
+  fs.writeFileSync(path.join(dir, 'asr', `${key}-exact-vad.json`), JSON.stringify({ model: 'medium', words: [{ text: 'plain' }] }));
+  fs.writeFileSync(path.join(dir, 'asr', `${key}-exact-vad-disfluent.json`), JSON.stringify({ model: 'medium', words: [{ text: 'I' }, { text: 'I' }] }));
   const prev = process.env.AI_VIDEO_EDITOR_CACHE; process.env.AI_VIDEO_EDITOR_CACHE = dir;
   try {
     assert.equal(finalAsr(v, { model: 'medium', lang: 'en' }).words[0].text, 'plain');
