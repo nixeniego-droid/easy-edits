@@ -61,6 +61,9 @@ options
                           every re-run of the same source reuses it, so re-runs are deterministic
   --replan                plan again (agent / picker) instead of reusing the pinned plan (also shorts --graphics)
   --plan-only             stop after planning: print the plan path for review, then re-run (it is pinned)
+  --preview [SECONDS]     captions / clean-cut / talking-head: a quick look before the full render: edits about
+                          SECONDS (default 20) from the first speech to a pause, in the first format, into
+                          <out-dir>/preview/ (mp4, contact sheet, .srt), exit 0; then run again without --preview
   --transcript FILE       reuse a word transcript ({words:[{text,start,end}]}, source timeline)
   --review-patch FILE     clean-cut review decisions (keep/remove/text by word index; see clean-cut.sh --help)
   --no-review             clean-cut: deterministic cut only (no agent review)
@@ -107,6 +110,7 @@ examples
 `;
 
 const MODES = ['clean-cut', 'talking-head', 'explainer', 'shorts', 'captions'];
+const PREVIEW_MODES = ['captions', 'clean-cut', 'talking-head'], PREVIEW_SECS = 20;
 const FLAGS_WITH_VALUE = new Set(['-o', '--out', '--format', '--notes', '--title', '--speaker', '--role', '--plan', '--transcript', '--review-patch', '--mode-cut', '--lang', '--music', '--preset', '--clips', '--min', '--max', '--script', '--agent', '--subtitle', '--cta', '--names', '--cookies', '--range', '--pick', '--speaker-at', '--people', '--style', '--face', '--caption-color']);
 
 export function parseArgs(argv) {
@@ -116,6 +120,8 @@ export function parseArgs(argv) {
     if (a === '-h' || a === '--help') o.help = true;
     // --hook alone = the clip's own hook line; --hook "text" = that text (a following path / URL / flag is not text)
     else if (a === '--hook') { const nx = argv[i + 1]; if (nx != null && !nx.startsWith('-') && !/^https?:\/\//i.test(nx) && !fs.existsSync(nx)) { o.hook = nx; i++; } else o.hook = true; }
+    // --preview alone = about 20 s; --preview 30 = about 30 s (from the first speech to a pause)
+    else if (a === '--preview') { const nx = argv[i + 1]; if (nx != null && /^\d+(\.\d+)?$/.test(nx)) { o.preview = Number(nx); i++; } else o.preview = PREVIEW_SECS; }
     else if (FLAGS_WITH_VALUE.has(a)) { if (i + 1 >= argv.length) throw new Error(`${a} needs a value`); o[a.replace(/^-+/, '').replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = argv[++i]; }
     else if (a.startsWith('--')) o[a.replace(/^-+/, '').replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = true;
     else o.pos.push(a);
@@ -128,6 +134,11 @@ export function parseArgs(argv) {
   for (const x of o.formats) if (!['9x16', '1x1', '16x9'].includes(x)) throw new Error(`unknown format ${x} (9x16, 1x1, 16x9, all)`);
   if (o.agent) process.env.AI_VIDEO_EDITOR_AGENT = o.agent;
   if (o.face != null) o.face = parseFace(o.face);
+  if (o.preview != null) {
+    if (!PREVIEW_MODES.includes(o.mode)) throw new Error(`--preview: works with ${PREVIEW_MODES.join(', ')} (shorts: --propose already makes a preview per candidate)`);
+    if (!(o.preview >= 5)) throw new Error('--preview: at least 5 seconds');
+    o.formats = o.formats.slice(0, 1);
+  }
   if (o.captionColor != null) {
     const c = String(o.captionColor).toLowerCase();
     o.ink = { auto: 'auto', white: 'light', light: 'light', black: 'dark', dark: 'dark' }[c] || (/^#[0-9a-f]{6}$/.test(c) ? c.toUpperCase() : null);
@@ -135,6 +146,37 @@ export function parseArgs(argv) {
     if (o.mode === 'clean-cut' && o.formats.includes('9x16') && o.ink !== 'auto') throw new Error('--caption-color: clean-cut 9:16 keeps the approved white captions; use it with captions / talking-head / explainer / shorts, or clean-cut --format 1x1 / 16x9');
   }
   return o;
+}
+
+/** --preview window [start, end] in source seconds from silencedetect's [[silenceStart, silenceEnd], ...]: skip a
+ * leading silence (keep 0.3 s), aim for n seconds of speech, and end in the first pause after 60% of n, up to n + 8 s
+ * (so the slice ends between sentences, not mid-word). */
+export function previewWindow(silences, n, total = Infinity) {
+  const lead = silences.find(([a]) => a < 0.1);
+  const start = lead ? Math.max(0, lead[1] - 0.3) : 0;
+  const pause = silences.find(([a]) => a >= start + 0.6 * n && a <= start + n + 8);
+  const end = Math.min(total, pause ? pause[0] + 0.2 : start + n);
+  return [Math.round(start * 1000) / 1000, Math.round(end * 1000) / 1000];
+}
+
+/** --preview: edit only a short slice from the first speech (about o.preview seconds), into <out>/preview/ (its own
+ * .work, so the full run's cache and pinned plan stay untouched: the slice has a different content hash). */
+export function previewInput(o) {
+  const out = path.join(o.out, 'preview'), slice = path.join(out, '.work', `${o.clip}_preview${o.preview}s.mp4`);
+  fs.mkdirSync(path.dirname(slice), { recursive: true });
+  if (!fs.existsSync(slice)) {
+    const sd = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-t', String(o.preview + 90), '-i', o.input, '-map', '0:a:0?', '-af', 'silencedetect=n=-45dB:d=0.25', '-f', 'null', '-'], { encoding: 'utf8' });
+    const silences = [];
+    for (const m of (sd.stderr || '').matchAll(/silence_(start|end): ([\d.]+)/g)) {
+      if (m[1] === 'start') silences.push([Number(m[2]), Infinity]); else if (silences.length) silences.at(-1)[1] = Number(m[2]);
+    }
+    const [a, b] = previewWindow(silences, o.preview);
+    const r = spawnSync('ffmpeg', ['-v', 'error', '-y', '-ss', String(a), '-i', o.input, '-t', String(b - a), '-map', '0:v:0', '-map', '0:a:0?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-c:a', 'aac', '-b:a', '192k', `${slice}.tmp.mp4`], { encoding: 'utf8' });
+    if (r.status !== 0) throw new Error(`--preview: could not cut the preview slice: ${(r.stderr || '').trim().split('\n').pop()}`);
+    fs.renameSync(`${slice}.tmp.mp4`, slice);
+    log(`preview: ${a.toFixed(1)}-${b.toFixed(1)} s of ${path.basename(o.input)} (from the first speech to a pause) -> ${out} [${o.formats[0]}]`);
+  } else log(`preview: reusing ${slice} -> ${out} [${o.formats[0]}]`);
+  Object.assign(o, { input: slice, out });
 }
 
 /** --style: load + validate the pack and check this run against it; returns [] or the reasons it can't render. */
@@ -179,6 +221,7 @@ async function main() {
     log(`style: ${o.style.name} (${o.style.file})`);
   }
   o.clip = path.basename(o.input).replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9_-]+/g, '-');
+  if (o.preview != null) previewInput(o);
   o.work = path.join(o.out, '.work', `${o.mode}_${o.clip}`);
   fs.mkdirSync(o.work, { recursive: true });
   o.logFile = path.join(o.work, 'ai-video-editor.log');
@@ -196,6 +239,12 @@ async function main() {
   for (const e of res.exports || []) log(`${e.pass === false ? 'CHECK FAIL' : 'ok'} ${e.file}${e.note ? ` (${e.note})` : ''}`);
   if (missing.length) { console.error(`ai-video-editor: FAILED: ${new FinalOutputError(missing, o.out).message}\n(work files: ${o.work}; log: ${o.logFile})`); process.exit(EXIT_NO_OUTPUT); }
   log(`done in ${secs} s; report ${rp}`);
+  if (o.preview != null) {
+    // a preview is a look, not a delivery: a check FAIL on a 20 s slice is noted, the full render decides
+    const fails = (res.exports || []).filter((e) => e.pass === false);
+    log(`preview: ${o.out}${fails.length ? ` (delivery check on the slice: ${fails.map((e) => e.note || 'FAIL').join('; ')}; the full render checks again)` : ''}; run again without --preview for the final`);
+    process.exit(0);
+  }
   if ((res.exports || []).some((e) => e.pass === false)) {
     console.error(`ai-video-editor: delivery FAIL (exit 1): outputs were written under ${o.out}; review the report and exports there — do not re-run blindly.`);
     process.exit(1);

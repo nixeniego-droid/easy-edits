@@ -17,6 +17,17 @@ ai-video-editor <clean-cut|talking-head|explainer|shorts|captions> input.mp4 -o 
 3. Review: open each `_sheet.png`, read `report.json` (delivery check, caption overlaps, plan, dropped beats).
 4. Report: list each output file and every FAIL with its check text. A FAIL is a fault to report, not to hide.
 
+5. Deliver: **attach each finished video, its `.srt` and its contact sheet to the chat; never just a path.**
+
+### Talking with the user
+
+Assume the user has never used a terminal. Run the install and every command yourself, explain waits in plain
+words, and keep CLI words (flags, modes, paths, exit codes, stderr) out of what they read. Offer each decision as
+a tap-to-pick choice card with the recommended option first, and turn errors into a card of fixes. The skill's
+section 0 (`.claude/skills/ai-video-editor/SKILL.md`) has the plain-English -> mode table, the cards, progress
+lines and error cards. A quick look before a full render: add `--preview` (captions, clean-cut, talking-head; the
+about 20 s from the first speech to a pause, in `out/preview/`, exit 0), then run again without it.
+
 ### Steering the graphics (talking-head, explainer)
 
 ```sh
@@ -32,7 +43,7 @@ again.
 ### Shorts
 
 ```sh
-ai-video-editor shorts podcast.mp4 -o out/ --propose              # PROPOSALS.txt + previews; show them to the user
+ai-video-editor shorts podcast.mp4 -o out/ --propose              # PROPOSALS.txt + proposals.json + previews; show pick cards
 ai-video-editor shorts podcast.mp4 -o out/ --pick 1,3 --hook      # render the user's picks
 ```
 

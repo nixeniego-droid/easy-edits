@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { agentLines, snapProposal, estDuration, maxGap, noisyWords, usedReason, markUsed, loadUsed, lowerThirds, slugify, propose, sec, hms } from '../../modes/shorts.mjs';
-import { parseArgs } from '../../cli/main.mjs';
+import { agentLines, snapProposal, estDuration, maxGap, noisyWords, usedReason, markUsed, loadUsed, lowerThirds, slugify, propose, sec, hms, proposalsJson } from '../../modes/shorts.mjs';
+import { parseArgs, previewWindow } from '../../cli/main.mjs';
 
 // a talk: 60 sentences of 6 words, 0.4 s per word, 0.5 s between sentences
 const talk = [];
@@ -84,4 +84,34 @@ test('CLI: shorts --propose / --pick / --hook [text] / --reset-used', () => {
   const b = parseArgs(['shorts', '--hook', 'Stop saying try', 'x.mp4', '-o', 'o', '--pick', '1,3', '--reset-used']);
   assert.equal(b.hook, 'Stop saying try'); assert.equal(b.input, 'x.mp4'); assert.equal(b.pick, '1,3'); assert.equal(b.resetUsed, true);
   assert.equal(parseArgs(['shorts', 'x.mp4', '--hook', '-o', 'o', '--propose']).propose, true);
+});
+
+test('shorts: proposals.json has id, start, end, durationSec, hook, previewPath per candidate', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ave-prop-')), pv = path.join(dir, 'proposal_1_x_preview.mp4');
+  fs.writeFileSync(pv, 'x');
+  const J = proposalsJson([
+    { rank: 1, score: 88, start: 12.3456, end: 41.2, est: 27.84, hook: 'This changed everything.', title: 'IT CHANGED', reason: 'strong claim', preview: pv },
+    { rank: 2, score: 70, start: 60, end: 95.5, est: 33.1, hook: 'Wait for it.', title: 'WAIT', reason: 'payoff', preview: path.join(dir, 'gone.mp4') },
+  ]);
+  assert.deepEqual(Object.keys(J[0]).slice(0, 6), ['id', 'rank', 'score', 'start', 'end', 'durationSec']);
+  assert.equal(J[0].id, 1); assert.equal(J[0].start, 12.346); assert.equal(J[0].durationSec, 27.8); assert.equal(J[0].hook, 'This changed everything.');
+  assert.equal(J[0].previewPath, pv); assert.equal(J[1].previewPath, null); // a missing preview is null, never a dead path
+  fs.rmSync(dir, { recursive: true });
+});
+
+test('CLI: --preview [seconds] on captions / clean-cut / talking-head only, first format only', () => {
+  assert.equal(parseArgs(['captions', 'x.mp4', '-o', 'o', '--preview']).preview, 20);
+  const a = parseArgs(['talking-head', 'x.mp4', '--preview', '30', '-o', 'o', '--format', 'all']);
+  assert.equal(a.preview, 30); assert.deepEqual(a.formats, ['9x16']); assert.equal(a.input, 'x.mp4');
+  assert.equal(parseArgs(['x.mp4', '--preview', '-o', 'o']).input, 'x.mp4');
+  assert.throws(() => parseArgs(['shorts', 'x.mp4', '-o', 'o', '--preview']), /--propose/);
+  assert.throws(() => parseArgs(['captions', 'x.mp4', '-o', 'o', '--preview', '2']), /5 seconds/);
+});
+
+test('--preview window: skips a leading silence, ends in a pause, never mid-word', () => {
+  // the NASA sample: 5.77 s of silence, one sentence, a pause at 20.44 s
+  assert.deepEqual(previewWindow([[0.007, 5.766], [20.443, 23.111]], 10), [5.466, 20.643]);
+  assert.deepEqual(previewWindow([], 20), [0, 20]);                                  // no audio / no pauses: the first 20 s
+  assert.deepEqual(previewWindow([[3, 3.5], [16, 16.4], [40, 41]], 20), [0, 16.2]);   // first pause after 12 s
+  assert.deepEqual(previewWindow([[3, 3.5]], 20, 9), [0, 9]);                          // a short source: its length
 });
