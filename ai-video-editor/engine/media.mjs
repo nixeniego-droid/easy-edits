@@ -123,7 +123,7 @@ export function deliveryCheck(file, { logFile, lang = 'auto', voice, words } = {
   const r = run('node', [path.join(REPO, 'ai-video-editor/check/delivery.mjs'), file, ...(voice ? ['--voice', voice] : []), ...(ref ? ['--reference', ref] : [])], { label: 'delivery check', logFile, allowFail: true, env: { AI_VIDEO_EDITOR_LANG: lang } });
   if (ref) fs.rmSync(path.dirname(ref), { recursive: true, force: true });
   const out = (r.stdout || '').trim();
-  const fails = [...out.matchAll(/^FAIL\s+(\S+)/gm)].map((m) => m[1]), notes = [...out.matchAll(/^NOTE\s+\S+\s+(.*)$/gm)].map((m) => m[1]);
+  const fails = [...out.matchAll(/^FAIL\s+(\S+)/gm)].map((m) => m[1]), notes = [...out.matchAll(/^NOTE\s+(?:no-repeat\s+)?(.*)$/gm)].map((m) => m[1]);
   return { pass: r.status === 0, out, note: [fails.length ? `FAIL ${fails.join(', ')}` : '', ...notes].filter(Boolean).join('; ') };
 }
 
