@@ -2,13 +2,15 @@
 // verbatim from ai-video-editor/smoke/build.mjs, which mirrors the stock
 // porter-clipper-short build script (Herk Edit Kit, Nate Herk).
 import fs from 'node:fs';
+import { joinHyphenWords } from '../engine/words.mjs';
 
 export const preset = JSON.parse(fs.readFileSync(new URL('./captions-default.json', import.meta.url), 'utf8'));
 const r3 = (t) => Math.round(t * 1000) / 1000;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 /** Words [{text,start,end}] -> captions [{text,start,end,lastEnd,words}] (1-2 word groups). */
-export function captionGroups(words, { duration, fps = 30, p = preset } = {}) {
+export function captionGroups(wordsIn, { duration, fps = 30, p = preset } = {}) {
+  const words = joinHyphenWords(wordsIn);
   const G = p.grouping, T = p.timing, brk = new RegExp(G.breakAfter);
   const groups = [];
   for (let i = 0; i < words.length; ) {

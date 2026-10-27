@@ -11,6 +11,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { captionGroups } from '../../presets/captions-default.mjs';
 import { captionKeepOut, pickCaptionY } from '../../engine/compose.mjs';
+import { joinHyphenWords } from '../../engine/words.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const preset = JSON.parse(fs.readFileSync(path.join(HERE, 'captions.json'), 'utf8'));
@@ -171,7 +172,7 @@ function main(argv) {
   if (!proj || !src) { console.error('usage: build.mjs <project-dir> --source <media> --prep <source-prep.json> [--fps 30] [--dry-run]'); return 2; }
   const A = path.join(proj, 'assets');
   const ed = JSON.parse(fs.readFileSync(path.join(A, 'edit-decisions.json'), 'utf8'));
-  const words = JSON.parse(fs.readFileSync(path.join(A, 'transcript.json'), 'utf8')).words;
+  const words = joinHyphenWords(JSON.parse(fs.readFileSync(path.join(A, 'transcript.json'), 'utf8')).words);
   const prep = prepF && fs.existsSync(prepF) ? JSON.parse(fs.readFileSync(prepF, 'utf8')) : null;
   const pr = JSON.parse(spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'json', src], { encoding: 'utf8' }).stdout).streams[0];
   const srcDur = Number(spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], { encoding: 'utf8' }).stdout);

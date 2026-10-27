@@ -67,6 +67,33 @@ segs, _ = m.transcribe(np.concatenate([pad, audio]), word_timestamps=True, langu
                        condition_on_previous_text=False, beam_size=5, vad_filter=vad, **({"initial_prompt": PROMPT} if disfl else {}), **({"temperature": 0.0} if exact else {}))
 
 
+
+def join_hyphen(words):
+    out = []
+    for w in words:
+        tx = str(w.get("text") or "")
+        if out and tx.startswith("-") and len(tx) > 1:
+            prev = out[-1]
+            prev["text"] = prev["text"].rstrip("-") + tx
+            prev["end"] = w.get("end", prev.get("end"))
+            continue
+        if out and tx == "-":
+            out[-1]["text"] = out[-1]["text"].rstrip("-") + "-"
+            out[-1]["_hj"] = True
+            continue
+        if out and out[-1].get("_hj") and tx and not tx.startswith("-"):
+            prev = out[-1]
+            prev.pop("_hj", None)
+            prev["text"] = prev["text"] + tx
+            prev["end"] = w.get("end", prev.get("end"))
+            continue
+        if out and out[-1].get("_hj"):
+            out[-1].pop("_hj", None)
+        out.append(dict(w))
+    if out and out[-1].get("_hj"):
+        out[-1].pop("_hj", None)
+    return out
+
 words = []
 for k, s in enumerate(segs):
     for w in s.words:
@@ -76,6 +103,7 @@ for k, s in enumerate(segs):
             words.append({"text": t, "start": a, "end": b, "type": "word",
                           "probability": round(w.probability, 3), "cr": round(s.compression_ratio, 2), "seg": k,
                           "nsp": round(s.no_speech_prob, 3), "lp": round(s.avg_logprob, 3)})
+words = join_hyphen(words)
 json.dump({"language_code": lang, "model": model, "audio_duration_secs": round(len(audio) / 16000, 3),
            "produced_by": f"faster-whisper {model}{' exact' if exact else ''}{' vad' if vad else ''}{' disfluent' if disfl else ''}", "text": " ".join(w["text"] for w in words),
            "words": words}, open(out, "w"), indent=1)
