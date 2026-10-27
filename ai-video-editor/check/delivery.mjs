@@ -24,7 +24,9 @@
 //   transcript   at least one word heard
 //   no-repeat    no repeated 4-gram (case and punctuation ignored); with --reference words.json (the words the
 //                edit put on screen) only a REAL repeat fails: said twice in the reference, or extra audio the
-//                reference lacks (a duplicated splice); a mishearing ("Misha" for mission and vision) is a NOTE
+//                reference lacks (a duplicated splice); a mishearing ("Misha" for mission and vision) is a NOTE.
+//                A looped source (the same speech >= 3 times end to end, lib/repeats.mjs detectLoop) is a NOTE for
+//                the repeats on the loop period; a repeat off the period still FAILs
 //   outro        outro boilerplate ("thanks for watching", "see you in the next video", "subscribe", ...) heard
 //                but not in --script (the composition's narration text or {words}/{text} JSON). Without --script
 //                it is a WARN line only.
@@ -38,7 +40,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { measure } from '../audio/master.mjs';
-import { repeatFindings } from './lib/repeats.mjs';
+import { repeatFindings, detectLoop } from './lib/repeats.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -106,9 +108,10 @@ const norm = words.map((w) => normWord(w.text)).filter(Boolean);
 // real lexical one (lib/repeats.mjs), a mishearing ("mission" / "vision" both heard as "Misha") is a note
 const refPath = opt('--reference');
 const refWords = refPath ? (() => { const j = JSON.parse(fs.readFileSync(refPath, 'utf8')); return Array.isArray(j) ? j : j.words; })() : null;
-const reps = repeatFindings(words, refWords), real = reps.filter((x) => x.real), misheard = reps.filter((x) => !x.real);
+const loop = detectLoop(words);
+const reps = repeatFindings(words, refWords, { loop }), real = reps.filter((x) => x.real), misheard = reps.filter((x) => !x.real);
 const repTxt = (x) => `"${x.key}" x${x.count}${x.verdict === 'unchecked' ? '' : ` (${x.verdict}${x.refs ? `: ${x.refs.map((t) => `"${t}"`).join(' / ')}` : ''})`}`;
-check('no-repeat', !real.length, real.length ? `repeated 4-gram(s): ${real.map(repTxt).join(', ')}` : `no repeated 4-gram in ${norm.length} words${refWords ? ` (checked against ${refWords.length} reference words)` : ''}`);
+check('no-repeat', !real.length, real.length ? `repeated 4-gram(s): ${real.map(repTxt).join(', ')}` : `${loop ? `no repeated 4-gram off the loop period (${loop.periodWords} words x${loop.copies})` : 'no repeated 4-gram'} in ${norm.length} words${refWords ? ` (checked against ${refWords.length} reference words)` : ''}`);
 // outro boilerplate Whisper invents over tails; real only if the composition's script says it
 const OUTRO = ['thanks for watching', 'thank you for watching', 'see you in the next video', 'see you next time',
   'thats it for today', 'dont forget to subscribe', 'like and subscribe', 'subscribe to'];
@@ -125,6 +128,7 @@ check('loudness', Number.isFinite(m.I) && Math.abs(m.I - LUFS) <= 1 && m.TP <= T
 console.log(`delivery check: ${video} (${f3(dur)} s, faster-whisper ${asr.model} + VAD, language ${asr.language_code})`);
 console.log(`heard: ${words.map((w) => w.text).join(' ')}`);
 if (dropped.length) console.log(`dropped (no speech-band activity under ${dropped.length} words at ${f3(dropped[0].start)}-${f3(dropped.at(-1).end)} s): ${dropped.map((w) => w.text).join(' ')}`);
+if (loop) console.log(`NOTE  no-repeat  this looks like a looped source (the same ${loop.periodSec != null ? `~${Math.round(loop.periodSec)} s` : `${loop.periodWords} words`} of speech repeated ${Math.round(loop.copies)} times); skipping the repeat check on the loop.`);
 const misH = misheard.filter((x) => x.verdict === 'misheard'), reused = misheard.filter((x) => x.verdict === 'reused');
 if (misH.length) console.log(`NOTE  no-repeat  heard repeat(s) the reference does not have (ASR mishearing, not a repeat): ${misH.map(repTxt).join(', ')}`);
 if (reused.length) console.log(`NOTE  no-repeat  phrase(s) the speaker uses in two different places (not a retake): ${reused.map(repTxt).join(', ')}`);
