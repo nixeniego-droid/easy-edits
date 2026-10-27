@@ -17,13 +17,16 @@
 #   FASTER_WHISPER_VERSION    (default 1.2.1)
 #   CLAUDE_CONFIG_DIR         (default ~/.claude)            the skill goes to $CLAUDE_CONFIG_DIR/skills/ai-video-editor
 #   AI_VIDEO_EDITOR_NO_SKILL=1                               don't register the Claude Code skill
+#   AI_VIDEO_EDITOR_PIPER_MODEL (default $AI_VIDEO_EDITOR_HOME/models/piper/en_US-amy-low.onnx)   Piper voice for the local TTS
+#   AI_VIDEO_EDITOR_PIPER_CACHE  a folder already holding en_US-amy-low.onnx(.json): copied instead of downloaded
 #
 # Renamed from Easy Edits (compat for one release): every old EASY_EDITS_<X> (EASY_EDITS_HOME, EASY_EDITS_MODELS,
 # EASY_EDITS_WHISPER, EASY_EDITS_NO_SKILL, ...) still works as AI_VIDEO_EDITOR_<X>; the new name wins when both are set.
 # With no AI_VIDEO_EDITOR_HOME / EASY_EDITS_HOME the home is always ~/.ai-video-editor: an install moves a pre-rename
 # ~/.easy-edits there (no re-download) and leaves ~/.easy-edits as a symlink to it, so `. ~/.easy-edits/env.sh` still
 # works. A ~/.easy-edits that still holds files next to an existing ~/.ai-video-editor is left alone (never deleted).
-# Until that move, --doctor checks the old ~/.easy-edits. The `easy-edits` command is an alias of `ai-video-editor`.
+# AI_VIDEO_EDITOR_HOME / EASY_EDITS_HOME set to ~/.easy-edits itself (a stale shell or an old env.sh) counts as the
+# default home too, so that move still happens. Until that move, --doctor checks the old ~/.easy-edits. The `easy-edits` command is an alias of `ai-video-editor`.
 set -euo pipefail
 # HyperFrames sends anonymous usage telemetry unless opted out; opt out before anything below can run it.
 # (env.sh exports the same, and install_npm also records the opt-out in ~/.hyperframes/config.json)
@@ -36,16 +39,33 @@ done; unset _v _n
 DEFAULT_HOME="$HOME/.ai-video-editor" LEGACY_HOME="$HOME/.easy-edits"
 AI_VIDEO_EDITOR_HOME="${AI_VIDEO_EDITOR_HOME:-$DEFAULT_HOME}"
 USER_MODELS="${AI_VIDEO_EDITOR_MODELS:-}"
+USER_PIPER_MODEL="${AI_VIDEO_EDITOR_PIPER_MODEL:-}"
+# A home (or model path) pointing at the pre-rename ~/.easy-edits is the default home under its old name: use
+# ~/.ai-video-editor so migrate_home moves it and env.sh lands there (else install kept writing into ~/.easy-edits).
+same_dir() { [ -e "$1" ] && [ -e "$2" ] && [ "$(cd "$1" && pwd -P)" = "$(cd "$2" && pwd -P)" ]; }
+if [ "${AI_VIDEO_EDITOR_HOME%/}" = "$LEGACY_HOME" ] || same_dir "$AI_VIDEO_EDITOR_HOME" "$LEGACY_HOME"; then
+  AI_VIDEO_EDITOR_HOME="$DEFAULT_HOME"
+  case "$USER_MODELS" in "$LEGACY_HOME"/*) USER_MODELS="$DEFAULT_HOME/${USER_MODELS#"$LEGACY_HOME"/}" ;; esac
+  case "$USER_PIPER_MODEL" in "$LEGACY_HOME"/*) USER_PIPER_MODEL="$DEFAULT_HOME/${USER_PIPER_MODEL#"$LEGACY_HOME"/}" ;; esac
+fi
 NODE_MAJOR=22
 FASTER_WHISPER_VERSION="${FASTER_WHISPER_VERSION:-1.2.1}"
 OPENCV_VERSION="${OPENCV_VERSION:-4.14.0.94}"
 YUNET_COMMIT="main"   # the file is pinned by its sha256 below
 YUNET_SHA="8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
+# Piper (local TTS for `ai-video-editor new` voice-overs): one small US English voice, ~60 MB, pinned by sha256.
+PIPER_TTS_VERSION="${PIPER_TTS_VERSION:-1.8.0}"
+PIPER_VOICE="en_US-amy-low"
+PIPER_VOICE_URL="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/amy/low"
+PIPER_ONNX_SHA="a5a91abb7de0f104358a25aded480ddacf1ff0762886325886ec406a2e86aab3"
+PIPER_JSON_SHA="2250a9a605b8dc35a116717fadc5056695dd809e34a15d02f72a0f52d53d3ebb"
 LOCK_STAMP="$REPO/node_modules/.ai-video-editor-lock.sha256"
 # The paths under $AI_VIDEO_EDITOR_HOME (again after migrate_home / the doctor's fallback to the old home).
 set_paths() {
   VENV="$AI_VIDEO_EDITOR_HOME/venv"
   NODE_HOME="$AI_VIDEO_EDITOR_HOME/node"
+  BIN_DIR="$AI_VIDEO_EDITOR_HOME/bin"   # tools the venv provides that must be on PATH (piper)
+  PIPER_MODEL="${USER_PIPER_MODEL:-$AI_VIDEO_EDITOR_HOME/models/piper/$PIPER_VOICE.onnx}"
   # an earlier env.sh records the model dir; keep it on re-runs
   PREV_MODELS=""   # (a missing env.sh must not trip set -e/pipefail: the fresh-user install died here silently)
   [ -f "$AI_VIDEO_EDITOR_HOME/env.sh" ] && PREV_MODELS="$(sed -n 's/^export \(AI_VIDEO_EDITOR\|EASY_EDITS\)_MODELS="\(.*\)"$/\2/p' "$AI_VIDEO_EDITOR_HOME/env.sh" | head -n1)" || true
@@ -200,6 +220,33 @@ install_models() {
   done
 }
 
+sha_ok() { echo "$1  $2" | { have sha256sum && sha256sum -c --quiet - || shasum -a 256 -c --quiet -; } >/dev/null 2>&1; }
+# A piper CLI (one already on PATH, else piper-tts in the venv, linked into $BIN_DIR, which env.sh puts on PATH) and
+# the en_US-amy-low voice at $PIPER_MODEL: copied from $AI_VIDEO_EDITOR_PIPER_CACHE when it has it, else downloaded.
+# A custom AI_VIDEO_EDITOR_PIPER_MODEL is used as is. Without them the local TTS falls back to eSpeak / flite.
+install_piper() {
+  mkdir -p "$BIN_DIR"
+  if [ -x "$VENV/bin/piper" ]; then ln -sfn "$VENV/bin/piper" "$BIN_DIR/piper"; log "piper OK (venv)"
+  elif have piper && piper --help >/dev/null 2>&1; then log "piper OK ($(command -v piper))"
+  else
+    log "installing piper-tts $PIPER_TTS_VERSION into venv"
+    if "$VENV/bin/python" -m pip install -q "piper-tts==$PIPER_TTS_VERSION"; then ln -sfn "$VENV/bin/piper" "$BIN_DIR/piper"
+    else log "WARNING: piper-tts install failed (the local TTS falls back to eSpeak / flite; --doctor shows it)"; fi
+  fi
+  [ -n "$USER_PIPER_MODEL" ] && { log "piper voice: $PIPER_MODEL (AI_VIDEO_EDITOR_PIPER_MODEL)"; return; }
+  local d f sha src; d="$(dirname "$PIPER_MODEL")"; mkdir -p "$d"
+  for f in "$PIPER_VOICE.onnx" "$PIPER_VOICE.onnx.json"; do
+    sha="$PIPER_ONNX_SHA"; [ "$f" = "$PIPER_VOICE.onnx.json" ] && sha="$PIPER_JSON_SHA"
+    sha_ok "$sha" "$d/$f" && continue
+    src="${AI_VIDEO_EDITOR_PIPER_CACHE:-}/$f"
+    if [ -n "${AI_VIDEO_EDITOR_PIPER_CACHE:-}" ] && sha_ok "$sha" "$src"; then log "piper voice: copying $f"; cp "$src" "$d/$f.part"
+    else log "downloading the piper voice $f (~60 MB in all)"; curl -fsSL -o "$d/$f.part" "$PIPER_VOICE_URL/$f" || die "piper voice download failed (network?); re-run ./install.sh"; fi
+    sha_ok "$sha" "$d/$f.part" || { rm -f "$d/$f.part"; die "piper voice $f checksum mismatch"; }
+    mv "$d/$f.part" "$d/$f"
+  done
+  log "piper voice OK ($PIPER_MODEL)"
+}
+
 install_npm() {
   load_node || die "node $NODE_MAJOR not available"
   cd "$REPO"
@@ -231,10 +278,14 @@ export AI_VIDEO_EDITOR_PYTHON="$VENV/bin/python"
 # Whisper models (faster-whisper / Hugging Face cache):
 export AI_VIDEO_EDITOR_MODELS="$AI_VIDEO_EDITOR_MODELS"
 export HF_HOME="$AI_VIDEO_EDITOR_MODELS"
+# local TTS: the piper CLI (when installed here) and its voice
+case ":\$PATH:" in *":$BIN_DIR:"*) ;; *) export PATH="$BIN_DIR:\$PATH" ;; esac
+export AI_VIDEO_EDITOR_PIPER_MODEL="$PIPER_MODEL"
 # the pre-rename names, for one release (scripts that still read EASY_EDITS_*):
 export EASY_EDITS_HOME="$AI_VIDEO_EDITOR_HOME"
 export EASY_EDITS_PYTHON="$VENV/bin/python"
 export EASY_EDITS_MODELS="$AI_VIDEO_EDITOR_MODELS"
+export EASY_EDITS_PIPER_MODEL="$PIPER_MODEL"
 # no HyperFrames usage telemetry:
 export HYPERFRAMES_NO_TELEMETRY=1
 export DO_NOT_TRACK=1
@@ -388,6 +439,9 @@ c_cli()     { load_node && "$REPO/bin/ai-video-editor" --help | head -n1; }
 c_alias()   { [ -x "$REPO/bin/easy-edits" ] && "$REPO/bin/easy-edits" --help >/dev/null && echo "easy-edits (alias of ai-video-editor)"; }
 c_env()     { [ -f "$AI_VIDEO_EDITOR_HOME/env.sh" ] && echo "$AI_VIDEO_EDITOR_HOME/env.sh"; }
 c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$AI_VIDEO_EDITOR_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
+c_piper()   { [ -f "$PIPER_MODEL" ] || { echo "no piper voice at $PIPER_MODEL (run ./install.sh)"; return 1; }
+              have piper || { echo "piper not on PATH (run ./install.sh)"; return 1; }
+              echo "piper $(basename "$PIPER_MODEL" .onnx) ($(( $(wc -c < "$PIPER_MODEL") / 1048576 )) MB)"; }
 c_backends() { load_node && node "$REPO/ai-video-editor/cli/backends.mjs" --doctor; }   # key present: yes/no only, never a key
 c_skill()   { local d; d="$(skill_dir)"
               if [ "${AI_VIDEO_EDITOR_NO_SKILL:-0}" = 1 ]; then echo "skipped (AI_VIDEO_EDITOR_NO_SKILL=1)"
@@ -421,6 +475,7 @@ doctor() {
   check easy-edits-alias c_alias
   check claude-skill c_skill
   check agent c_agent
+  check piper-voice c_piper
   check backends c_backends
   if [ "$FAILS" -gt 0 ]; then echo "doctor: $FAILS FAIL"; exit 1; fi
   echo "doctor: all PASS"
@@ -445,10 +500,13 @@ if [ "$MODE" = doctor ]; then
     echo "note: checking the pre-rename home $LEGACY_HOME (./install.sh moves it to $DEFAULT_HOME)"
     AI_VIDEO_EDITOR_HOME="$LEGACY_HOME"; set_paths
   fi
+  # what env.sh sets, so a shell that has not sourced it sees the same TTS
+  case ":$PATH:" in *":$BIN_DIR:"*) ;; *) [ -d "$BIN_DIR" ] && PATH="$BIN_DIR:$PATH" ;; esac
+  [ -f "$PIPER_MODEL" ] && export AI_VIDEO_EDITOR_PIPER_MODEL="$PIPER_MODEL"
   doctor; exit
 fi
 if [ "$MODE" = skill ]; then install_skill; exit; fi
 migrate_home
-install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env; link_legacy_home; install_skill
+install_node; install_ffmpeg; install_python; install_models; install_piper; install_npm; install_font; install_style_fonts; write_env; link_legacy_home; install_skill
 log "done. In each new shell:  . $AI_VIDEO_EDITOR_HOME/env.sh     Verify:  ./install.sh --doctor"
 log "first edit:  ai-video-editor samples/talk.mp4 -o out/        (ai-video-editor --help lists every mode)"

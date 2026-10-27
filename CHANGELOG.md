@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.2 (2026-10-27)
+
+Install polish: the move to `~/.ai-video-editor` always happens, and the local TTS has a real voice out of the box.
+
+- Legacy home: an `AI_VIDEO_EDITOR_HOME` or `EASY_EDITS_HOME` still pointing at `~/.easy-edits` (a stale shell or an
+  old `env.sh`) no longer makes `./install.sh` keep writing there. It counts as the default home: `~/.easy-edits` is moved
+  to `~/.ai-video-editor` (venv, node and models kept), `env.sh` is written there and `~/.easy-edits` becomes a symlink
+  to it. A custom home elsewhere is still left alone.
+- Piper voice by default: `./install.sh` installs the `piper` CLI (`piper-tts` into the venv, linked from
+  `~/.ai-video-editor/bin`, unless a working `piper` is already on PATH) and the `en_US-amy-low` voice (~60 MB,
+  `~/.ai-video-editor/models/piper/`, from huggingface.co/rhasspy/piper-voices v1.0.0, pinned by sha256). `env.sh`
+  exports `AI_VIDEO_EDITOR_PIPER_MODEL` (and `EASY_EDITS_PIPER_MODEL`), so `ai-video-editor new` voice-overs use Piper
+  instead of flite. `AI_VIDEO_EDITOR_PIPER_CACHE=<dir>` copies the voice from a local folder instead of downloading it;
+  a custom `AI_VIDEO_EDITOR_PIPER_MODEL` is kept. The doctor has a `piper-voice` line and its `backends` line reports
+  `tts: piper`.
+- Sample: TODO (WT-B: real-speech `samples/talk.mp4`).
+- Docs and messages: TODO (WT-C).
+
 ## 1.4.1 (2026-10-27)
 
 Renamed from Easy Edits to **AI Video Editor**, plus stranger-test fixes after the public rename.
