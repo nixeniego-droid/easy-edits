@@ -10,6 +10,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { captionGroups } from '../../presets/captions-default.mjs';
+import { captionKeepOut, pickCaptionY } from '../../engine/compose.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const preset = JSON.parse(fs.readFileSync(path.join(HERE, 'captions.json'), 'utf8'));
@@ -83,15 +84,28 @@ export function filterGraph(keeps, { grade = look.ffmpeg, xf = XF, dur = Infinit
   return f.join(';');
 }
 
-/** caption band per caption: 'upper' when the face keep-out of the scene at that source time reaches the lower band. */
-export function captionBand(face, cover, p = preset) {
-  if (!face || !cover) return 'lower';
-  const [, y, , h] = face, chin = (y + 1.15 * h) * cover.scale + cover.y + p.faceMargin;
-  const lowerTop = p.safeY.lower - (p.font.size * p.font.lineHeight * p.box.lines) / 2;
-  return chin > lowerTop ? 'upper' : 'lower';
+/** Face box [x,y,w,h] (source px) + cover -> output-space sample for captionKeepOut. */
+export function faceOut(face, cover) {
+  if (!face || !cover || !(face[2] > 0)) return null;
+  const [x, y, w, h] = face;
+  return { cx: (x + w / 2) * cover.scale + cover.x, cy: (y + h / 2) * cover.scale + cover.y, fw: w * cover.scale };
 }
 
-export function captions(words, { duration, fps = 30, p = preset, bandAt = () => 'lower' } = {}) {
+/** Caption centre y + side clear of the face (compose pickCaptionY). Returns { band: 'upper'|'lower', y, side }.
+ * Sticky via optional `prev` ({side,y}). When the face fills the frame, floor extends past safeZone.bottom so
+ * captions sit over the bottom UI rather than the face (same policy as compose). */
+export function captionBand(face, cover, p = preset, prev = null) {
+  const ch = p.font.size * p.font.lineHeight * p.box.lines;
+  const want = p.safeY.lower, top = p.safeZone.top, bottom = p.safeZone.bottom;
+  const floor = 1920 - 40; // over bottom UI rather than the face when the crop is tight
+  const ko = captionKeepOut([faceOut(face, cover)].filter(Boolean), 1080);
+  const pick = pickCaptionY({ want, ch, ko, top, bottom, floor, lo: p.safeZone.top + ch / 2, hi: floor - ch / 2, prev });
+  // band label for burn/gates that still key on upper/lower: above-face => upper, else lower
+  const band = pick.side === 'above' ? 'upper' : 'lower';
+  return { band, y: pick.y, side: pick.side };
+}
+
+export function captions(words, { duration, fps = 30, p = preset, bandAt = () => ({ band: 'lower', y: preset.safeY.lower, side: 'below' }) } = {}) {
   const trim = new RegExp(p.trimPunctuation);
   // disfluent-decode word spans overlap ("relationship" ends after "builds" starts): clip each end at the next start
   words = words.map((w, i) => ({ ...w, end: Math.max(w.start + 0.05, Math.min(w.end, words[i + 1]?.start ?? Infinity)) }));
@@ -104,7 +118,15 @@ export function captions(words, { duration, fps = 30, p = preset, bandAt = () =>
     g.splice(Math.min(i, j), 2, { ...a, text: `${a.text} ${b.text}`, end: b.end, lastEnd: b.lastEnd ?? b.end, words: [...(a.words || []), ...(b.words || [])] });
     i = Math.max(-1, Math.min(i, j) - 1);
   }
-  return g.map((c) => ({ ...c, text: c.text.replace(trim, ''), band: bandAt(c.words[0]) }));
+  let prev = null;
+  return g.map((c) => {
+    const pick = bandAt(c.words[0], prev); // bandAt may return string (legacy) or {band,y,side}
+    const band = typeof pick === 'string' ? pick : pick.band;
+    const y = typeof pick === 'string' ? (pick === 'upper' ? p.safeY.upper : p.safeY.lower) : pick.y;
+    const side = typeof pick === 'string' ? (pick === 'upper' ? 'above' : 'below') : pick.side;
+    prev = { side, y };
+    return { ...c, text: c.text.replace(trim, ''), band, y, side };
+  });
 }
 
 export function html({ duration, caps, cover, src = { width: 1920, height: 1080 }, p = preset }) {
@@ -125,7 +147,7 @@ html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#000}
 <div id="root" data-composition-id="main" data-start="0" data-duration="${duration}" data-width="1080" data-height="1920">
 <div id="spkwrap"><video id="spk" src="assets/clip.mp4" muted playsinline data-start="0" data-duration="${duration}" data-track-index="0"></video></div>
 <div id="caps">
-${caps.map((c, i) => `<div id="cap${i}" class="cap clip" data-start="${c.start}" data-duration="${r3(c.end - c.start)}" data-track-index="4"${c.band === 'upper' ? ` style="top:${up}px"` : ''}><span>${esc(c.text)}</span></div>`).join('\n')}
+${caps.map((c, i) => { const y = c.y != null ? c.y : (c.band === 'upper' ? p.safeY.upper : p.safeY.lower); const top = r3(y - p.safeY.lower); return `<div id="cap${i}" class="cap clip" data-start="${c.start}" data-duration="${r3(c.end - c.start)}" data-track-index="4"${top ? ` style="top:${top}px"` : ''}><span>${esc(c.text)}</span></div>`; }).join('\n')}
 </div>
 <audio id="mix" src="assets/mix.wav" data-start="0" data-duration="${duration}" data-track-index="6" data-volume="1"></audio>
 </div>
@@ -163,7 +185,7 @@ function main(argv) {
   const sc = Math.max(1080 / pr.width, 1920 / pr.height);
   const cover = main?.cover1080x1920 || { scale: r3(sc), x: r3((1080 - pr.width * sc) / 2), y: r3((1920 - pr.height * sc) / 2) };
   const srcT = (t) => { const k = ed.keeps.find((k) => t >= k.start && t <= k.end) || ed.keeps.at(-1); return k.sourceStart + t - k.start; };
-  const caps = captions(words, { duration, fps, bandAt: (w) => captionBand(sceneAt(prep, srcT(w.start))?.face?.box, cover) });
+  const caps = captions(words, { duration, fps, bandAt: (w, prev) => captionBand(sceneAt(prep, srcT(w.start))?.face?.box, cover, preset, prev) });
   fs.writeFileSync(path.join(proj, 'index.html'), html({ duration, caps, cover, src: pr }));
   fs.writeFileSync(path.join(A, 'captions.json'), JSON.stringify(caps.map(({ words: w, ...c }) => c), null, 1));
   const gsap = path.join(HERE, '../../../node_modules/gsap/dist/gsap.min.js');

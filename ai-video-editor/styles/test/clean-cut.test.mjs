@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { cleanCut, markRemovals, quietRuns, splitMerged, deepLevel, GUARD, SLIP_MAX } from '../clean-cut/cut.mjs';
 import { checkCuts } from '../../tools/cut-guard.mjs';
-import { captionBand, captions, filterGraph, html, preset, tailHold, roomTone, TAIL_HOLD } from '../clean-cut/build.mjs';
+import { captionBand, captions, faceOut, filterGraph, html, preset, tailHold, roomTone, TAIL_HOLD } from '../clean-cut/build.mjs';
+import { captionKeepOut } from '../../engine/compose.mjs';
 import { checkCaptionSize } from '../../check/caption-size.mjs';
 
 // "So, uh, I I think the the plan is a gigan- a gigantic, a very large win. [1.2 s pause] (breath pause 0.25 s) we
@@ -79,8 +80,18 @@ test('captions-minimal: sentence case, 1-2 lines, lower band unless the face rea
   assert.deepEqual(checkCaptionSize(page, preset).bad, []);
   assert.ok(checkCaptionSize(page).bad.some((b) => b.kind === 'size'), 'the default 100 px preset still applies to other styles');
   // 1280x720 cover 2.673: a face at y 145 h 188 ends ~ chin 966 px -> lower band; a low face (y 420) -> upper
-  assert.equal(captionBand([712, 145, 188, 188], { scale: 2.673, x: -1614, y: 0 }), 'lower');
-  assert.equal(captionBand([712, 420, 188, 188], { scale: 2.673, x: -1614, y: 0 }), 'upper');
+  const lo = captionBand([712, 145, 188, 188], { scale: 2.673, x: -1614, y: 0 });
+  assert.equal(lo.band, 'lower');
+  const hi = captionBand([712, 420, 188, 188], { scale: 2.673, x: -1614, y: 0 });
+  assert.equal(hi.band, 'upper');
+  // tight full-frame face: y must sit outside the keep-out (compose pickCaptionY + floor)
+  const cover = { scale: 1, x: 0, y: 0 };
+  const face = [100, 200, 880, 1400]; // fills most of 1080x1920 after cover
+  const pick = captionBand(face, cover);
+  const ko = captionKeepOut([faceOut(face, cover)], 1080);
+  const ch = 68 * 1.18 * 2;
+  assert.ok(pick.y - ch / 2 >= ko.y1 - 1 || pick.y + ch / 2 <= ko.y0 + 1,
+    `caption y=${pick.y} overlaps keep-out ${JSON.stringify(ko)}`);
   assert.equal(JSON.parse(fs.readFileSync(new URL('../clean-cut/captions.json', import.meta.url))).name, 'captions-minimal');
 });
 

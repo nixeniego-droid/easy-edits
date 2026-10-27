@@ -37,8 +37,11 @@ Captions (seen on the README sample, delivery PASS)
   start of the source.
 - Whisper can mishear a short final word (caption "very clearly still Oh" for "still up"). Fix it with
   --review-patch (text) or a corrected --transcript.
-- On a close-up where the face fills the 9:16 frame there is no free band: the captions go over the forehead and
-  the run prints "caption overlap(s) ... x face" WARNs.
+- On a close-up where the face fills the 9:16 frame, captions use the same face keep-out as compose (above or
+  below the face, sticky; when neither band fits they sit over the bottom UI rather than the face). Fixed in 1.4.3
+  for the approved clean-cut 9:16 burn path as well as engine modes (stranger clean-cut talk 9:16: 19 OVER FACE ->
+  0–1 residual when the face+chin keep-out reaches the bottom edge of the frame). Older builds may still print
+  mid-frame face-gate FAILs.
 
 talking-head graphics
 - List card: a long item can wrap to 2 lines and overlap the next item.
