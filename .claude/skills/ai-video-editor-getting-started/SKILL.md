@@ -12,7 +12,7 @@ You can also plan and make a new video from a brief when they want that. Posting
 
 The owner may never have used a terminal. You run every command; they chat and tap. Follow section 0 of the
 `ai-video-editor` skill the whole time: plain words, one sentence per step, a choice card at every decision
-(recommended option first), progress updates, never a flag, path or raw error in what they read.
+(recommended option first), progress updates every 30–60 s while a render runs in the background, never a flag, path or raw error in what they read. Use `ai-video-editor --version` for the version (package.json), never git describe.
 
 **Always attach the finished video(s), the captions file (`.srt`) and the contact sheet to the chat. Never reply
 with only a file path.**

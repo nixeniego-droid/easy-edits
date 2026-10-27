@@ -4,7 +4,7 @@ import './env-compat.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync, execFileSync } from 'node:child_process';
+import { spawnSync, spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { probe } from './audio.mjs';
 import { masterVideo, measure } from '../audio/master.mjs';
@@ -23,6 +23,36 @@ export function run(cmd, args, { label, logFile, env, cwd, allowFail = false } =
   if (logFile) fs.appendFileSync(logFile, `\n$ ${cmd} ${args.join(' ')}\n${r.stdout || ''}${r.stderr || ''}\nexit ${r.status} (${((Date.now() - t) / 1000).toFixed(1)} s)\n`);
   if (r.status !== 0 && !allowFail) throw new Error(`${label || cmd} failed (exit ${r.status})${logFile ? `; see ${logFile}` : ''}\n${(r.stderr || '').slice(-1500)}`);
   return r;
+}
+
+/** Like run(), but streams stdout/stderr line-by-line to onLine while the process runs. */
+export function runAsync(cmd, args, { label, logFile, env, cwd, allowFail = false, onLine } = {}) {
+  return new Promise((resolve, reject) => {
+    const t = Date.now();
+    const child = spawn(cmd, args, { env: { ...process.env, ...env }, cwd });
+    let stdout = '', stderr = '', buf = '';
+    const feed = (chunk, which) => {
+      const s = chunk.toString();
+      if (which === 'out') stdout += s; else stderr += s;
+      buf += s;
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i);
+        buf = buf.slice(i + 1);
+        try { onLine?.(line); } catch { /* ignore progress errors */ }
+      }
+    };
+    child.stdout.on('data', (c) => feed(c, 'out'));
+    child.stderr.on('data', (c) => feed(c, 'err'));
+    child.on('error', reject);
+    child.on('close', (status) => {
+      if (buf) { try { onLine?.(buf); } catch {} buf = ''; }
+      if (logFile) fs.appendFileSync(logFile, `\n$ ${cmd} ${args.join(' ')}\n${stdout}${stderr}\nexit ${status} (${((Date.now() - t) / 1000).toFixed(1)} s)\n`);
+      const r = { status, stdout, stderr };
+      if (status !== 0 && !allowFail) reject(new Error(`${label || cmd} failed (exit ${status})${logFile ? `; see ${logFile}` : ''}\n${stderr.slice(-1500)}`));
+      else resolve(r);
+    });
+  });
 }
 
 /** one video + one audio stream, display rotation baked in (phone footage: APAC / mebx streams, rotation -90). */

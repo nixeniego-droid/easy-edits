@@ -97,8 +97,14 @@ short `hookCard` text and `durationSec` (the length after the clean cut) on each
 
 ### Progress while they wait
 
-Long steps (install, transcribing, rendering) get a plain update when they start and every few minutes, read
-from the log, never pasted from it:
+Long steps (install, transcribing, rendering) get a plain update when they start. **For any render that may
+take more than about a minute, start the command in the background** (or otherwise keep the chat free), then
+relay a short plain-English update in chat **every 30–60 seconds** from the progress lines on stderr
+(`ai-video-editor: …` or `ai-video-editor-progress: {…}` JSON when `--progress json` / `AI_VIDEO_EDITOR_PROGRESS=json`).
+Never paste raw logs. Prefer `--progress plain` (default). Report version with `ai-video-editor --version`
+(reads package.json — never `git describe`).
+
+Stage lines look like:
 
 | what's happening (log)                         | say                                                                     |
 |------------------------------------------------|-------------------------------------------------------------------------|
@@ -111,6 +117,7 @@ from the log, never pasted from it:
 | `picking` / proposals                          | "Finding moments to clip…"                                             |
 | `render` / HyperFrames frames                  | "Rendering your video…"                                                 |
 | delivery check / loudness                      | "Checking the sound level and captions…"                                |
+| `ai-video-editor: … N% (M:SS elapsed)`           | "Still working — about N% / M:SS so far."                               |
 
 ### Quick preview, then the full render
 
