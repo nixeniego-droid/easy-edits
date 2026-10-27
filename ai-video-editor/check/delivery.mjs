@@ -41,6 +41,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { measure } from '../audio/master.mjs';
 import { repeatFindings, detectLoop } from './lib/repeats.mjs';
+import { joinHyphenWords, reusedPhraseNote } from '../engine/words.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -79,7 +80,7 @@ const onset = lead ? lead[1] : 0, offset = trail && trail !== lead ? trail[0] : 
 const active = (a, b) => b - a - silences.reduce((t, [s, e]) => t + Math.max(0, Math.min(b, e) - Math.max(a, s)), 0);
 const bySeg = Map.groupBy(asr.words, (w) => w.seg);
 const unbacked = new Set([...bySeg].filter(([, ws]) => ws.filter((w) => active(w.start, w.end) >= 0.02).length * 2 < ws.length).map(([k]) => k));
-const words = asr.words.filter((w) => !unbacked.has(w.seg)), dropped = asr.words.filter((w) => unbacked.has(w.seg));
+const words = joinHyphenWords(asr.words.filter((w) => !unbacked.has(w.seg))), dropped = asr.words.filter((w) => unbacked.has(w.seg));
 
 const checks = [];
 const check = (name, pass, msg) => checks.push({ name, pass, msg });
@@ -131,7 +132,7 @@ if (dropped.length) console.log(`dropped (no speech-band activity under ${droppe
 if (loop) console.log(`NOTE  no-repeat  this looks like a looped source (the same ${loop.periodSec != null ? `~${Math.round(loop.periodSec)} s` : `${loop.periodWords} words`} of speech repeated ${Math.round(loop.copies)} times); skipping the repeat check on the loop.`);
 const misH = misheard.filter((x) => x.verdict === 'misheard'), reused = misheard.filter((x) => x.verdict === 'reused');
 if (misH.length) console.log(`NOTE  no-repeat  heard repeat(s) the reference does not have (ASR mishearing, not a repeat): ${misH.map(repTxt).join(', ')}`);
-if (reused.length) console.log(`NOTE  no-repeat  phrase(s) the speaker uses in two different places (not a retake): ${reused.map(repTxt).join(', ')}`);
+if (reused.length) console.log(`NOTE  ${reused.map((x) => reusedPhraseNote(x.key, x.count)).join(' ')}`);
 if (!script && outro.length) console.log(`WARN  outro      outro boilerplate heard, no --script to confirm it: ${outro.map((p) => `"${p}"`).join(', ')}`);
 for (const c of checks) console.log(`${c.pass ? 'PASS' : 'FAIL'}  ${c.name.padEnd(10)} ${c.msg}`);
 const ok = checks.every((c) => c.pass);

@@ -112,6 +112,7 @@ REVC2=(node "$REPO/ai-video-editor/bin/claude-watchdog.mjs" --prompt-file "$RUN/
 if [ "${AI_VIDEO_EDITOR_RENDER:-burn}" = hyperframes ]; then RENDERC=("$REPO/ai-video-editor/bin/render.sh" final "$PROJ" "$OUT")
 else RENDERC=(node "$STYLE/burn.mjs" "$PROJ" "$OUT" --color-from "$SRC"); fi
 POSTC=(env AI_VIDEO_EDITOR_LEADIN_PRESET="${AI_VIDEO_EDITOR_LEADIN_PRESET:-veryfast}" node "$REPO/ai-video-editor/post.mjs" "$OUT")
+if [ "${AI_VIDEO_EDITOR_POST_NO_CHECK:-0}" = 1 ]; then POSTC+=(--no-check); fi
 
 # gates: stage + label + command; the labels must match style.json "gates" (bin/test/clean-cut.test.mjs checks it).
 # Stages: "pre" gates run WHILE the video renders: project-only checks, and the audio checks on assets/mix.wav (the
@@ -139,6 +140,21 @@ gate pre   capsize   node "$C/caption-size.mjs" "$PROJ" --preset "$STYLE/caption
 gate pre   read      node "$C/readability.mjs" "$PROJ"
 gate final aspect    node "$C/aspect.mjs" "$PROJ" "$OUT"
 gate final content   env OMP_NUM_THREADS="$TH" node "$C/content-kept.mjs" "$PROJ" "$OUT" --source "$SRC" --lang "$LANGV"
+# AI_VIDEO_EDITOR_GATES=delivery (CLI default): skip ASR-heavy fault gates; CLI delivery check covers the final.
+# full = every gate in style.json (CI / polish).
+if [ "${AI_VIDEO_EDITOR_GATES:-full}" = "delivery" ]; then
+  DROP="content|disfl|verbatim"
+  NEW_STG=() NEW_LBL=() NEW_CMD=()
+  for i in "${!G_LBL[@]}"; do
+    # keep verbatim-guard + caption-cover (fast); drop verbatim-final (ASR) which shares label "verbatim" and uses verbatim-final.mjs
+    case "${G_CMD[$i]}" in
+      *verbatim-final.mjs*|*disfluency.mjs*|*content-kept.mjs*) continue ;;
+    esac
+    NEW_STG+=("${G_STG[$i]}"); NEW_LBL+=("${G_LBL[$i]}"); NEW_CMD+=("${G_CMD[$i]}")
+  done
+  G_STG=("${NEW_STG[@]}"); G_LBL=("${NEW_LBL[@]}"); G_CMD=("${NEW_CMD[@]}")
+  echo "clean-cut: gates mode=delivery (skipped ASR-heavy content/disfl/verbatim-final; CLI delivery check still runs)" >&2
+fi
 SKIPPED="$(node -e 'const s=require(process.argv[1]).skipped;console.log(Object.entries(s).map(([k,v])=>`  skip ${k}: ${v}`).join("\n"))' "$STYLE/style.json")"
 
 if [ $DRY = 1 ]; then
@@ -159,7 +175,7 @@ fi
 
 mkdir -p "$RUN" "$PROJ/assets" "$RUN/gates"
 T0=$SECONDS; declare -A DT=()
-phase() { DT[$1]=$((SECONDS - $2)); echo "clean-cut: $1 ${DT[$1]} s" >&2; }
+phase() { DT[$1]=$((SECONDS - $2)); echo "clean-cut: $1 ${DT[$1]} s" >&2; echo "ai-video-editor-progress: {\"stage\":\"$1\",\"elapsedSec\":${DT[$1]},\"done\":false}" >&2; }
 
 # prep: source-prep (faces, scenes, crop) and cut-candidates (the disfluent decode = the transcript) in parallel
 t=$SECONDS
