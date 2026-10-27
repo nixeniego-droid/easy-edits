@@ -11,7 +11,7 @@ Known flaws: KNOWN_ISSUES.txt.
 
 INSTALL (Linux or macOS; needs git and curl)
 
-  git clone https://github.com/nixeniego-droid/easy-edits ai-video-editor
+  git clone https://github.com/nixeniego/easy-edits ai-video-editor
   cd ai-video-editor
   ./install.sh                     # Node 22, ffmpeg, faster-whisper + models, OpenCV, yt-dlp, npm deps, Chrome, fonts
   . ~/.ai-video-editor/env.sh              # in every new shell (puts ai-video-editor on your PATH)
