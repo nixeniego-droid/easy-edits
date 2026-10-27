@@ -1,7 +1,7 @@
 /** Shape report.json for the user / bot: when delivery PASSes, hide internal gate FAIL lines. */
 import { reusedPhraseNote } from './words.mjs';
 
-const GATE_FAIL = /gate\s+\w+\s+FAIL|\bOVER FACE\b|gate seconds:/i;
+const GATE_FAIL = /gate\s+\w+\s+(FAIL|info)|quality note\s*\(|\bOVER FACE\b|gate seconds:/i;
 const JARGON_NOTE = /phrase\(s\) the speaker uses in two different places[^"]*"([^"]+)"\s*x(\d+)/i;
 
 function isGateLine(s) {

@@ -151,7 +151,7 @@ export function parseArgs(argv) {
     const c = String(o.captionColor).toLowerCase();
     o.ink = { auto: 'auto', white: 'light', light: 'light', black: 'dark', dark: 'dark' }[c] || (/^#[0-9a-f]{6}$/.test(c) ? c.toUpperCase() : null);
     if (!o.ink) throw new Error(`--caption-color ${o.captionColor}: use auto, white, black or a #RRGGBB colour`);
-    if (o.mode === 'clean-cut' && o.formats.includes('9x16') && o.ink !== 'auto') throw new Error('--caption-color: clean-cut 9:16 keeps the approved white captions; use it with captions / talking-head / explainer / shorts, or clean-cut --format 1x1 / 16x9');
+    if (o.mode === 'clean-cut' && o.formats.includes('9x16') && o.ink !== 'auto') throw new Error('--caption-color: clean-cut 9:16 keeps white captions; use it with captions / talking-head / explainer / shorts, or clean-cut --format 1x1 / 16x9');
   }
   return o;
 }

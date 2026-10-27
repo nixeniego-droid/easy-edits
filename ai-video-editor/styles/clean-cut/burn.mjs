@@ -11,7 +11,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -92,10 +92,31 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const fr = (t) => Math.round(t * fps * 1000) / 1000;
   shots.forEach((s, i) => { g += `;[v${i}][${i + 2}:v]overlay=x=${s.x}:y=${s.y}:eof_action=repeat:enable='gte(n,${Math.ceil(fr(s.start) - 1e-6)})*lt(n,${Math.ceil(fr(s.end) - 1e-6)})'[v${i + 1}]`; });
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  const args = ['-v', 'error', '-y', '-i', path.join(A, 'clip.mp4'), '-i', path.join(A, 'mix.wav'), ...shots.flatMap((s) => ['-i', s.file]),
+  const args = ['-v', 'error', '-y', '-progress', 'pipe:1', '-nostats', '-i', path.join(A, 'clip.mp4'), '-i', path.join(A, 'mix.wav'), ...shots.flatMap((s) => ['-i', s.file]),
     '-filter_complex', g, '-map', `[v${shots.length}]`, '-map', '1:a', '-t', String(comp.duration), '-r', String(fps),
     '-c:v', 'libx264', '-preset', PRESET, '-crf', CRF, '-pix_fmt', 'yuv420p', ...color, '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-movflags', '+faststart', out];
-  const r = spawnSync('ffmpeg', args, { stdio: ['ignore', 'inherit', 'inherit'] });
+  // Stream ffmpeg -progress to stderr as out_time_ms=/frame= lines so the CLI progress ingest can tick during encode.
+  const { spawn } = await import('node:child_process');
+  const r = await new Promise((resolve) => {
+    const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let last = 0;
+    const bump = (buf, which) => {
+      const text = buf.toString();
+      for (const line of text.split(/\r?\n/)) {
+        if (!line) continue;
+        if (/^(out_time_ms|frame)=/.test(line)) {
+          const now = Date.now();
+          if (now - last >= 2000 || line.startsWith('out_time_ms=')) {
+            last = now;
+            console.error(line);
+          }
+        } else if (which === 'err' && line.trim()) console.error(line);
+      }
+    };
+    child.stdout.on('data', (b) => bump(b, 'out'));
+    child.stderr.on('data', (b) => bump(b, 'err'));
+    child.on('close', (code) => resolve({ status: code }));
+  });
   if (!opt('--keep-pngs')) fs.rmSync(work, { recursive: true, force: true });
   if (r.status !== 0) { console.error('burn: ffmpeg failed'); process.exit(1); }
   console.error(`burn: ${path.basename(out)} (${comp.duration} s, ${shots.length} captions, x264 ${PRESET} crf ${CRF}) in ${lap()} s`);

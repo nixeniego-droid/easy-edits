@@ -153,7 +153,7 @@ if [ "${AI_VIDEO_EDITOR_GATES:-full}" = "delivery" ]; then
     NEW_STG+=("${G_STG[$i]}"); NEW_LBL+=("${G_LBL[$i]}"); NEW_CMD+=("${G_CMD[$i]}")
   done
   G_STG=("${NEW_STG[@]}"); G_LBL=("${NEW_LBL[@]}"); G_CMD=("${NEW_CMD[@]}")
-  echo "clean-cut: gates mode=delivery (skipped ASR-heavy content/disfl/verbatim-final; CLI delivery check still runs)" >&2
+  echo "clean-cut: using the quick quality checks (full delivery check still runs at the end)" >&2
 fi
 SKIPPED="$(node -e 'const s=require(process.argv[1]).skipped;console.log(Object.entries(s).map(([k,v])=>`  skip ${k}: ${v}`).join("\n"))' "$STYLE/style.json")"
 
@@ -166,7 +166,7 @@ if [ $DRY = 1 ]; then
   printf 'build:'; printf ' %q' "${BUILDC[@]}"; echo
   if [ "${AI_VIDEO_EDITOR_CAPVERIFY:-1}" = 0 ]; then echo "caption verify: skipped (AI_VIDEO_EDITOR_CAPVERIFY=0)"; else printf 'caption verify:'; printf ' %q' "${CVC[@]}"; echo " -> $RUN/caption-verify.{json,txt}; flags -> $([ $REVIEW = 1 ] && [ -z "$RPATCH" ] && echo "text-only review (brief-captions.md), cut --patch + build" || echo "report only")"; fi
   printf 'render:'; printf ' %q' "${RENDERC[@]}"; echo
-  echo "gates (fault-only, ${#G_LBL[@]}):"
+  echo "gates (${#G_LBL[@]}):"
   for i in "${!G_LBL[@]}"; do printf '  %-10s %s\n' "${G_LBL[$i]}:" "[${G_STG[$i]}] ${G_CMD[$i]}"; done
   echo "skipped gates:"; echo "$SKIPPED"
   printf 'post:'; printf ' %q' "${POSTC[@]}"; echo; echo "phone: ffmpeg scale 720x1280 -> ${OUT%.mp4}.phone.mp4"
@@ -264,7 +264,7 @@ for p in "${PIDS[@]}"; do wait "$p" || true; done
 for i in "${!G_LBL[@]}"; do
   [ "${G_LBL[$i]}" = content ] && [ "$(cat "$RUN/gates/$i.status" 2>/dev/null)" != 0 ] || continue
   [ $CVBG = 1 ] && wait "$CVPID" 2>/dev/null || true
-  echo "clean-cut: content FAIL under load; one retry alone (first log kept: $RUN/gates/$i-content.first.log)" >&2
+  echo "clean-cut: content check was unclear under load; retrying once (first log kept: $RUN/gates/$i-content.first.log)" >&2
   cp "$RUN/gates/$i-content.log" "$RUN/gates/$i-content.first.log"
   ( set +e; s0=$SECONDS; eval "${G_CMD[$i]}" > "$RUN/gates/$i-content.log" 2>&1; echo $? > "$RUN/gates/$i.status"; echo $((SECONDS - s0)) > "$RUN/gates/$i.secs" )
 done
@@ -276,18 +276,22 @@ for i in "${!G_LBL[@]}"; do
   l=${G_LBL[$i]} rc=$(cat "$RUN/gates/$i.status" 2>/dev/null || echo 99)
   [ -n "${GS[$l]+x}" ] || { GS[$l]=0; GORDER+=("$l"); }
   [ "${GS[$l]}" != 0 ] || GS[$l]=$rc
-  [ "$rc" = 0 ] || { GF=1; echo "clean-cut: gate $l FAIL ($rc): $(tail -n 3 "$RUN/gates/$i-$l.log" | tr '\n' ' ' | cut -c1-300)" >&2; }
+  [ "$rc" = 0 ] || { GF=1; echo "clean-cut: quality note ($l): $(tail -n 3 "$RUN/gates/$i-$l.log" | tr '\n' ' ' | cut -c1-300)" >&2; }
 done
 wait
 PS=$(cat "$RUN/post.status" 2>/dev/null || echo 1); DT[post]=$(cat "$RUN/post.secs" 2>/dev/null || echo 0)
 [ -f "${OUT%.mp4}.post.mp4" ] && ffmpeg -v error -y -i "${OUT%.mp4}.post.mp4" -vf scale=720:1280 -c:v libx264 -preset veryfast -crf 23 -c:a aac -b:a 128k -movflags +faststart "${OUT%.mp4}.phone.mp4" || true
 DT[total]=$((SECONDS - T0))
-SUM=""; for l in "${GORDER[@]}"; do SUM+="; $l $([ "${GS[$l]}" = 0 ] && echo PASS || echo "FAIL (${GS[$l]})")"; done
+SUM=""; for l in "${GORDER[@]}"; do
+  if [ "${GS[$l]}" = 0 ]; then SUM+="; $l PASS"
+  elif [ "${AI_VIDEO_EDITOR_GATES:-full}" = "delivery" ]; then SUM+="; $l info (${GS[$l]})"
+  else SUM+="; $l FAIL (${GS[$l]})"; fi
+done
 SKIPS="$(node -e 'console.log(Object.keys(require(process.argv[1]).skipped).join(","))' "$STYLE/style.json")"
 node -e 'const [f, ...kv] = process.argv.slice(1); const o = {}; for (let i = 0; i < kv.length; i += 2) o[kv[i]] = Number(kv[i + 1]); require("fs").writeFileSync(f, JSON.stringify({ style: "clean-cut", seconds: o, targetSeconds: 300 }, null, 1));' \
   "$RUN/timing.json" prep "${DT[prep]}" asr "${DT[asr]}" cut "${DT[cut]}" review "${DT[review]}" build "${DT[build]}" verify "${DT[verify]}" render "${DT[render]}" gates_after_render "${DT[gates]}" gates_from_render_start "${DT[gates_all]}" post "${DT[post]}" total "${DT[total]}"
 GT=""; for i in "${!G_LBL[@]}"; do GT+=" ${G_LBL[$i]}=$(cat "$RUN/gates/$i.secs" 2>/dev/null || echo ?)"; done
 echo "clean-cut: gate seconds:$GT" >&2
-echo "clean-cut: total ${DT[total]} s (prep ${DT[prep]}, asr ${DT[asr]}, cut ${DT[cut]}, review ${DT[review]}, build ${DT[build]}, verify ${DT[verify]}, render ${DT[render]} || pre-stage gates, gates after render ${DT[gates]} || post ${DT[post]}; all gates ${DT[gates_all]} from the render start); gates fault-only$SUM; skipped $SKIPS; post exit $PS; out ${OUT%.mp4}.post.mp4 + ${OUT%.mp4}.phone.mp4"
+echo "clean-cut: total ${DT[total]} s (prep ${DT[prep]}, asr ${DT[asr]}, cut ${DT[cut]}, review ${DT[review]}, build ${DT[build]}, verify ${DT[verify]}, render ${DT[render]}, checks after render ${DT[gates]}, finish ${DT[post]}); checks$SUM; skipped $SKIPS; post exit $PS; out ${OUT%.mp4}.post.mp4 + ${OUT%.mp4}.phone.mp4"
 [ $GF = 1 ] && exit 1
 exit "$PS"

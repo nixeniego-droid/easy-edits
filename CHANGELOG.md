@@ -3,7 +3,7 @@
 ## 1.4.3 (2026-10-27)
 
 - Version string: `ai-video-editor --version` / help header read `package.json` (not `git describe`).
-- Progress: stage lines + percent/elapsed at least every ~10 s; skills tell the bot to background long renders and relay every 30–60 s.
+- Progress: stage lines + percent/elapsed at least every ~10 s (ffmpeg -progress during burn, ASR segment ticks); skills tell the bot to background long renders and relay every 30–60 s.
 - report.json: on DELIVERY PASS, internal gate lines are `info` under `diagnostics` only; reused-phrase NOTE is plain English.
 - Captions: join Whisper hyphen splits (`long` + `-term` → `long-term`).
 - Speed: delivery gate profile skips ASR-heavy gates; post skips a redundant delivery check; caption-verify off by default for CLI; target under ~2 min for samples/talk on box CPU.

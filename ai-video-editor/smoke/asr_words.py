@@ -95,7 +95,17 @@ def join_hyphen(words):
     return out
 
 words = []
+import time as _time
+_asr_t0 = _time.time(); _asr_last = 0.0
+_dur = max(0.1, len(audio) / 16000.0)
 for k, s in enumerate(segs):
+    now = _time.time()
+    if now - _asr_last >= 10.0 or k == 0:
+        _asr_last = now
+        end_t = getattr(s, "end", None) or 0.0
+        pct = min(99, int(100 * end_t / _dur)) if _dur else 0
+        print(f"ai-video-editor: Listening… segment {k+1} ~{end_t:.0f}s/{_dur:.0f}s {pct}% ({int(now-_asr_t0)} s elapsed)", flush=True)
+        print(f"out_time_ms={int(end_t * 1e6)}", flush=True)
     for w in s.words:
         t = w.word.strip()
         if t:

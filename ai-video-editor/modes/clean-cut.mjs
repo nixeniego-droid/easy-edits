@@ -31,7 +31,7 @@ export default async function cleanCut(o) {
     ...(o.face ? { AI_VIDEO_EDITOR_FACE: `${o.face.x},${o.face.y}` } : {}),
   };
   const r = await runAsync('bash', args, { label: 'clean-cut', logFile: o.logFile, allowFail: true, env: speedEnv, onLine: (line) => o._progress && ingestProgressLine(o._progress, line) });
-  const summary = (r.stderr || '').split('\n').filter((l) => /^clean-cut: (total|gate )/.test(l));
+  const summary = (r.stderr || '').split('\n').filter((l) => /^clean-cut: (total|gate |quality note)/.test(l));
   const tr = JSON.parse(fs.readFileSync(path.join(proj, 'assets/transcript.json'), 'utf8'));
   const words = requireSpeech(joinHyphenWords(tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end }))), o.input);
   const exports = [];
