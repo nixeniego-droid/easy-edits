@@ -1,5 +1,5 @@
 /** Shape report.json for the user / bot: when delivery PASSes, hide internal gate FAIL lines. */
-import { reusedPhraseNote } from './words.mjs';
+import { reusedPhraseNote, misheardPhraseNote } from './words.mjs';
 
 const GATE_FAIL = /gate\s+\w+\s+(FAIL|info)|quality note\s*\(|\bOVER FACE\b|gate seconds:/i;
 const JARGON_NOTE = /phrase\(s\) the speaker uses in two different places[^"]*"([^"]+)"\s*x(\d+)/i;
@@ -11,8 +11,12 @@ function isGateLine(s) {
 function plainNote(note) {
   let n = String(note || '');
   const m = JARGON_NOTE.exec(n);
-  if (m) n = reusedPhraseNote(m[1], Number(m[2]) || 2);
-  // also strip leftover jargon fragments
+  if (m) return reusedPhraseNote(m[1], Number(m[2]) || 2);
+  if (/heard repeat|ASR mishearing|misheard:/i.test(n)) {
+    const k = /"([^"]+)"/.exec(n);
+    return misheardPhraseNote(k?.[1] || '');
+  }
+  if (/^The (phrase|delivery check)/.test(n)) return n;
   n = n.replace(/phrase\(s\) the speaker uses in two different places \(not a retake\):[^.]*\./gi, '').trim();
   return n || undefined;
 }
@@ -31,6 +35,11 @@ function scrubCheck(check, pass) {
         const k = /"([^"]+)"/.exec(m[1]);
         return `NOTE  ${reusedPhraseNote(k?.[1] || '', 2)}`;
       }
+      if (/heard repeat|ASR mishearing|misheard|delivery check heard/i.test(m[1])) {
+        const k = /"([^"]+)"/.exec(m[1]);
+        return `NOTE  ${misheardPhraseNote(k?.[1] || '')}`;
+      }
+      if (/^The (phrase|delivery check)/.test(m[1])) return `NOTE  ${m[1]}`;
       return l;
     })
     .filter((l) => !/^FAIL\b/.test(l))

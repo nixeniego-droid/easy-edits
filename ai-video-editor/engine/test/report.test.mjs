@@ -28,3 +28,17 @@ test('delivery FAIL keeps gate FAIL detail', () => {
   });
   assert.deepEqual(r.cleanCut, ['clean-cut: gate cuts FAIL (1): x']);
 });
+
+test('plain misheard note on delivery PASS', () => {
+  const r = publicReport({
+    mode: 'clean-cut',
+    exports: [{
+      format: '9x16', pass: true,
+      note: 'heard repeat(s) the reference does not have (ASR mishearing, not a repeat): "warmest year on record" x2',
+      check: 'NOTE  no-repeat  heard repeat(s) the reference does not have (ASR mishearing, not a repeat): "warmest year on record" x2\nDELIVERY PASS',
+    }],
+  });
+  assert.match(r.exports[0].note, /delivery check heard "warmest year on record"/);
+  assert.doesNotMatch(r.exports[0].note, /ASR mishearing/);
+  assert.match(r.exports[0].check, /NOTE  The delivery check heard/);
+});

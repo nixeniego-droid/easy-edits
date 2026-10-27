@@ -41,7 +41,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { measure } from '../audio/master.mjs';
 import { repeatFindings, detectLoop } from './lib/repeats.mjs';
-import { joinHyphenWords, reusedPhraseNote } from '../engine/words.mjs';
+import { joinHyphenWords, reusedPhraseNote, misheardPhraseNote } from '../engine/words.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -131,7 +131,7 @@ console.log(`heard: ${words.map((w) => w.text).join(' ')}`);
 if (dropped.length) console.log(`dropped (no speech-band activity under ${dropped.length} words at ${f3(dropped[0].start)}-${f3(dropped.at(-1).end)} s): ${dropped.map((w) => w.text).join(' ')}`);
 if (loop) console.log(`NOTE  no-repeat  this looks like a looped source (the same ${loop.periodSec != null ? `~${Math.round(loop.periodSec)} s` : `${loop.periodWords} words`} of speech repeated ${Math.round(loop.copies)} times); skipping the repeat check on the loop.`);
 const misH = misheard.filter((x) => x.verdict === 'misheard'), reused = misheard.filter((x) => x.verdict === 'reused');
-if (misH.length) console.log(`NOTE  no-repeat  heard repeat(s) the reference does not have (ASR mishearing, not a repeat): ${misH.map(repTxt).join(', ')}`);
+if (misH.length) console.log(`NOTE  no-repeat  ${misH.map((x) => misheardPhraseNote(x.key)).join(' ')}`);
 if (reused.length) console.log(`NOTE  ${reused.map((x) => reusedPhraseNote(x.key, x.count)).join(' ')}`);
 if (!script && outro.length) console.log(`WARN  outro      outro boilerplate heard, no --script to confirm it: ${outro.map((p) => `"${p}"`).join(', ')}`);
 for (const c of checks) console.log(`${c.pass ? 'PASS' : 'FAIL'}  ${c.name.padEnd(10)} ${c.msg}`);

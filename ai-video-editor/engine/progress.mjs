@@ -15,11 +15,14 @@ export function fmtElapsed(sec) {
 export function startProgress(stage, message, { everySec = 10 } = {}) {
   const t0 = Date.now();
   let last = 0;
+  let lastPct = 0;
   let curStage = stage;
   let curMsg = message;
   const emit = (percent, final = false, detail = null) => {
     const elapsedSec = (Date.now() - t0) / 1000;
-    const pct = percent == null || Number.isNaN(Number(percent)) ? null : Math.max(0, Math.min(100, Math.round(Number(percent))));
+    let pct = percent == null || Number.isNaN(Number(percent)) ? null : Math.max(0, Math.min(100, Math.round(Number(percent))));
+    if (pct != null && !final) { pct = Math.max(pct, lastPct); lastPct = pct; }
+    if (final) { pct = 100; lastPct = 100; }
     if (mode() === 'json') {
       const row = { stage: curStage, message: curMsg, elapsedSec: Math.round(elapsedSec * 10) / 10 };
       if (pct != null) row.percent = pct;
