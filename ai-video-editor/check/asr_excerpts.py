@@ -13,6 +13,8 @@ import json, subprocess, sys
 import numpy as np
 from faster_whisper import WhisperModel
 argv = sys.argv[1:]
+exact = "--exact" in argv
+argv = [a for a in argv if a != "--exact"]
 lang = "en"
 if "--lang" in argv:
     i = argv.index("--lang")
@@ -38,7 +40,7 @@ if _os.environ.get("AI_VIDEO_EDITOR_ASR_LOCK", "/tmp/ai-video-editor-asr.lock") 
         _LOCK = _os.open(f"{_LP}.{_os.getuid()}", _os.O_WRONLY | _os.O_CREAT, 0o644)
     _fcntl.flock(_LOCK, _fcntl.LOCK_EX)
 _THREADS = int(_os.environ.get("AI_VIDEO_EDITOR_ASR_THREADS", "6"))
-m = WhisperModel(model, device="cpu", compute_type="int8", cpu_threads=_THREADS)
+m = WhisperModel(model, device="cpu", compute_type=("float32" if exact else "int8"), cpu_threads=_THREADS)
 if lang is None and len(audio) > 0:
     lang = m.detect_language(audio, vad_filter=True, language_detection_segments=3)[0]
     print(f"asr_excerpts: detected language {lang}", file=sys.stderr)
@@ -62,8 +64,11 @@ def badness(ws):
 
 
 def decode(seg, a, prompt, temp):
-    segs, _ = m.transcribe(seg, language=lang, word_timestamps=True, beam_size=5, condition_on_previous_text=False, temperature=temp,
-                           **({"initial_prompt": PROMPT} if prompt else {}))
+    # --exact: temperature 0 only (reproducible). Else allow the caller's temp / fallback schedule.
+    kw = {"initial_prompt": PROMPT} if prompt else {}
+    segs, _ = m.transcribe(seg, language=lang, word_timestamps=True, beam_size=5, condition_on_previous_text=False,
+                           temperature=(0.0 if exact else temp),
+                           **kw)
     return [{"text": w.word.strip(), "start": round(a + w.start - 0.5, 3), "end": round(a + w.end - 0.5, 3)} for s in segs for w in s.words if w.word.strip()]
 
 

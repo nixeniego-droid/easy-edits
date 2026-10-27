@@ -93,5 +93,8 @@ export function ingestProgressLine(p, line, { weights } = {}) {
     return;
   }
   m = /frame=\s*(\d+)/.exec(s);
-  if (m) p.tick(null, `frame ${m[1]}`);
+  if (m) { p.tick(null, `frame ${m[1]}`); return; }
+  m = /Listening… segment\s+(\d+).*?(\d+)%/.exec(s);
+  if (m) { p.stage('asr', 'Listening and writing captions…'); p.tick(Math.min(50, 15 + Number(m[2]) * 0.35)); }
 }
+

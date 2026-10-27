@@ -142,8 +142,9 @@ export function markdown(r, src) {
 export const cacheDir = () => process.env.AI_VIDEO_EDITOR_CUTCAND_CACHE || path.join(os.homedir(), '.cache/ai-video-editor/cut-candidates');
 export const sha1File = (f) => crypto.createHash('sha1').update(fs.readFileSync(f)).digest('hex');
 // v2: merged-word suspects (windows around a short word with a long span) changed what a run decodes
+// v8: whole+windows decode uses --exact (float32, temp 0)
 // v3: the whole decode is chunked (chunkSpans / stitchChunks)
-export const cachePath = (src) => path.join(cacheDir(), `${sha1File(src)}.v7.json`);
+export const cachePath = (src) => path.join(cacheDir(), `${sha1File(src)}.v8.json`);
 
 /** whole-file words whose short token (<= 3 letters, not a filler) spans > MERGED s AND holds two voiced islands
  * split by >= 0.1 s of deep quiet (speech-band 10 ms windows, cut-guard's quiet level): a repeat the whole decode

@@ -42,6 +42,6 @@ export function reusedPhraseNote(key, count = 2) {
 /** Plain-English note when ASR heard a near-repeat that is not a true retake. */
 export function misheardPhraseNote(key) {
   const phrase = String(key || '').trim();
-  if (!phrase) return 'The delivery check heard a short phrase twice with a small ASR difference; that is fine.';
-  return `The delivery check heard "${phrase}" twice with a small difference in wording; that is fine.`;
+  if (!phrase) return 'The final check heard a short phrase twice with a small difference in wording; that is fine.';
+  return `The final check heard "${phrase}" twice with a small difference in wording; that is fine.`;
 }

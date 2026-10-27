@@ -26,7 +26,7 @@ test('dry run: phases, gates = style.json gates, skipped gates with reasons, pre
   assert.match(r.stdout, /style clean-cut, mode clean, language auto, review on/);
   for (const p of ['prep', 'asr', 'cut', 'review', 'build', 'render', 'post']) assert.match(r.stdout, new RegExp(`^${p}:`, 'm'));
   assert.match(r.stdout, /^asr: prep's cut-candidates whole-file disfluent decode/m);
-  assert.match(r.stdout, /^asr fallback: .*asr_words\.py .* medium --disfluent --lang auto$/m);
+  assert.match(r.stdout, /^asr fallback: .*asr_words\.py .* medium --exact --vad --disfluent --lang auto$/m);
   assert.match(r.stdout, /--max-turns 3/);
   const labels = [...new Set([...r.stdout.matchAll(/^ {2}(\w+):\s+\[(?:pre|final)\] /gm)].map((m) => m[1]))];
   assert.match(r.stdout, /disfl:\s+\[pre\] env OMP_NUM_THREADS=4 node \S+disfluency\.mjs \S+assets\/mix\.wav --lang auto *$/m);

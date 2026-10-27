@@ -126,7 +126,7 @@ const m = measure(video);
 check('loudness', Number.isFinite(m.I) && Math.abs(m.I - LUFS) <= 1 && m.TP <= TP,
   `integrated ${m.I} LUFS (need ${LUFS}+-1), true peak ${m.TP} dBTP (need <= ${TP})`);
 
-console.log(`delivery check: ${video} (${f3(dur)} s, faster-whisper ${asr.model} + VAD, language ${asr.language_code})`);
+console.log(`final check: ${path.basename(video)} (${f3(dur)} s)`);
 console.log(`heard: ${words.map((w) => w.text).join(' ')}`);
 if (dropped.length) console.log(`dropped (no speech-band activity under ${dropped.length} words at ${f3(dropped[0].start)}-${f3(dropped.at(-1).end)} s): ${dropped.map((w) => w.text).join(' ')}`);
 if (loop) console.log(`NOTE  no-repeat  this looks like a looped source (the same ${loop.periodSec != null ? `~${Math.round(loop.periodSec)} s` : `${loop.periodWords} words`} of speech repeated ${Math.round(loop.copies)} times); skipping the repeat check on the loop.`);

@@ -16,6 +16,8 @@ import { probe } from '../engine/audio.mjs';
 import { sourceHash } from '../engine/plan-store.mjs';
 
 export default async function explainer(o) {
+  o._progress?.stage?.('prep', 'Preparing your explainer…');
+  o._progress?.tick?.(5);
   const isScript = /\.(txt|md)$/i.test(o.input);
   let words, voice, clip, track, screen = false;
   if (isScript) {

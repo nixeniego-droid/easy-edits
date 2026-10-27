@@ -266,7 +266,7 @@ async function main() {
   if (o.preview != null) {
     // a preview is a look, not a delivery: a check FAIL on a 20 s slice is noted, the full render decides
     const fails = (res.exports || []).filter((e) => e.pass === false);
-    log(`preview: ${o.out}${fails.length ? ` (delivery check on the slice: ${fails.map((e) => e.note || 'FAIL').join('; ')}; the full render checks again)` : ''}; run again without --preview for the final`);
+    log(`preview: ${o.out}${fails.length ? ` (final check on the slice: ${fails.map((e) => e.note || 'FAIL').join('; ')}; the full render checks again)` : ''}; run again without --preview for the final`);
     process.exit(0);
   }
   const failed = (res.exports || []).filter((e) => e.pass === false);
@@ -276,7 +276,7 @@ async function main() {
 
 /** The exit-1 message: the video was made, some delivery checks failed; which ones and what to open next. */
 export function deliveryFailText(failed, out, reportFile) {
-  const L = [`ai-video-editor: delivery FAIL (exit 1). This is not a crash: the video is written, but ${failed.length} export(s) failed a delivery check:`];
+  const L = [`ai-video-editor: final check flagged something (exit 1). This is not a crash: the video is written, but ${failed.length} export(s) need a look:`];
   for (const e of failed) {
     L.push(`  ${path.relative(out, e.file) || e.file}: ${e.note || 'FAIL'}`);
     for (const line of String(e.check || '').split('\n').filter((l) => /^FAIL\b/.test(l))) L.push(`    ${line}`);

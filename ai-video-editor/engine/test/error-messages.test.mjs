@@ -27,7 +27,7 @@ test('requireSpeech: no words (or only zero-length ones) is a NoSpeechError nami
 test('delivery FAIL text: not a crash, the video is written, each failing check, what to open next', () => {
   const out = '/tmp/o';
   const t = deliveryFailText([{ file: '/tmp/o/ai-video-editor_captions_x.mp4', pass: false, note: 'FAIL loudness', check: 'PASS  duration   4.6 s\nFAIL  loudness   -30.1 LUFS (want -14 +-1)\nDELIVERY FAIL (loudness)' }], out, '/tmp/o/ai-video-editor_captions_x.report.json');
-  assert.match(t, /delivery FAIL \(exit 1\)\. This is not a crash: the video is written/);
+  assert.match(t, /final check flagged something \(exit 1\)\. This is not a crash: the video is written/);
   assert.match(t, /ai-video-editor_captions_x\.mp4: FAIL loudness/);
   assert.match(t, /FAIL {2}loudness {3}-30\.1 LUFS/);
   assert.doesNotMatch(t, /PASS {2}duration/);

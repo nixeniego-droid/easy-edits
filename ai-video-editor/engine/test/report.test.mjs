@@ -38,7 +38,7 @@ test('plain misheard note on delivery PASS', () => {
       check: 'NOTE  no-repeat  heard repeat(s) the reference does not have (ASR mishearing, not a repeat): "warmest year on record" x2\nDELIVERY PASS',
     }],
   });
-  assert.match(r.exports[0].note, /delivery check heard "warmest year on record"/);
+  assert.match(r.exports[0].note, /final check heard "warmest year on record"/);
   assert.doesNotMatch(r.exports[0].note, /ASR mishearing/);
-  assert.match(r.exports[0].check, /NOTE  The delivery check heard "warmest year on record"/);
+  assert.match(r.exports[0].check, /NOTE  The final check heard "warmest year on record"/);
 });

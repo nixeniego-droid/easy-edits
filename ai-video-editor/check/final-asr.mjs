@@ -26,13 +26,13 @@ export const langArg = (argv) => { const i = argv.indexOf('--lang'); return i >=
 /** {model, words:[{text,start,end}]} of <video>, decoded once and cached. */
 export function finalAsr(video, { model = process.env.AI_VIDEO_EDITOR_ASR_MODEL || 'medium', disfluent = false, lang } = {}) {
   lang = resolveLang(lang);
-  const tag = (disfluent ? '-disfluent' : '') + (lang === 'en' ? '' : `-${lang}`);
+  const tag = `-exact-vad${disfluent ? '-disfluent' : ''}${lang === 'en' ? '' : `-${lang}`}`;
   for (const m of model === 'medium' ? ['medium', 'small'] : [model]) {
     const st = fs.statSync(video), dir = path.join(process.env.AI_VIDEO_EDITOR_CACHE || path.join(os.homedir(), '.cache/ai-video-editor'), 'asr');
     fs.mkdirSync(dir, { recursive: true });
     const out = path.join(dir, `${path.basename(video, path.extname(video))}-${st.size}-${Math.round(st.mtimeMs)}.${m}${tag}.json`);
     if (fs.existsSync(out)) return JSON.parse(fs.readFileSync(out, 'utf8'));
-    const r = spawnSync(PY, ['-I', path.join(HERE, '../smoke/asr_words.py'), video, out, m, '--lang', lang, ...(disfluent ? ['--disfluent'] : [])], { encoding: 'utf8' });
+    const r = spawnSync(PY, ['-I', path.join(HERE, '../smoke/asr_words.py'), video, out, m, '--exact', '--vad', '--lang', lang, ...(disfluent ? ['--disfluent'] : [])], { encoding: 'utf8' });
     if (r.status === 0 && fs.existsSync(out)) return JSON.parse(fs.readFileSync(out, 'utf8'));
     console.error(`final-asr: ${m} failed (${(r.stderr || '').trim().split('\n').at(-1)})${m === 'medium' ? '; trying small' : ''}`);
   }
@@ -44,7 +44,7 @@ export const norm = (s) => (s.toLowerCase().replace(/&/g, ' and ').replace(/['â€
 /** Words of short excerpts [[a, b], ...] of <video>, each decoded alone (check/asr_excerpts.py). */
 export function excerptAsr(video, spans, { model = process.env.AI_VIDEO_EDITOR_ASR_MODEL || 'medium', disfluent = false, lang } = {}) {
   if (!spans.length) return [];
-  const r = spawnSync(PY, ['-I', path.join(HERE, 'asr_excerpts.py'), video, model, JSON.stringify(spans), '--lang', resolveLang(lang), ...(disfluent ? ['--disfluent'] : [])], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  const r = spawnSync(PY, ['-I', path.join(HERE, 'asr_excerpts.py'), video, model, JSON.stringify(spans), '--exact', '--lang', resolveLang(lang), ...(disfluent ? ['--disfluent'] : [])], { encoding: 'utf8', maxBuffer: 1 << 26 });
   if (r.status !== 0) throw new Error(`asr_excerpts: ${(r.stderr || '').trim().split('\n').at(-1)}`);
   return JSON.parse(r.stdout);
 }

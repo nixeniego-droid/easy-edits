@@ -5,11 +5,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync, spawn, execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { probe } from './audio.mjs';
 import { masterVideo, measure } from '../audio/master.mjs';
 import { leadIn } from '../post/leadin.mjs';
 import { captionGroups } from '../presets/captions-default.mjs';
+import { ingestProgressLine } from './progress.mjs';
 
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const HOME = process.env.AI_VIDEO_EDITOR_HOME || path.join(process.env.HOME, '.ai-video-editor');
@@ -78,11 +80,63 @@ export function sdrClip(src, out, { fps = 30, maxH = 1920 } = {}) {
   return out;
 }
 
-/** word transcript of a media file (faster-whisper via smoke/asr_words.py): [{text,start,end}] */
-export function asr(media, out, { lang = 'auto', model = process.env.AI_VIDEO_EDITOR_ASR_MODEL || 'medium', logFile } = {}) {
-  if (!fs.existsSync(out)) run(PY, ['-I', path.join(REPO, 'ai-video-editor/smoke/asr_words.py'), media, out, model, '--lang', lang], { label: 'ASR', logFile, env: { OMP_NUM_THREADS: process.env.AI_VIDEO_EDITOR_ASR_THREADS || '6' } });
-  const j = JSON.parse(fs.readFileSync(out, 'utf8'));
-  return (j.words || []).filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: r3(w.start), end: r3(w.end) }));
+/** Shared transcript cache dir (content-addressed). */
+export function transcriptCacheDir() {
+  return process.env.AI_VIDEO_EDITOR_TRANSCRIPT_CACHE
+    || path.join(process.env.AI_VIDEO_EDITOR_HOME || path.join(os.homedir(), '.ai-video-editor'), 'transcripts');
+}
+
+/** Deterministic caption ASR flags: medium, --exact (float32, temp 0), --vad, beam 5, shared empty prompt. */
+export const ASR_CAPTION_FLAGS = ['--exact', '--vad'];
+
+function mediaSha1(file) {
+  return crypto.createHash('sha1').update(fs.readFileSync(file)).digest('hex');
+}
+
+function cacheKey(media, { model, lang, disfluent }) {
+  return `${mediaSha1(media)}.${model}.exact-vad.${lang || 'auto'}${disfluent ? '.disfluent' : ''}.json`;
+}
+
+function loadWords(j) {
+  return (j.words || []).filter((w) => (w.type || 'word') === 'word' && String(w.text).trim())
+    .map((w) => ({ text: String(w.text).trim(), start: r3(w.start), end: r3(w.end) }));
+}
+
+/** word transcript (faster-whisper): deterministic --exact --vad + shared content cache. */
+export function asr(media, out, { lang = 'auto', model = process.env.AI_VIDEO_EDITOR_ASR_MODEL || 'medium', logFile, disfluent = false } = {}) {
+  const dir = transcriptCacheDir();
+  fs.mkdirSync(dir, { recursive: true });
+  const cached = path.join(dir, cacheKey(media, { model, lang, disfluent }));
+  if (!fs.existsSync(out) && fs.existsSync(cached)) fs.copyFileSync(cached, out);
+  if (!fs.existsSync(out)) {
+    const args = ['-I', path.join(REPO, 'ai-video-editor/smoke/asr_words.py'), media, out, model, ...ASR_CAPTION_FLAGS, '--lang', lang, ...(disfluent ? ['--disfluent'] : [])];
+    run(PY, args, { label: 'ASR', logFile, env: { OMP_NUM_THREADS: process.env.AI_VIDEO_EDITOR_ASR_THREADS || '6' } });
+    try { fs.copyFileSync(out, cached); } catch { /* cache best-effort */ }
+  }
+  return loadWords(JSON.parse(fs.readFileSync(out, 'utf8')));
+}
+
+/** Async ASR so progress timers keep ticking; streams stderr into onLine / progress. */
+export async function asrAsync(media, out, { lang = 'auto', model = process.env.AI_VIDEO_EDITOR_ASR_MODEL || 'medium', logFile, disfluent = false, onLine, progress } = {}) {
+  const dir = transcriptCacheDir();
+  fs.mkdirSync(dir, { recursive: true });
+  const cached = path.join(dir, cacheKey(media, { model, lang, disfluent }));
+  if (!fs.existsSync(out) && fs.existsSync(cached)) fs.copyFileSync(cached, out);
+  if (!fs.existsSync(out)) {
+    progress?.stage?.('asr', 'Listening and writing captions…');
+    progress?.tick?.(20);
+    const args = ['-I', path.join(REPO, 'ai-video-editor/smoke/asr_words.py'), media, out, model, ...ASR_CAPTION_FLAGS, '--lang', lang, ...(disfluent ? ['--disfluent'] : [])];
+    await runAsync(PY, args, {
+      label: 'ASR', logFile,
+      env: { OMP_NUM_THREADS: process.env.AI_VIDEO_EDITOR_ASR_THREADS || '6' },
+      onLine: (line) => { onLine?.(line); if (progress) ingestProgressLine(progress, line); },
+    });
+    try { fs.copyFileSync(out, cached); } catch { /* cache best-effort */ }
+  } else {
+    progress?.stage?.('asr', 'Reusing the saved transcript…');
+    progress?.tick?.(25);
+  }
+  return loadWords(JSON.parse(fs.readFileSync(out, 'utf8')));
 }
 
 export function faceTrack(media, out, { logFile, switch: sw = false } = {}) {
@@ -100,8 +154,28 @@ export function renderProject(projDir, html, clipFile, outMp4, { logFile, worker
   fs.writeFileSync(path.join(projDir, 'index.html'), html);
   if (!fs.existsSync(path.join(projDir, 'hyperframes.json'))) fs.writeFileSync(path.join(projDir, 'hyperframes.json'), JSON.stringify({ name: path.basename(projDir) }, null, 1));
   const t = Date.now();
-  run(path.join(REPO, 'node_modules/.bin/hyperframes'), ['render', projDir, '-o', outMp4, '--quality', 'standard', '--workers', String(workers), '--sdr', '--quiet'], { label: 'HyperFrames render', logFile, cwd: projDir });
-  log(`render ${path.basename(outMp4)} ${((Date.now() - t) / 1000).toFixed(0)} s`);
+  run(path.join(REPO, 'node_modules/.bin/hyperframes'), ['render', projDir, '-o', outMp4, '--quality', 'standard', '--workers', String(workers), '--sdr', '--quiet'], { label: 'render', logFile, cwd: projDir });
+  log(`Rendered in ${((Date.now() - t) / 1000).toFixed(0)} s`);
+  return outMp4;
+}
+
+/** Async HyperFrames render so progress pulses keep ticking during long encodes. */
+export async function renderProjectAsync(projDir, html, clipFile, outMp4, { logFile, workers = process.env.AI_VIDEO_EDITOR_WORKERS || '3', progress } = {}) {
+  const A = path.join(projDir, 'assets');
+  fs.mkdirSync(A, { recursive: true });
+  fs.copyFileSync(path.join(REPO, 'node_modules/gsap/dist/gsap.min.js'), path.join(A, 'gsap.min.js'));
+  if (clipFile) { const dst = path.join(A, 'clip.mp4'); fs.rmSync(dst, { force: true }); try { fs.linkSync(clipFile, dst); } catch { fs.copyFileSync(clipFile, dst); } }
+  fs.writeFileSync(path.join(projDir, 'index.html'), html);
+  if (!fs.existsSync(path.join(projDir, 'hyperframes.json'))) fs.writeFileSync(path.join(projDir, 'hyperframes.json'), JSON.stringify({ name: path.basename(projDir) }, null, 1));
+  progress?.stage?.('render', 'Rendering your video…');
+  progress?.tick?.(55);
+  const t = Date.now();
+  await runAsync(path.join(REPO, 'node_modules/.bin/hyperframes'), ['render', projDir, '-o', outMp4, '--quality', 'standard', '--workers', String(workers), '--sdr', '--quiet'], {
+    label: 'render', logFile, cwd: projDir,
+    onLine: (line) => { if (progress) ingestProgressLine(progress, line); },
+  });
+  progress?.tick?.(85, `about ${((Date.now() - t) / 1000).toFixed(0)} s so far`);
+  log(`Rendered in ${((Date.now() - t) / 1000).toFixed(0)} s`);
   return outMp4;
 }
 
@@ -120,7 +194,7 @@ export function deliveryCheck(file, { logFile, lang = 'auto', voice, words } = {
   // the words we put on screen are the repeat check's reference: only a real lexical repeat fails (check/lib/repeats.mjs)
   let ref = null;
   if (words?.length) { ref = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'gc-ref-')), 'reference.json'); fs.writeFileSync(ref, JSON.stringify({ words: words.map((w) => ({ text: w.text })) })); }
-  const r = run('node', [path.join(REPO, 'ai-video-editor/check/delivery.mjs'), file, ...(voice ? ['--voice', voice] : []), ...(ref ? ['--reference', ref] : [])], { label: 'delivery check', logFile, allowFail: true, env: { AI_VIDEO_EDITOR_LANG: lang } });
+  const r = run('node', [path.join(REPO, 'ai-video-editor/check/delivery.mjs'), file, ...(voice ? ['--voice', voice] : []), ...(ref ? ['--reference', ref] : [])], { label: 'Final check', logFile, allowFail: true, env: { AI_VIDEO_EDITOR_LANG: lang } });
   if (ref) fs.rmSync(path.dirname(ref), { recursive: true, force: true });
   const out = (r.stdout || '').trim();
   const fails = [...out.matchAll(/^FAIL\s+(\S+)/gm)].map((m) => m[1]), notes = [...out.matchAll(/^NOTE\s+(?:no-repeat\s+)?(.*)$/gm)].map((m) => m[1]);

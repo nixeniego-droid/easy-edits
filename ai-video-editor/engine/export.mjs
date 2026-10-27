@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { compose } from './compose.mjs';
 import { buildSoundtrack, fetchMusic, creditsFor, probe } from './audio.mjs';
-import { renderProject, muxMaster, deliveryCheck, contactSheet, writeSubtitles, log } from './media.mjs';
+import { renderProjectAsync, muxMaster, deliveryCheck, contactSheet, writeSubtitles, log } from './media.mjs';
 import { themeOf } from './theme.mjs';
 import { stylePlan } from './style-pack.mjs';
 import { lumaGrid } from './contrast.mjs';
@@ -60,7 +60,7 @@ export async function exportFormats(o, spec) {
     fs.mkdirSync(proj, { recursive: true });
     fs.writeFileSync(path.join(proj, 'compose.json'), JSON.stringify({ segments: c.segments, cues: c.cues, captions: c.captions, overlaps: c.overlaps }, null, 1));
     const silent = path.join(o.work, `${base}.silent.mp4`);
-    renderProject(proj, c.html, spec.clipFile, silent, { logFile: o.logFile });
+    await renderProjectAsync(proj, c.html, spec.clipFile, silent, { logFile: o.logFile, progress: o._progress });
     const wav = path.join(o.work, `${base}.soundtrack.wav`);
     buildSoundtrack({ voice: spec.voice, offset: c.offset, total: c.duration, speechEnd: c.offset + clip.duration, cues: c.cues, music, bedDb: spec.bedDb, work: path.join(o.work, `audio_${fmt}`), out: wav });
     const out = path.join(o.out, `${base}.mp4`);
@@ -75,7 +75,7 @@ export async function exportFormats(o, spec) {
       ...(S ? { style: S.id, transitions: c.transitions, signatures: c.signatures, styleDropped: styled.dropped } : {}), ...(face ? { face: face.label } : {}) });
     if (c.ink.dark) log(`${fmt}: auto contrast: ${c.ink.dark} of ${c.ink.light + c.ink.dark} captions in dark text (bright footage behind them)`);
     if (c.overlaps.length) log(`${fmt}: WARN ${c.overlaps.length} caption overlap(s): ${c.overlaps.slice(0, 4).map((x) => `${x.t}s "${x.caption}" x ${x.with}`).join('; ')}`);
-    log(`${fmt}: ${out} (${duration.toFixed(1)} s, ${chk.pass ? 'delivery PASS' : 'delivery FAIL'})`);
+    log(`${chk.pass ? 'Ready' : 'Final check flagged something'}`);
   }
   return { exports, music: music ? { title: music.pick.title, creator: music.pick.creator, license: music.pick.license, url: music.pick.foreign_landing_url || music.pick.url } : null };
 }

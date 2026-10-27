@@ -20,10 +20,12 @@ export function cleanBuild(o) {
     if (o.lang) args.push('--lang', o.lang);
     if (o.modeCut) args.push('--mode', o.modeCut);
     if (o.names) args.push('--names', o.names);
-    log('Building the talking-head base…');
+    o._progress?.stage?.('base', 'Building the base edit…');
+  o._progress?.tick?.(20);
+  log('Building the talking-head base…');
     // one retry: on a loaded box a transient failure (an ffmpeg killed under memory pressure) is not a verdict
     const r = run('bash', args, { label: 'clean-cut build', logFile: o.logFile, allowFail: true });
-    if (r.status !== 0) { log(`clean cut failed (exit ${r.status}); retrying once`); run('bash', args, { label: 'clean-cut build', logFile: o.logFile }); }
+    if (r.status !== 0) { log(`Base edit failed; trying once more`); run('bash', args, { label: 'clean-cut build', logFile: o.logFile }); }
   }
   const tr = JSON.parse(fs.readFileSync(path.join(proj, 'assets/transcript.json'), 'utf8'));
   const words = requireSpeech(tr.words.filter((w) => (w.type || 'word') === 'word' && String(w.text).trim()).map((w) => ({ text: String(w.text).trim(), start: w.start, end: w.end })), o.input);
@@ -46,8 +48,10 @@ export function makePlan(o, words, duration, mode, { maxTopShare = 0.45, pin = n
     delete plan.pin;
   }
   const speaker = o.speaker ? { name: o.speaker, role: o.role || '' } : null;
-  if (!plan) { log('planning (agent) ...'); plan = agentPlan(words, { mode, notes: o.notes || '', title: o.title, speaker }, { log: path.join(o.work, 'plan-agent.log') }); }
-  if (!plan || !Array.isArray(plan.beats)) { log('planning: heuristic planner'); plan = heuristicPlan(words, { title: o.title, speaker }); }
+  if (!plan) { o._progress?.stage?.('plan', 'Planning the edit…');
+    o._progress?.tick?.(35);
+    log('Planning the edit…'); plan = agentPlan(words, { mode, notes: o.notes || '', title: o.title, speaker }, { log: path.join(o.work, 'plan-agent.log') }); }
+  if (!plan || !Array.isArray(plan.beats)) { log('Planning the edit…'); plan = heuristicPlan(words, { title: o.title, speaker }); }
   else if (!from) plan = mergePlans(plan, heuristicPlan(words, { title: o.title, speaker })); // grounded beats win
   if (o.title) plan.title = o.title;
   if (o.subtitle) plan.subtitle = o.subtitle;
@@ -72,6 +76,8 @@ export function makePlan(o, words, duration, mode, { maxTopShare = 0.45, pin = n
 }
 
 export default async function talkingHead(o) {
+  o._progress?.stage?.('prep', 'Preparing your talking-head edit…');
+  o._progress?.tick?.(5);
   const b = cleanBuild(o);
   const clip = sdrClip(b.clip, path.join(o.work, 'clip_sdr.mp4'));
   const track = faceTrack(clip, path.join(o.work, 'clip.track.json'), { logFile: o.logFile });

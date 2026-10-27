@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { normalise, faceTrack, sdrClip, log, run, PY, REPO } from '../engine/media.mjs';
+import { PY, REPO, asrAsync, faceTrack, log, normalise, run, sdrClip } from '../engine/media.mjs';
 import { cleanBuild, makePlan } from './talking-head.mjs';
 import { exportFormats } from '../engine/export.mjs';
 import { sentences, norm, findPhrase, locate } from '../engine/plan.mjs';
@@ -499,6 +499,8 @@ export function loadShortsPlan(o, propFile, key) {
 }
 
 export default async function shorts(o) {
+  o._progress?.stage?.('prep', 'Preparing short clips…');
+  o._progress?.tick?.(5);
   const N = Number(o.clips || (o.propose ? 4 : 3));
   const src = normalise(o.input, o.work);
   // short sources: default 30-75 s moments don't fit; shrink min/max to the available speech so --propose still works
@@ -516,7 +518,9 @@ export default async function shorts(o) {
   if (o.transcript) raw = JSON.parse(fs.readFileSync(o.transcript, 'utf8')).words;
   else {
     const { asr } = await import('../engine/media.mjs');
-    log('transcribing the whole source ...'); asr(src.file, path.join(o.work, 'source.words.json'), { lang: o.lang || 'auto', logFile: o.logFile });
+    o._progress?.stage?.('asr', 'Listening to the whole video…');
+    o._progress?.tick?.(15);
+    await asrAsync(src.file, path.join(o.work, 'source.words.json'), { lang: o.lang || 'auto', logFile: o.logFile, progress: o._progress });
     raw = JSON.parse(fs.readFileSync(path.join(o.work, 'source.words.json'), 'utf8')).words;
   }
   // keep transcript indices (a --review-patch refers to them) while dropping non-words
@@ -547,7 +551,7 @@ export default async function shorts(o) {
     }
     P = plan.proposals; rejected = plan.rejected || [];
   } else {
-    log(`shorts: picking ${N} of ${words.length} words (${hms(words.at(-1)?.end || 0)}), ${(used.clips || []).length} used clip(s) skipped${range ? `, range ${o.range}` : ''} ...`);
+    log(`Picking the best moments…`);
     const r = propose(words, { n: N, min: MIN, max: MAX, notes: o.notes, used, range, logFile: path.join(o.work, 'picker.log'), speechGap: speechGapFn(src.file) });
     if (!r.proposals.length) throw new Error(`no ${MIN}-${MAX} s moment left in this source${(used.clips || []).length ? ' (used clips skipped; --reset-used)' : ''}`);
     log(`shorts: agent proposed ${r.agent}, ${r.rejected.length} rejected (${r.rejected.map((x) => x.why).join('; ') || '-'}); ${r.proposals.length} kept: ${r.proposals.map((p) => `#${p.rank} ${hms(p.start)} ${p.score}`).join(', ')}`);
@@ -559,7 +563,7 @@ export default async function shorts(o) {
     for (const p of P) {
       if (p.preview && fs.existsSync(p.preview)) continue; // a pinned proposal keeps its preview (an edited span drops it)
       p.preview = path.join(o.out, `proposal_${p.rank}_${p.slug}_preview.mp4`);
-      log(`preview #${p.rank} ...`);
+      log(`Making a quick preview…`);
       previewClip(src.file, p, words, p.preview, { work: path.join(o.work, `preview${p.rank}_${Math.round(p.start)}_${Math.round(p.end)}`), logFile: o.logFile, face: o.face });
     }
   }

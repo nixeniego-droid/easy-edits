@@ -108,6 +108,6 @@ test('CLI: --face and --caption-color parse, with clear errors', () => {
   assert.equal(parseArgs(['captions', 'x.mp4', '-o', 'o', '--face', '0.3,0.4']).face.label, '0.3,0.4');
   assert.throws(() => parseArgs(['captions', 'x.mp4', '-o', 'o', '--face', 'up']), /not understood/);
   assert.throws(() => parseArgs(['captions', 'x.mp4', '-o', 'o', '--caption-color', 'pink']), /use auto, white, black or a #RRGGBB/);
-  assert.throws(() => parseArgs(['x.mp4', '-o', 'o', '--caption-color', 'black']), /clean-cut 9:16 keeps the approved white captions/);
+  assert.throws(() => parseArgs(['x.mp4', '-o', 'o', '--caption-color', 'black']), /clean-cut 9:16 keeps white captions/);
   assert.equal(parseArgs(['x.mp4', '-o', 'o', '--face', 'bottom']).face.label, 'bottom'); // clean-cut takes --face
 });

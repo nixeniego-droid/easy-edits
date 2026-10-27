@@ -2,6 +2,10 @@
 
 ## 1.4.3 (2026-10-27)
 
+- Captions / shorts / talking-head / explainer / new: plain-English progress ticks (~10 s) through listen + render (no 0→100 jump; no filenames on stage lines).
+- ASR: shared content cache + `--exact --vad` (medium, beam 5, temp 0) across modes; cut-candidates cache v8.
+- User-facing "delivery check" → "Final check".
+
 - Version string: `ai-video-editor --version` / help header read `package.json` (not `git describe`).
 - Progress: stage lines + percent/elapsed at least every ~10 s (ffmpeg -progress during burn, ASR segment ticks); skills tell the bot to background long renders and relay every 30–60 s.
 - report.json: on DELIVERY PASS, internal gate lines are `info` under `diagnostics` only; reused-phrase NOTE is plain English.

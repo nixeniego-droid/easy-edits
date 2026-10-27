@@ -228,7 +228,7 @@ export async function approveNew(planFile, o = {}) {
       return b.generate(req, genOpts(b, { out, dir: path.join(work, 'gen'), id, kind, req }));
     },
   };
-  log(`new ${plan.recipe}: ${o.resume ? 'resuming' : 'rendering'} ${plan.options?.audioOnly ? 'audio (WAV + MP3)' : plan.formats.map((f) => f.id).join(', ')} with backend "${plan.backend}" (log ${logFile})`);
+  log(`${o.resume ? 'Resuming' : 'Rendering'} your ${plan.recipe}…`);
   const res = await recipe.render(plan, ctx);
   session.checkpoint();   // a recipe that never called it still stops before delivery while assets are pending
   assertFinalOutputs((res.outputs || []).map((x) => x.file), out);   // in <out>, non-empty, readable (exit 5 otherwise)
@@ -272,7 +272,7 @@ export async function approveNew(planFile, o = {}) {
   fs.writeFileSync(path.join(out, 'DELIVERY.json'), `${JSON.stringify(delivery, null, 1)}\n`);
   for (const c of checks) for (const k of c.checks) log(`${k.pass ? 'ok  ' : 'FAIL'} ${path.basename(c.file)} ${k.text}`);
   for (const w of weak) log(`weak shot ${w.shot}: ${w.reason}`);
-  log(`done in ${report.seconds} s; ${path.join(out, 'DELIVERY.json')}`);
+  log(`Done in ${report.seconds} s`);
   return { pass: delivery.pass, delivery, report, out };
 }
 
@@ -431,7 +431,7 @@ export async function newMain(argv) {
     const { planFile } = await planNew(o.pos[0], o);
     assertFinalOutputs([planFile, 'PLAN.txt', 'storyboard.png'], path.dirname(planFile), { expect: 3 });
     process.stdout.write(fs.readFileSync(path.join(path.dirname(planFile), 'PLAN.txt'), 'utf8'));
-    log(`planned; nothing generated. storyboard: ${path.join(path.dirname(planFile), 'storyboard.png')}`);
+    log(`Plan ready — open the storyboard to review, then approve when you want to render.`);
     return 0;
   } catch (e) {
     if (e instanceof PendingAssetsError) { process.stdout.write(pendingMessage(e)); return EXIT_PENDING; }

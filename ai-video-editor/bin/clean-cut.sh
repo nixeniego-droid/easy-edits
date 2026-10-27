@@ -92,7 +92,7 @@ HEARD="$(node -e 'try { console.log((JSON.parse(require("fs").readFileSync(proce
 
 PREPC=(node "$T/source-prep.mjs" "$SRC" "$PREP")
 CANDC=(env OMP_NUM_THREADS="${AI_VIDEO_EDITOR_CANDC_THREADS:-4}" node "$T/cut-candidates.mjs" "$SRC" "$PREP")
-ASRC=("$PY" -I "$REPO/ai-video-editor/smoke/asr_words.py" "$SRC" "$WORDS" "${AI_VIDEO_EDITOR_ASR_MODEL:-medium}" --disfluent --lang "$LANGV")
+ASRC=("$PY" -I "$REPO/ai-video-editor/smoke/asr_words.py" "$SRC" "$WORDS" "${AI_VIDEO_EDITOR_ASR_MODEL:-medium}" --exact --vad --disfluent --lang "$LANGV")
 FROMCAND=(node -e 'const fs = require("fs"), [c, o, l] = process.argv.slice(1); const j = JSON.parse(fs.readFileSync(c, "utf8"));
 if (!j.whole?.length) process.exit(1);
 fs.writeFileSync(o, JSON.stringify({ language_code: l, produced_by: "cut-candidates whole-file disfluent decode (check/asr_excerpts.py)", words: j.whole.map((w) => ({ ...w, type: "word" })) }, null, 1));' "$PREP/source.cut-candidates.json" "$WORDS" "$LANGV")
