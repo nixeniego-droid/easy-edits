@@ -4,7 +4,7 @@
 
 Asked to "install AI Video Editor" (from this repo's URL, in an empty folder or anywhere else)? Do this:
 
-1. `git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor` (it exists: `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.1`).
+1. `git clone --branch v1.4.2 https://github.com/nixeniego/ai-video-editor ~/ai-video-editor` (it exists: `cd ~/ai-video-editor && git fetch --tags && git checkout v1.4.2`).
    Use a permanent folder, not `/tmp`: the `ai-video-editor` command runs from this checkout.
 2. Read `~/ai-video-editor/.claude/skills/ai-video-editor/SKILL.md` with your file-reading tool and follow it (sections 1-3).
    Claude Code only lists a repo's skills in sessions started inside that checkout, so the Skill tool can't load it
@@ -26,7 +26,7 @@ Asked to "install AI Video Editor" (from this repo's URL, in an empty folder or 
 **One line** (Claude Code, in any folder):
 
 ```sh
-claude -p "Install AI Video Editor from https://github.com/nixeniego/ai-video-editor (tag v1.4.1)"
+claude -p "Install AI Video Editor from https://github.com/nixeniego/ai-video-editor (tag v1.4.2)"
 ```
 
 It clones to `~/ai-video-editor`, runs the install and the doctor, and registers the skill, so the next session can just
@@ -35,7 +35,7 @@ say *"Use AI Video Editor to add captions to clip.mp4"*.
 **Use with Claude Code**
 
 ```sh
-git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ai-video-editor
+git clone --branch v1.4.2 https://github.com/nixeniego/ai-video-editor ai-video-editor
 cd ai-video-editor
 claude
 ```
@@ -68,7 +68,7 @@ playbook, house style, style library and HyperFrames (HTML-to-video) render work
 Needs `git`, `curl` and Linux (Debian/Ubuntu; `sudo` for apt) or macOS (Homebrew).
 
 ```sh
-git clone --branch v1.4.1 https://github.com/nixeniego/ai-video-editor ai-video-editor
+git clone --branch v1.4.2 https://github.com/nixeniego/ai-video-editor ai-video-editor
 cd ai-video-editor
 ./install.sh              # one command, safe to re-run; ~2.5 GB (Whisper models, Chrome for rendering)
 . ~/.ai-video-editor/env.sh       # in every new shell: puts ai-video-editor, Node 22 and the Python venv on your PATH

@@ -24,6 +24,12 @@ Install polish: the move to `~/.ai-video-editor` always happens, and the local T
   lists the failing checks and is not phrased as a crash; unexpected errors exit 5 with the stack in the log.
 - Guided chat: skill §0 + getting-started + template STARTER / FIRST_RUN use tap-to-pick choice cards, progress lines,
   preview-before-final, and error fix cards (never raw errors or CLI flags to the user).
+- Captions: stable face keep-out — `pickCaptionY` places captions above or below the face and sticks to that side so
+  captions never cover a tight talking-head crop.
+- Delivery: intentionally looped sources (repeated AVI / tiled demos) are detected; `no-repeat` reports a plain NOTE
+  instead of FAIL so demos and looped stock still deliver.
+- Copy polish: generation approval card names the plan the built-in tools run on; short picks use a clear stand-alone
+  moment; the `easy-edits` skill-id alias stays agent-only (CLI alias still works for one release).
 
 ## 1.4.1 (2026-10-27)
 
