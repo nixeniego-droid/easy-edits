@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased (1.5.0-dev)
+
+Renamed from Easy Edits to **AI Video Editor**.
+
+- The command is now `ai-video-editor` (`bin/ai-video-editor`; package `ai-video-editor`). `easy-edits` stays as an
+  alias for one release (`bin/easy-edits` runs `ai-video-editor` with the same arguments); the doctor checks both
+  (`ai-video-editor-cli`, `easy-edits-alias`).
+- The code moved from `easy-edits/` to `ai-video-editor/`; the repo skill and command are now
+  `.claude/skills/ai-video-editor` and `.claude/commands/ai-video-editor.md`, and `./install.sh` registers
+  `~/.claude/skills/ai-video-editor` (it removes the copy it registered as `~/.claude/skills/easy-edits` before).
+- Outputs are named `ai-video-editor_<mode>_<clip>...` (was `easy-edits_...`); the log tag is `[ai-video-editor]`.
+- Config home: `~/.ai-video-editor` (`AI_VIDEO_EDITOR_HOME`). An existing `~/.easy-edits` keeps being used (no
+  re-download) while `~/.ai-video-editor` doesn't exist; `EASY_EDITS_HOME` still works.
+- Env vars: `AI_VIDEO_EDITOR_*` (`HOME`, `MODELS`, `WHISPER`, `PYTHON`, `AGENT`, `PLANS`, `NO_SKILL`, `BACKEND`, ...).
+  Every old `EASY_EDITS_*` name still works for one release; the new name wins when both are set. `env.sh` exports
+  both.
+- The GitHub repo keeps its `easy-edits` name for now; clone URLs are unchanged.
+
 ## 1.4.0 (2026-10-26)
 
 Make new videos, not just edit them: `easy-edits new` plans, waits for approval, has your AI assistant generate the

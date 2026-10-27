@@ -6,14 +6,14 @@ marked `synthetic: true` in `report.json`, and an on-screen "AI-generated presen
 (`--no-disclosure` turns the label off; the report still says synthetic).
 
 ```sh
-node easy-edits/presenter/run.mjs --script script.md -o out/ --length 30            # fictional host
-node easy-edits/presenter/run.mjs --script script.md -o out/ --host-image host.png \
+node ai-video-editor/presenter/run.mjs --script script.md -o out/ --length 30            # fictional host
+node ai-video-editor/presenter/run.mjs --script script.md -o out/ --host-image host.png \
   --host-license "Own work, CC0"                                                    # licensed host image
-node easy-edits/presenter/run.mjs --script script.md -o out/ --likeness self \
-  --consent ~/.easy-edits/consent/ana-cruz.json --subject "Ana Cruz"                 # your own face + voice
+node ai-video-editor/presenter/run.mjs --script script.md -o out/ --likeness self \
+  --consent ~/.ai-video-editor/consent/ana-cruz.json --subject "Ana Cruz"                 # your own face + voice
 ```
 
-(`easy-edits new presenter ...` once the `new` command lands; the flags are the same.)
+(`ai-video-editor new presenter ...` once the `new` command lands; the flags are the same.)
 
 ## Hosts
 
@@ -29,14 +29,14 @@ With the avatar backend `none` the host is a local still with a slow breathing z
 ## Consent records
 
 ```sh
-easy-edits consent create --subject "Ana Cruz" --allow face,voice \
+ai-video-editor consent create --subject "Ana Cruz" --allow face,voice \
   --ref me.jpg --ref my-voice.wav --expires 2027-06-30 --i-am-the-subject
-easy-edits consent verify ~/.easy-edits/consent/ana-cruz.json --use both
+ai-video-editor consent verify ~/.ai-video-editor/consent/ana-cruz.json --use both
 ```
 
 `consent.json` holds the subject, what is allowed (`face`, `voice` or `both`), `granted_at`, `expires_at`, the
 subject's statement, how it was attested (`cli`, or `agent-relay` with the user's own words from `--relay "..."`)
-and every reference file with its sha256. It is written to `~/.easy-edits/consent/<subject>.json` with mode 600
+and every reference file with its sha256. It is written to `~/.ai-video-editor/consent/<subject>.json` with mode 600
 (`-o FILE` to choose); keep it and the reference media out of the repo.
 
 A `--likeness self` run refuses **before any generation** when:
@@ -63,7 +63,7 @@ backend.
 
 ## Outputs
 
-`easy-edits_presenter_<name>.mp4`, `_sheet.png`, `.srt` / `.vtt` (from the script, nothing is transcribed),
+`ai-video-editor_presenter_<name>.mp4`, `_sheet.png`, `.srt` / `.vtt` (from the script, nothing is transcribed),
 `.plan.json`, `PLAN.txt` (generation count, est. cost, host, voice, consent, will send) and `.report.json`
 (`synthetic`, `disclosure`, `likeness`, `consent` summary with reference names and hashes, `avatar`, `calls`,
 `loudness`, `length`, and the checks: aspect, length 15-90 s, loudness -14 +-1 LUFS / <= -1.5 dBTP, colour

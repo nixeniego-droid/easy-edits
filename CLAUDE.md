@@ -1,46 +1,49 @@
-# Easy Edits: guide for AI agents
+# AI Video Editor: guide for AI agents
 
 `AGENTS.md` and `CLAUDE.md` have the same content; keep them in sync.
 
-Easy Edits edits talking-head video from one command. You drive the CLI and use judgement; Easy Edits does the cutting,
+AI Video Editor edits talking-head video from one command. You drive the CLI and use judgement; AI Video Editor does the cutting,
 captions, graphics and rendering. Built on Herk Edit Kit by Nate Herk.
 
 Claude Code: the full step-by-step flow (install, fix doctor FAILs, first run, shorts, review) is the repo skill
-`.claude/skills/easy-edits/SKILL.md`. When the user says "set up Easy Edits" (or runs `/easy-edits`), follow it. This
-folder is already an Easy Edits checkout, so skip the skill's `git clone` and run everything from here.
-Asked to install Easy Edits from outside a checkout (e.g. "Install Easy Edits from <repo url>" in an empty folder)?
-Follow README.md's "For AI assistants: install steps": clone to `~/easy-edits`, read the skill file there and follow it.
-`./install.sh` registers the skill as `~/.claude/skills/easy-edits`, so later sessions in any folder can load it.
+`.claude/skills/ai-video-editor/SKILL.md`. When the user says "set up AI Video Editor" (or runs `/ai-video-editor`), follow it. This
+folder is already an AI Video Editor checkout, so skip the skill's `git clone` and run everything from here.
+Asked to install AI Video Editor from outside a checkout (e.g. "Install AI Video Editor from <repo url>" in an empty folder)?
+Follow README.md's "For AI assistants: install steps": clone to `~/ai-video-editor`, read the skill file there and follow it.
+`./install.sh` registers the skill as `~/.claude/skills/ai-video-editor`, so later sessions in any folder can load it.
 
 ## Setup (once per machine, then once per shell)
 
 ```sh
 ./install.sh              # idempotent; downloads Node 22, a Python venv, ~2 GB of Whisper models, Chrome, a font
 ./install.sh --doctor     # PASS/FAIL per dependency; must end with "doctor: all PASS"
-. ~/.easy-edits/env.sh    # every new shell: puts easy-edits, Node 22 and the venv python on PATH
-easy-edits --help
+. ~/.ai-video-editor/env.sh    # every new shell: puts ai-video-editor, Node 22 and the venv python on PATH
+ai-video-editor --help
 ```
+
+- Renamed from Easy Edits: the old `easy-edits` command still works as an alias for one release, and so do the old
+  `EASY_EDITS_*` env vars and an existing `~/.easy-edits` (the new `AI_VIDEO_EDITOR_*` names win when both are set).
 
 - Run `./install.sh` in the foreground with a long timeout (a first install takes 5-15 min) and wait for it to
   finish before the doctor; don't background it.
 - `./install.sh --no-models` skips the Whisper models on a slow connection (they download on the first edit).
 - A doctor FAIL: the skill's section 2 has the fix for each line. Fix it, then run `./install.sh` and
   `./install.sh --doctor` again. Never call setup done until doctor prints "doctor: all PASS".
-- If `claude -p "say ok"` fails or hangs in this shell, add `--agent none` to every `easy-edits` command.
+- If `claude -p "say ok"` fails or hangs in this shell, add `--agent none` to every `ai-video-editor` command.
 
 ## Run
 
 ```sh
-easy-edits <clean-cut|talking-head|explainer|shorts|captions> <video-or-url> -o <out-dir> [--format 9x16|1x1|16x9|all]
+ai-video-editor <clean-cut|talking-head|explainer|shorts|captions> <video-or-url> -o <out-dir> [--format 9x16|1x1|16x9|all]
 ```
 
-- With no mode, `easy-edits <video> -o out/` makes the approved clean cut. The user doesn't need to give
+- With no mode, `ai-video-editor <video> -o out/` makes the approved clean cut. The user doesn't need to give
   instructions; only ask when the mode or the output format is genuinely unclear.
 - `--format`: `9x16` (the default), `1x1`, `16x9`, or `all` (all three; file names then end in `_<fmt>`).
 - Pass `--speaker` / `--role` only with names the user gave you. Never guess a person's name.
-- `--agent none` keeps Easy Edits from calling `claude` / `codex` itself; `--no-review` gives the deterministic clean cut.
+- `--agent none` keeps AI Video Editor from calling `claude` / `codex` itself; `--no-review` gives the deterministic clean cut.
 - Renders take minutes. For long runs, start them in the background with a log file and poll the log:
-  `nohup easy-edits ... > out/run.log 2>&1 &`.
+  `nohup ai-video-editor ... > out/run.log 2>&1 &`.
 - Exit codes: 0 done, 1 a delivery FAIL (file written), 2 refused, 3 waiting for assets (`new` / `resume`), 5 no
   usable final file in the `-o` folder. `<out>/.work/` holds intermediates, never the result. Keep the exit status
   (don't pipe into `tail`); 137 / 143 means the command was killed before it finished: re-run it.
@@ -49,19 +52,19 @@ easy-edits <clean-cut|talking-head|explainer|shorts|captions> <video-or-url> -o 
 ### The modes
 
 ```sh
-easy-edits clean-cut talk.mp4 -o out/                    # same as `easy-edits talk.mp4 -o out/`: fillers, dead air, slips out
-easy-edits clean-cut talk.mp4 -o out/ --no-review        # deterministic cut, no agent review
-easy-edits talking-head talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"   # motion design
-easy-edits talking-head talk.mp4 -o out/ --plan-only     # stop after planning; edit the plan, re-run with --plan FILE
-easy-edits explainer screen-recording.mp4 -o out/ --script script.md                         # cards, diagrams, zooms
-easy-edits captions talk.mp4 -o out/ --format 16x9       # captions only (burned + .srt / .vtt), no cuts
+ai-video-editor clean-cut talk.mp4 -o out/                    # same as `ai-video-editor talk.mp4 -o out/`: fillers, dead air, slips out
+ai-video-editor clean-cut talk.mp4 -o out/ --no-review        # deterministic cut, no agent review
+ai-video-editor talking-head talk.mp4 -o out/ --format all --speaker "Ana Cruz" --role "Founder"   # motion design
+ai-video-editor talking-head talk.mp4 -o out/ --plan-only     # stop after planning; edit the plan, re-run with --plan FILE
+ai-video-editor explainer screen-recording.mp4 -o out/ --script script.md                         # cards, diagrams, zooms
+ai-video-editor captions talk.mp4 -o out/ --format 16x9       # captions only (burned + .srt / .vtt), no cuts
 ```
 
 Shorts are two steps, propose then pick (same video, same `-o` folder, so the transcript is reused):
 
 ```sh
-easy-edits shorts podcast.mp4 -o out/ --propose          # out/PROPOSALS.txt + proposal_<n>_*_preview.mp4, then stop
-easy-edits shorts podcast.mp4 -o out/ --pick 1,3 --hook  # render the user's picks: out/short_<n>_<slug>.mp4
+ai-video-editor shorts podcast.mp4 -o out/ --propose          # out/PROPOSALS.txt + proposal_<n>_*_preview.mp4, then stop
+ai-video-editor shorts podcast.mp4 -o out/ --pick 1,3 --hook  # render the user's picks: out/short_<n>_<slug>.mp4
 ```
 
 Show the user each proposal's rank, score, timestamps, hook line and reason, and let them pick. Steer with
@@ -71,15 +74,15 @@ Show the user each proposal's rank, score, timestamps, hook line and reason, and
 ### Style packs (v1.3.0)
 
 A style pack is one JSON file (palette, fonts, caption look, transitions, number treatment, signature move, pacing,
-allowed scenes, sound) checked against `easy-edits/styles/pack.schema.json`. Built-in: `punch` (loud creator
+allowed scenes, sound) checked against `ai-video-editor/styles/pack.schema.json`. Built-in: `punch` (loud creator
 shorts), `broadsheet` (calm editorial), `terminal` (dark tech). Use one only when the user asks for a style or a
 look that matches one:
 
 ```sh
-easy-edits style list                                    # built-in packs + yours (~/.easy-edits/styles/<id>.json)
-easy-edits style validate my-pack.json                   # every problem, with its path; exit 1 when invalid
-easy-edits style skill punch                             # writes ~/.claude/skills/easy-edits-style-punch/SKILL.md
-easy-edits talking-head talk.mp4 -o out/ --style broadsheet   # also captions / explainer / shorts (not clean-cut)
+ai-video-editor style list                                    # built-in packs + yours (~/.ai-video-editor/styles/<id>.json)
+ai-video-editor style validate my-pack.json                   # every problem, with its path; exit 1 when invalid
+ai-video-editor style skill punch                             # writes ~/.claude/skills/ai-video-editor-style-punch/SKILL.md
+ai-video-editor talking-head talk.mp4 -o out/ --style broadsheet   # also captions / explainer / shorts (not clean-cut)
 ```
 
 The renderer refuses (exit 2, nothing rendered) anything the pack doesn't support: a mode or format it doesn't
@@ -97,29 +100,29 @@ or that break its pacing, are left out and listed in `report.json` (`styleDroppe
   caption placement and pops then use that point. Works in every mode, clean-cut included
   (explainer screen recordings ignore it).
 
-Every export: `easy-edits_<mode>_<clip>[_<fmt>].mp4`, a `_sheet.png` contact sheet, `.srt` / `.vtt`,
-`easy-edits_<mode>_<clip>.report.json`, and a `CREDITS.txt` when music is used.
+Every export: `ai-video-editor_<mode>_<clip>[_<fmt>].mp4`, a `_sheet.png` contact sheet, `.srt` / `.vtt`,
+`ai-video-editor_<mode>_<clip>.report.json`, and a `CREDITS.txt` when music is used.
 
-### Make a video from a brief (`easy-edits new`)
+### Make a video from a brief (`ai-video-editor new`)
 
 ```sh
-easy-edits new <explainer-cited|presenter|podcast|story|promo|music-video|other> -o out/x [--brief ".." | --script F | --source F|URL | --brand F --assets DIR | --song F --i-own-this-music]
-easy-edits new --approve out/x/plan.json          # only after the user has seen PLAN.txt and storyboard.png
-easy-edits resume out/x                           # after you have generated every asset in GENERATION_MANIFEST.json
+ai-video-editor new <explainer-cited|presenter|podcast|story|promo|music-video|other> -o out/x [--brief ".." | --script F | --source F|URL | --brand F --assets DIR | --song F --i-own-this-music]
+ai-video-editor new --approve out/x/plan.json          # only after the user has seen PLAN.txt and storyboard.png
+ai-video-editor resume out/x                           # after you have generated every asset in GENERATION_MANIFEST.json
 ```
 
 Images and video clips come from **your own built-in image/video generation** (the default `host` backend);
-voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up by the user: `easy-edits/gen/BACKENDS.md`).
+voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up by the user: `ai-video-editor/gen/BACKENDS.md`).
 
 1. Plan: `new` writes plan.json, PLAN.txt and storyboard.png and generates nothing. Show the user PLAN.txt
    (generation count, cost, wall time, host assets, "will send" lines) and storyboard.png. After editing plan.json,
-   run `easy-edits new repin plan.json` and show it again.
+   run `ai-video-editor new repin plan.json` and show it again.
 2. Approve only when the user says so: `--approve`. With images or video to make it exits **3** and writes
    `GENERATION_MANIFEST.json` in the output folder (id, type image|video, prompt, durationSec, aspect,
    referenceImages, firstFrame, file). Exit 3 is "waiting for assets", not a failure.
 3. Generate each asset with your built-in generation from its prompt (use referenceImages / firstFrame when set) and
    save it at its `file` (relative to the output folder; PNG/JPEG images, MP4 video).
-4. `easy-edits resume <out>`: checks the approved plan's hash and the assets (exit 3 + the list while any are
+4. `ai-video-editor resume <out>`: checks the approved plan's hash and the assets (exit 3 + the list while any are
    missing), then finishes the edit, captions, QA, report.json, REVIEW.txt and DELIVERY.json.
 5. Deliver: relay REVIEW.txt's WEAK SHOTS lines as written and every FAIL. POST_DRAFT.txt is a draft for the user;
    never post it, never publish anything.
@@ -127,7 +130,7 @@ voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up 
 - Finish: social -14 LUFS / -1.5 dBTP, podcast -16 LUFS / -1.5 dBTP, video BT.709. Generated clips' own ambient audio
   is dropped under narration or a song, -18 dB under music, kept when alone (`--clip-audio keep|duck|drop`).
 - Presenter with the user's own face or voice: only with a consent record they created as the subject
-  (`easy-edits consent create ... --i-am-the-subject`, docs/CONSENT.md). Never a third party or a public figure.
+  (`ai-video-editor consent create ... --i-am-the-subject`, docs/CONSENT.md). Never a third party or a public figure.
 - `--i-own-this-music` only when the user has said they own or licensed the track.
 
 ## Review (your main job)
@@ -139,7 +142,7 @@ voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up 
    user with its check text. Some FAILs are known false alarms (KNOWN_ISSUES.txt), but say so and explain why;
    never hide a FAIL or call a FAIL run "done".
 4. To steer the graphics: `--plan-only`, edit the plan JSON it prints (schema at the top of
-   `easy-edits/engine/plan.mjs`; anchors are exact transcript phrases), then re-run with `--plan FILE`.
+   `ai-video-editor/engine/plan.mjs`; anchors are exact transcript phrases), then re-run with `--plan FILE`.
 5. To review a clean cut yourself: see "Agent review" in `docs/AGENTS_GUIDE.md`.
 
 ## Rules
@@ -151,5 +154,5 @@ voice from the local TTS. Hosted APIs are opt-in only (`--backend NAME`, set up 
 - Don't print secrets or cookies.
 - Music comes only from Openverse (CC0 / CC BY) at render time. Keep the `CREDITS.txt` written next to each export
   with the video.
-- Code changes: Easy Edits code lives in `easy-edits/` (CLI in `easy-edits/cli/main.mjs`, modes in `easy-edits/modes/`, shared
-  stages in `easy-edits/engine/`). Run `npm test` after a change. `easy-edits/README.md` is the technical reference.
+- Code changes: AI Video Editor code lives in `ai-video-editor/` (CLI in `ai-video-editor/cli/main.mjs`, modes in `ai-video-editor/modes/`, shared
+  stages in `ai-video-editor/engine/`). Run `npm test` after a change. `ai-video-editor/README.md` is the technical reference.

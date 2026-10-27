@@ -1,12 +1,12 @@
 {
-  "name": "easy-edits",
+  "name": "ai-video-editor",
   "version": "1.4.0",
   "private": true,
   "type": "commonjs",
-  "description": "Easy Edits: one CLI for editing talking-head video (clean cuts, captions, motion design, explainers, shorts), built on Herk Edit Kit by Nate Herk.",
+  "description": "AI Video Editor: one CLI for editing talking-head video (clean cuts, captions, motion design, explainers, shorts), built on Herk Edit Kit by Nate Herk.",
   "scripts": {
-    "test": "node --test easy-edits/check/test/*.test.mjs easy-edits/bin/test/*.test.mjs easy-edits/tools/test/*.test.mjs easy-edits/engine/test/*.test.mjs easy-edits/styles/test/*.test.mjs easy-edits/gen/test/*.test.mjs easy-edits/new/test/*.test.mjs easy-edits/research/test/*.test.mjs easy-edits/presenter/test/*.test.mjs easy-edits/story/test/*.test.mjs",
-    "lint": "node easy-edits/tools/lint-repo.mjs",
+    "test": "node --test ai-video-editor/check/test/*.test.mjs ai-video-editor/bin/test/*.test.mjs ai-video-editor/tools/test/*.test.mjs ai-video-editor/engine/test/*.test.mjs ai-video-editor/styles/test/*.test.mjs ai-video-editor/gen/test/*.test.mjs ai-video-editor/new/test/*.test.mjs ai-video-editor/research/test/*.test.mjs ai-video-editor/presenter/test/*.test.mjs ai-video-editor/story/test/*.test.mjs",
+    "lint": "node ai-video-editor/tools/lint-repo.mjs",
     "doctor": "./install.sh --doctor"
   },
   "engines": {
@@ -19,6 +19,7 @@
   },
   "license": "MIT",
   "bin": {
+    "ai-video-editor": "bin/ai-video-editor",
     "easy-edits": "bin/easy-edits"
   }
 }

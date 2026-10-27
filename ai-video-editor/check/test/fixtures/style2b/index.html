@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Relationship building - AI Video Editor</title>
+<script src="assets/gsap.min.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#000}
+#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:#0E1116;font-family:'Montserrat',sans-serif}
+#spkwrap,#maskwrap{position:absolute;left:0;top:0;width:1080px;height:1920px}
+#spkwrap{z-index:1}#maskwrap{z-index:12}
+#maskclip{position:absolute;left:0;top:0;width:1080px;height:1920px;clip-path:ellipse(250px 380px at 542px 640px)}
+#spk,#spk2{position:absolute;left:-1612px;top:0;width:3421.44px;height:1924.56px}
+.cardwrap{position:absolute;width:640px;z-index:10;transform-origin:50% 50%}
+.cardwrap.masked{z-index:11}
+.card,.card-back{width:640px;background:#FFFFFF;border-radius:28px;box-shadow:0 15px 35px rgba(0,0,0,0.18)}
+.card{position:relative;padding:40px;color:#0E1116;font-family:'Montserrat',sans-serif;font-weight:800;transform:rotate(-1.5deg)}
+.card-back{position:absolute;left:14px;top:14px;height:100%;transform:rotate(2deg)}
+.hd{display:flex;align-items:center;gap:16px;margin-bottom:14px}.hd.rt{justify-content:flex-end;margin:10px 0 0}
+.ico{width:72px;height:72px;border-radius:50%;background:#FFD60A;display:flex;align-items:center;justify-content:center;flex:none}
+.ct{font-size:46px;letter-spacing:1px;line-height:1.1}
+.mk{background:#FFD60A;color:#0E1116;display:inline-block;transform:rotate(-2deg);padding:0 10px}
+.ft{font-size:46px;text-align:center;margin-top:6px}
+.row{display:flex;align-items:center;gap:22px;font-size:52px;margin-top:16px}.row svg{width:60px;height:60px}
+.bub{font-size:46px;padding:20px 30px;border-radius:24px;margin-top:12px;display:inline-block}
+.bub.in{background:#F2F4F7}.bub.out{background:#0E1116;color:#FFFFFF;float:right;min-width:230px;min-height:96px;position:relative}
+.dots i{display:inline-block;width:14px;height:14px;border-radius:50%;background:#FFFFFF;margin:8px 5px}
+.rep{opacity:0}.rep .mk{color:#0E1116}
+.idea{position:absolute;left:0;top:0;width:1080px;height:1920px;z-index:30}
+.ideain{position:absolute;inset:0;transform-origin:50% 45%}
+.type{position:absolute;left:0;width:1080px;text-align:center;font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;color:#FFFFFF;line-height:1.15;white-space:nowrap}
+.type .mk{transform:rotate(-2deg);padding:0 22px}
+.label{position:absolute;height:106px;display:flex;align-items:center;justify-content:center;font:900 100px/1.05 'Montserrat',sans-serif;text-transform:uppercase;color:#0E1116;letter-spacing:12px;white-space:nowrap}
+.iconframe{position:absolute;width:240px;height:240px;border-radius:50%;background:#FFD60A;display:flex;align-items:center;justify-content:center}
+.push{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:542px 200px}
+.kblock{position:absolute;left:0;top:0;width:1080px;height:1920px;z-index:45;pointer-events:none}
+.kline{position:absolute;left:0;width:1080px;text-align:center;white-space:nowrap;line-height:1}
+.kinetic,.sp{display:inline-block;font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;color:#FFFFFF;-webkit-text-stroke: 6px #0E1116; paint-order: stroke fill;text-shadow:0 4px 0 rgba(0,0,0,0.6);letter-spacing:1px;transform-origin:50% 50%}
+.kinetic.key{color:#FFD60A}
+.sp{font-size:110px;width:30px}
+#caps{position:absolute;left:0;top:1290px;width:1080px;height:0;z-index:20}
+.cap{position:absolute;left:60px;width:960px;top:0;display:flex;justify-content:center;transform:translateY(-50%)}
+.cap span{display:inline-block;font:900 100px/1.05 'Montserrat',sans-serif;text-transform:uppercase;color:#fff;letter-spacing:1px;text-align:center;white-space:nowrap;transform-origin:50% 50%;text-shadow:0 2px 3px rgba(0,0,0,.85),0 0 8px rgba(0,0,0,.45)}
+#caps{z-index:40}.cap{color:#FFFFFF}
+.cap span{-webkit-text-stroke: 6px #0E1116; paint-order: stroke fill;text-shadow:0 4px 0 rgba(0,0,0,0.6)}
+.cap .ck{color:#FFD60A;font-weight:inherit}
+</style></head><body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="26.2" data-width="1080" data-height="1920">
+<div id="spkwrap"><div id="push" class="push"><video id="spk" src="assets/clip.mp4" muted playsinline data-start="0" data-duration="26.2" data-track-index="0"></video></div></div>
+<div id="c1" class="clip cardwrap " style="left:220px;top:1180px" data-start="2.04" data-duration="1.26" data-track-index="2"><div class="card-back"></div><div id="c1-f" class="card"><div class="hd"><div class="ico"><svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#0E1116" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="17" width="20" height="14" rx="7"/><rect x="22" y="17" width="20" height="14" rx="7"/></svg></div><span class="ct">RELATIONSHIPS</span></div>
+<svg class="gauge" viewBox="0 0 310 150" width="560" height="271"><path d="M30 140a125 125 0 0 1 250 0" stroke="#F2F4F7" stroke-width="26" fill="none"/><path id="c1-arc" d="M30 140a125 125 0 0 1 250 0" stroke="#FFD60A" stroke-width="26" fill="none" stroke-dasharray="393" stroke-dashoffset="393"/><g id="c1-needle"><line x1="155" y1="140" x2="155" y2="38" stroke="#0E1116" stroke-width="8" stroke-linecap="round"/></g><circle cx="155" cy="140" r="12" fill="#0E1116"/></svg>
+<div class="ft"><span class="mk">TOP</span> PRIORITY</div></div></div>
+<div id="c2" class="clip cardwrap " style="left:220px;top:1180px" data-start="5.1" data-duration="1.2" data-track-index="2"><div class="card-back"></div><div id="c2-f" class="card"><div class="hd"><div class="ico"><svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#0E1116" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="17"/><path d="M7 24h34M24 7c-7 8-7 26 0 34M24 7c7 8 7 26 0 34"/></svg></div><span class="ct">FAR FROM <span class="mk">HOME</span></span></div>
+<svg viewBox="0 0 310 150" width="560" height="271"><circle cx="30" cy="120" r="12" fill="#0E1116"/><path id="c2-route" d="M30 120 C 90 10, 210 10, 270 70" stroke="#0E1116" stroke-width="6" fill="none" stroke-dasharray="10 10"/><path id="c2-mask" d="M30 120 C 90 10, 210 10, 270 70" stroke="#FFFFFF" stroke-width="10" fill="none" stroke-dasharray="320" stroke-dashoffset="0"/><g id="c2-pin" transform="translate(270 70)"><path d="M0 0c-14-16-18-22-18-30a18 18 0 0 1 36 0c0 8-4 14-18 30z" fill="#FF5A3C"/><circle cx="0" cy="-30" r="6" fill="#FFFFFF"/></g><circle id="c2-dot" cx="30" cy="120" r="9" fill="#FFD60A" stroke="#0E1116" stroke-width="3"/></svg></div></div>
+<div id="c3" class="clip cardwrap masked" style="left:400px;top:880px" data-start="8.22" data-duration="2.264" data-track-index="2"><div class="card-back"></div><div id="c3-f" class="card"><svg viewBox="0 0 310 150" width="560" height="271"><circle cx="40" cy="20" r="5" fill="#0E1116" opacity="0.25"/><circle cx="77" cy="73" r="6" fill="#0E1116" opacity="0.37"/><circle cx="114" cy="126" r="7" fill="#0E1116" opacity="0.49"/><circle cx="151" cy="59" r="5" fill="#0E1116" opacity="0.61"/><circle cx="188" cy="112" r="6" fill="#0E1116" opacity="0.25"/><circle cx="225" cy="45" r="7" fill="#0E1116" opacity="0.37"/><circle cx="262" cy="98" r="5" fill="#0E1116" opacity="0.49"/><circle cx="49" cy="31" r="6" fill="#0E1116" opacity="0.61"/><circle cx="86" cy="84" r="7" fill="#0E1116" opacity="0.25"/><circle cx="123" cy="137" r="5" fill="#0E1116" opacity="0.37"/><circle cx="160" cy="70" r="6" fill="#0E1116" opacity="0.49"/><circle cx="197" cy="123" r="7" fill="#0E1116" opacity="0.61"/><circle cx="234" cy="56" r="5" fill="#0E1116" opacity="0.25"/><circle cx="271" cy="109" r="6" fill="#0E1116" opacity="0.37"/><circle cx="58" cy="42" r="7" fill="#0E1116" opacity="0.49"/><circle cx="95" cy="95" r="5" fill="#0E1116" opacity="0.61"/><circle cx="132" cy="28" r="6" fill="#0E1116" opacity="0.25"/><circle cx="169" cy="81" r="7" fill="#0E1116" opacity="0.37"/><circle cx="206" cy="134" r="5" fill="#0E1116" opacity="0.49"/><circle cx="243" cy="67" r="6" fill="#0E1116" opacity="0.61"/><circle cx="280" cy="120" r="7" fill="#0E1116" opacity="0.25"/><circle cx="67" cy="53" r="5" fill="#0E1116" opacity="0.37"/><circle cx="104" cy="106" r="6" fill="#0E1116" opacity="0.49"/><circle cx="141" cy="39" r="7" fill="#0E1116" opacity="0.61"/><circle cx="178" cy="92" r="5" fill="#0E1116" opacity="0.25"/><circle cx="215" cy="25" r="6" fill="#0E1116" opacity="0.37"/><circle cx="252" cy="78" r="7" fill="#0E1116" opacity="0.49"/><circle cx="289" cy="131" r="5" fill="#0E1116" opacity="0.61"/><circle cx="76" cy="64" r="6" fill="#0E1116" opacity="0.25"/><circle cx="113" cy="117" r="7" fill="#0E1116" opacity="0.37"/><circle cx="150" cy="50" r="5" fill="#0E1116" opacity="0.49"/><circle cx="187" cy="103" r="6" fill="#0E1116" opacity="0.61"/><circle cx="224" cy="36" r="7" fill="#0E1116" opacity="0.25"/><circle cx="261" cy="89" r="5" fill="#0E1116" opacity="0.37"/><g transform="translate(230 92)"><g id="c3-pin"><path d="M0 0c-16-18-22-26-22-36a22 22 0 0 1 44 0c0 10-6 18-22 36z" fill="#FF5A3C"/><circle cx="0" cy="-36" r="8" fill="#FFFFFF"/></g></g><ellipse id="c3-shadow" cx="230" cy="96" rx="18" ry="5" fill="#0E1116" opacity=".3"/></svg>
+<div class="hd rt"><span class="ct"><span class="mk">NEXT</span> STOP</span><div class="ico"><svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#0E1116" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 42s-12-12-12-21a12 12 0 0 1 24 0c0 9-12 21-12 21z"/><circle cx="24" cy="21" r="4"/></svg></div></div></div></div>
+<div id="c4" class="clip cardwrap " style="left:220px;top:1180px" data-start="10.554" data-duration="1.519" data-track-index="2"><div class="card-back"></div><div id="c4-f" class="card"><div class="hd"><div class="ico"><svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#0E1116" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="32" height="32" rx="6"/><path d="M15 24l6 6 12-13"/></svg></div><span class="ct"><span class="mk">CULTURE</span></span></div>
+<div class="row"><svg viewBox="0 0 40 40" width="40" height="40"><rect x="3" y="3" width="34" height="34" rx="8" fill="none" stroke="#0E1116" stroke-width="4"/><path id="c4-t0" d="M10 21l7 7 14-15" fill="none" stroke="#0E1116" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="40" stroke-dashoffset="40"/></svg><span>LEARN</span></div><div class="row"><svg viewBox="0 0 40 40" width="40" height="40"><rect x="3" y="3" width="34" height="34" rx="8" fill="none" stroke="#0E1116" stroke-width="4"/><path id="c4-t1" d="M10 21l7 7 14-15" fill="none" stroke="#0E1116" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="40" stroke-dashoffset="40"/></svg><span>SHARE</span></div><div class="row"><svg viewBox="0 0 40 40" width="40" height="40"><rect x="3" y="3" width="34" height="34" rx="8" fill="none" stroke="#0E1116" stroke-width="4"/><path id="c4-t2" d="M10 21l7 7 14-15" fill="none" stroke="#0E1116" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="40" stroke-dashoffset="40"/></svg><span>BELONG</span></div></div></div>
+<div id="c5" class="clip cardwrap " style="left:220px;top:1180px" data-start="13.166" data-duration="0.851" data-track-index="2"><div class="card-back"></div><div id="c5-f" class="card"><div class="hd"><div class="ico"><svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#0E1116" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h32v20H20l-8 7v-7H8z"/></svg></div><span class="ct">GUYS</span></div>
+<div class="bub in">EVER BEEN?</div><div class="bub out"><span id="c5-dots" class="dots"><i></i><i></i><i></i></span><span id="c5-reply" class="rep">NOT <span class="mk">YET</span></span></div></div></div>
+<div id="c6" class="clip cardwrap " style="left:220px;top:1180px" data-start="22.45" data-duration="1.117" data-track-index="2"><div class="card-back"></div><div id="c6-f" class="card"><div class="hd"><div class="ico"><svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#0E1116" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 40h32M14 34V24M24 34V14M34 34V20"/></svg></div><span class="ct"><span class="mk">STRONGER</span> TIES</span></div>
+<svg viewBox="0 0 310 150" width="560" height="271"><line x1="10" y1="140" x2="300" y2="140" stroke="#0E1116" stroke-width="4"/><rect class="c6-bar" x="30" y="100" width="38" height="40" rx="6" fill="#0E1116" stroke="#0E1116" stroke-width="3"/><rect class="c6-bar" x="92" y="75" width="38" height="65" rx="6" fill="#0E1116" stroke="#0E1116" stroke-width="3"/><rect class="c6-bar" x="154" y="45" width="38" height="95" rx="6" fill="#0E1116" stroke="#0E1116" stroke-width="3"/><rect class="c6-bar" x="216" y="15" width="38" height="125" rx="6" fill="#FFD60A" stroke="#0E1116" stroke-width="3"/><path id="c6-arrow" d="M30 110 L250 20 M250 20 l-30 2 M250 20 l-12 26" stroke="#FF5A3C" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="320" stroke-dashoffset="320"/></svg></div></div>
+<div id="maskwrap"><div id="push2" class="push"><div id="maskclip"><video id="spk2" src="assets/clip.mp4" muted playsinline data-start="0" data-duration="26.2" data-track-index="1"></video></div></div></div>
+<div id="i1" class="clip idea" style="background:#0E1116" data-start="3.25" data-duration="1.8" data-track-index="3"><div class="ideain" id="i1-in">
+<div class="type t1" id="i1-a" style="top:70px;font-size:120px"><span class="mk">IMPORTANCE</span></div>
+<div class="type t1" id="i1-b" style="top:1620px;font-size:96px">FOR OUR GROUP</div>
+<svg class="ppl" style="position:absolute;left:0;top:960px" viewBox="0 0 1080 300" width="1080" height="300"><g class="i1-p" id="i1-p0"><g transform="translate(340 150) scale(1.1)"><circle r="66" fill="#FFD60A"/><g fill="none" stroke="#0E1116" stroke-width="7" stroke-linecap="round"><circle cx="0" cy="-16" r="18"/><path d="M-34 40c0-22 14-32 34-32s34 10 34 32"/></g></g></g><g class="i1-p" id="i1-p1"><g transform="translate(540 150) scale(1.1)"><circle r="66" fill="#FFD60A"/><g fill="none" stroke="#0E1116" stroke-width="7" stroke-linecap="round"><circle cx="0" cy="-16" r="18"/><path d="M-34 40c0-22 14-32 34-32s34 10 34 32"/></g></g></g><g class="i1-p" id="i1-p2"><g transform="translate(740 150) scale(1.1)"><circle r="66" fill="#FFD60A"/><g fill="none" stroke="#0E1116" stroke-width="7" stroke-linecap="round"><circle cx="0" cy="-16" r="18"/><path d="M-34 40c0-22 14-32 34-32s34 10 34 32"/></g></g></g></svg></div></div>
+<div id="i2" class="clip idea" style="background:#0E1116" data-start="14.65" data-duration="5.1" data-track-index="3"><div class="ideain" id="i2-in">
+<svg style="position:absolute;left:0;top:0" viewBox="0 0 1080 1920" width="1080" height="1920">
+<rect id="i2-pl1" x="60" y="500" width="960" height="150" rx="75" fill="#FFFFFF"/><rect id="i2-pl2" x="60" y="1170" width="960" height="150" rx="75" fill="#FFFFFF"/>
+<g id="i2-ga"><g transform="translate(250 900) scale(1.5)"><circle r="66" fill="#FFD60A"/><g fill="none" stroke="#0E1116" stroke-width="7" stroke-linecap="round"><circle cx="0" cy="-16" r="18"/><path d="M-34 40c0-22 14-32 34-32s34 10 34 32"/></g></g></g><g id="i2-gb"><g transform="translate(830 900) scale(1.5)"><circle r="66" fill="#FFD60A"/><g fill="none" stroke="#0E1116" stroke-width="7" stroke-linecap="round"><circle cx="0" cy="-16" r="18"/><path d="M-34 40c0-22 14-32 34-32s34 10 34 32"/></g></g></g>
+<path id="i2-bridge" d="M350 900 Q 540 640 730 900" stroke="#FFD60A" stroke-width="18" fill="none" stroke-linecap="round" stroke-dasharray="560" stroke-dashoffset="560"/>
+<g id="i2-deck" opacity="0" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"><line x1="350" y1="900" x2="730" y2="900"/><line x1="410" y1="831" x2="410" y2="900"/><line x1="470" y1="788" x2="470" y2="900"/><line x1="540" y1="770" x2="540" y2="900"/><line x1="610" y1="788" x2="610" y2="900"/><line x1="670" y1="831" x2="670" y2="900"/></g>
+<g transform="translate(540 760)"><g id="i2-glyph" opacity="0"><circle r="54" fill="#FFD60A" stroke="#0E1116" stroke-width="6"/><path d="M-30 4l14-14 16 8 16-8 14 14-22 20-8-6-8 6z" fill="none" stroke="#0E1116" stroke-width="6" stroke-linejoin="round"/></g></g>
+</svg>
+<div class="label" id="i2-la" style="left:60px;top:522px;width:960px">AMERICANS</div>
+<div class="label" id="i2-lb" style="left:60px;top:1192px;width:960px">FILIPINOS</div>
+<div class="type t1" id="i2-a" style="top:60px;font-size:120px"><span class="mk">BRIDGING</span></div></div></div>
+<div id="i3" class="clip idea" style="background:#0E1116" data-start="23.913999999999998" data-duration="2.286" data-track-index="3"><div class="ideain" id="i3-in">
+<div class="type t1" id="i3-a" style="top:30px;font-size:130px"><span class="mk">OUTSIDE</span></div>
+<div class="type t1" id="i3-b" style="top:185px;font-size:90px">OF OUR</div>
+<div class="type t1" id="i3-c" style="top:1600px;font-size:150px">NATION</div>
+<div id="i3-globe" class="iconframe" style="left:420px; top:560px"><svg viewBox="0 0 48 48" width="150" height="150" fill="none" stroke="#0E1116" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="17"/><path d="M7 24h34M24 7c-7 8-7 26 0 34M24 7c7 8 7 26 0 34"/></svg></div>
+<svg style="position:absolute;left:0;top:520px" viewBox="0 0 1080 420" width="1080" height="420"><path id="i3-arrow" d="M680 130 C 780 40, 880 50, 960 140 M960 140 l-40 -6 M960 140 l-14 38" stroke="#FF5A3C" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="420" stroke-dashoffset="420"/></svg></div></div>
+<div id="caps">
+<div id="cap0" class="cap clip" style="top:210px" data-start="1.386" data-duration="0.587" data-track-index="4"><span>is</span></div>
+<div id="cap1" class="cap clip" style="top:-1038px" data-start="1.973" data-duration="1.237" data-track-index="4"><span>a very <b class="ck">large</b></span></div>
+<div id="cap2" class="cap clip" style="top:-1038px" data-start="5.033" data-duration="0.347" data-track-index="4"><span>We're from</span></div>
+<div id="cap3" class="cap clip" style="top:210px" data-start="6.333" data-duration="0.45" data-track-index="4"><span>of</span></div>
+<div id="cap4" class="cap clip" style="top:210px" data-start="6.783" data-duration="0.49" data-track-index="4"><span>and we get</span></div>
+<div id="cap5" class="cap clip" style="top:210px" data-start="7.273" data-duration="0.88" data-track-index="4"><span>to come to</span></div>
+<div id="cap6" class="cap clip" style="top:210px" data-start="8.153" data-duration="0.754" data-track-index="4"><span>the</span></div>
+<div id="cap7" class="cap clip" style="top:210px" data-start="8.907" data-duration="0.82" data-track-index="4"><span>and be able</span></div>
+<div id="cap8" class="cap clip" style="top:210px" data-start="9.727" data-duration="0.4" data-track-index="4"><span>to be a</span></div>
+<div id="cap9" class="cap clip" style="top:-1038px" data-start="10.127" data-duration="0.44" data-track-index="4"><span>part of that</span></div>
+<div id="cap10" class="cap clip" style="top:-1038px" data-start="10.567" data-duration="0.499" data-track-index="4"><span><b class="ck">culture</b></span></div>
+<div id="cap11" class="cap clip" style="top:-1038px" data-start="11.066" data-duration="1.007" data-track-index="4"><span>With our <b class="ck">guys</b></span></div>
+<div id="cap12" class="cap clip" style="top:210px" data-start="12.376" data-duration="0.33" data-track-index="4"><span>of them</span></div>
+<div id="cap13" class="cap clip" style="top:210px" data-start="12.706" data-duration="0.4" data-track-index="4"><span>have ever been</span></div>
+<div id="cap14" class="cap clip" style="top:-1038px" data-start="13.106" data-duration="0.36" data-track-index="4"><span>to the</span></div>
+<div id="cap15" class="cap clip" style="top:-1038px" data-start="13.466" data-duration="0.551" data-track-index="4"><span>Philippines</span></div>
+<div id="cap16" class="cap clip" style="top:210px" data-start="14.047" data-duration="1.12" data-track-index="4"><span>so we've got</span></div>
+<div id="cap17" class="cap clip" style="top:210px" data-start="15.167" data-duration="1.397" data-track-index="4"><span>and we've got</span></div>
+<div id="cap18" class="cap clip" style="top:210px" data-start="17.257" data-duration="0.687" data-track-index="4"><span>And</span></div>
+<div id="cap19" class="cap clip" style="top:210px" data-start="18.437" data-duration="0.47" data-track-index="4"><span>that</span></div>
+<div id="cap20" class="cap clip" style="top:210px" data-start="18.907" data-duration="0.826" data-track-index="4"><span><b class="ck">relationship</b></span></div>
+<div id="cap21" class="cap clip" style="top:210px" data-start="19.733" data-duration="0.877" data-track-index="4"><span><b class="ck">builds</b></span></div>
+<div id="cap22" class="cap clip" style="top:210px" data-start="21.093" data-duration="1.35" data-track-index="4"><span>a <b class="ck">greater</b></span></div>
+<div id="cap23" class="cap clip" style="top:-1038px" data-start="22.443" data-duration="1.124" data-track-index="4"><span><b class="ck">trust</b> in us</span></div>
+<div id="cap24" class="cap clip" style="top:210px" data-start="23.607" data-duration="0.947" data-track-index="4"><span>to <b class="ck">go</b></span></div>
+</div>
+<div id="k1" class="clip kblock" data-start="0.193" data-duration="1.14" data-track-index="5"><div class="kline" style="top:55px"><span id="k1-a" class="kinetic" style="font-size:84px">RELATIONSHIP</span></div><div class="kline" style="top:155px"><span id="k1-b" class="kinetic key" style="font-size:140px">BUILDING</span></div></div>
+<div id="k6" class="clip kblock" data-start="5.38" data-duration="0.92" data-track-index="5"><div class="kline" style="top:85px"><span id="k6-a" class="kinetic" style="font-size:110px">ANOTHER</span><span class="sp"> </span><span id="k6-b" class="kinetic key" style="font-size:130px">AREA</span></div></div>
+<div id="k2" class="clip kblock" data-start="6.64" data-duration="0.76" data-track-index="5"><div class="kline" style="top:85px"><span id="k2-a" class="kinetic" style="font-size:130px">THE</span><span class="sp"> </span><span id="k2-b" class="kinetic key" style="font-size:130px">WORLD</span></div></div>
+<div id="k3" class="clip kblock" data-start="8.4" data-duration="1" data-track-index="5"><div class="kline" style="top:85px"><span id="k3-a" class="kinetic key" style="font-size:110px">PHILIPPINES</span></div></div>
+<div id="k4" class="clip kblock" data-start="12.173" data-duration="0.69" data-track-index="5"><div class="kline" style="top:55px"><span id="k4-a" class="kinetic" style="font-size:100px">VERY</span></div><div class="kline" style="top:155px"><span id="k4-b" class="kinetic key" style="font-size:140px">FEW</span></div></div>
+<div id="k5" class="clip kblock" data-start="20.26" data-duration="0.8" data-track-index="5"><div class="kline" style="top:85px"><span id="k5-a" class="kinetic" style="font-size:130px">NOT</span><span class="sp"> </span><span id="k5-b" class="kinetic key" style="font-size:130px">ONLY</span></div></div>
+<audio id="mix" src="assets/mix.wav" data-start="0" data-duration="26.2" data-track-index="6" data-volume="1"></audio>
+</div>
+<script>
+const tl=gsap.timeline({paused:true});
+tl.set('#spkwrap',{scale:1.12,transformOrigin:'542px 200px'},0);
+tl.set('#maskwrap',{scale:1.12,transformOrigin:'542px 200px'},0);
+tl.set('#spkwrap',{scale:1,transformOrigin:'542px 200px'},1.3333333333333333);
+tl.to('#spkwrap',{scale:1.02,duration:0.633,ease:'none'},1.3333333333333333);
+tl.set('#maskwrap',{scale:1,transformOrigin:'542px 200px'},1.3333333333333333);
+tl.to('#maskwrap',{scale:1.02,duration:0.633,ease:'none'},1.3333333333333333);
+tl.set('#spkwrap',{scale:1.12,transformOrigin:'542px 200px'},1.9666666666666666);
+tl.set('#maskwrap',{scale:1.12,transformOrigin:'542px 200px'},1.9666666666666666);
+tl.set('#spkwrap',{scale:1,transformOrigin:'542px 200px'},4.966666666666667);
+tl.to('#spkwrap',{scale:1.02,duration:2.533,ease:'none'},4.966666666666667);
+tl.set('#maskwrap',{scale:1,transformOrigin:'542px 200px'},4.966666666666667);
+tl.to('#maskwrap',{scale:1.02,duration:2.533,ease:'none'},4.966666666666667);
+tl.set('#spkwrap',{scale:1.12,transformOrigin:'542px 200px'},7.5);
+tl.set('#maskwrap',{scale:1.12,transformOrigin:'542px 200px'},7.5);
+tl.set('#spkwrap',{scale:1,transformOrigin:'542px 200px'},8.866666666666667);
+tl.to('#spkwrap',{scale:1.02,duration:2.167,ease:'none'},8.866666666666667);
+tl.set('#maskwrap',{scale:1,transformOrigin:'542px 200px'},8.866666666666667);
+tl.to('#maskwrap',{scale:1.02,duration:2.167,ease:'none'},8.866666666666667);
+tl.set('#spkwrap',{scale:1.12,transformOrigin:'542px 200px'},11.033333333333333);
+tl.set('#maskwrap',{scale:1.12,transformOrigin:'542px 200px'},11.033333333333333);
+tl.set('#spkwrap',{scale:1,transformOrigin:'542px 200px'},13.966666666666667);
+tl.to('#spkwrap',{scale:1.02,duration:0.7,ease:'none'},13.966666666666667);
+tl.set('#maskwrap',{scale:1,transformOrigin:'542px 200px'},13.966666666666667);
+tl.to('#maskwrap',{scale:1.02,duration:0.7,ease:'none'},13.966666666666667);
+tl.set('#spkwrap',{scale:1.12,transformOrigin:'542px 200px'},19.666666666666668);
+tl.set('#maskwrap',{scale:1.12,transformOrigin:'542px 200px'},19.666666666666668);
+tl.set('#spkwrap',{scale:1,transformOrigin:'542px 200px'},21.6);
+tl.to('#spkwrap',{scale:1.02,duration:1.967,ease:'none'},21.6);
+tl.set('#maskwrap',{scale:1,transformOrigin:'542px 200px'},21.6);
+tl.to('#maskwrap',{scale:1.02,duration:1.967,ease:'none'},21.6);
+tl.set('#spkwrap',{scale:1.12,transformOrigin:'542px 200px'},23.566666666666666);
+tl.set('#maskwrap',{scale:1.12,transformOrigin:'542px 200px'},23.566666666666666);
+tl.set('#k1-a',{opacity:0},0.193);tl.set('#k1-a',{opacity:1},0.193);tl.fromTo('#k1-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},0.193);
+tl.set('#k1-b',{opacity:0},0.193);tl.set('#k1-b',{opacity:1},0.733);tl.fromTo('#k1-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},0.733);
+tl.set('#k6-a',{opacity:0},5.38);tl.set('#k6-a',{opacity:1},5.38);tl.fromTo('#k6-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},5.38);
+tl.set('#k6-b',{opacity:0},5.38);tl.set('#k6-b',{opacity:1},5.98);tl.fromTo('#k6-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},5.98);
+tl.set('#k2-a',{opacity:0},6.64);tl.set('#k2-a',{opacity:1},6.64);tl.fromTo('#k2-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},6.64);
+tl.set('#k2-b',{opacity:0},6.64);tl.set('#k2-b',{opacity:1},6.8);tl.fromTo('#k2-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},6.8);
+tl.set('#k3-a',{opacity:0},8.4);tl.set('#k3-a',{opacity:1},8.4);tl.fromTo('#k3-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},8.4);
+tl.set('#k4-a',{opacity:0},12.173);tl.set('#k4-a',{opacity:1},12.173);tl.fromTo('#k4-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},12.173);
+tl.set('#k4-b',{opacity:0},12.173);tl.set('#k4-b',{opacity:1},12.413);tl.fromTo('#k4-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},12.413);
+tl.set('#k5-a',{opacity:0},20.26);tl.set('#k5-a',{opacity:1},20.26);tl.fromTo('#k5-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},20.26);
+tl.set('#k5-b',{opacity:0},20.26);tl.set('#k5-b',{opacity:1},20.6);tl.fromTo('#k5-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},20.6);
+tl.fromTo('#c1',{scale:.6,opacity:0,y:40},{scale:1,opacity:1,y:0,duration:0.35,ease:'back.out(1.7)'},2.04);
+tl.to('#c1',{opacity:0,scale:.92,duration:0.12,ease:'power2.in'},3.17);
+tl.fromTo('#c2',{scale:.6,opacity:0,y:40},{scale:1,opacity:1,y:0,duration:0.35,ease:'back.out(1.7)'},5.1);
+tl.to('#c2',{opacity:0,scale:.92,duration:0.12,ease:'power2.in'},6.17);
+tl.fromTo('#c3',{scale:.6,opacity:0,y:40},{scale:1,opacity:1,y:0,duration:0.35,ease:'back.out(1.7)'},8.22);
+tl.to('#c3',{opacity:0,scale:.92,duration:0.12,ease:'power2.in'},10.354);
+tl.fromTo('#c4',{scale:.6,opacity:0,y:40},{scale:1,opacity:1,y:0,duration:0.35,ease:'back.out(1.7)'},10.554);
+tl.to('#c4',{opacity:0,scale:.92,duration:0.12,ease:'power2.in'},11.943);
+tl.fromTo('#c5',{scale:.6,opacity:0,y:40},{scale:1,opacity:1,y:0,duration:0.35,ease:'back.out(1.7)'},13.166);
+tl.to('#c5',{opacity:0,scale:.92,duration:0.12,ease:'power2.in'},13.887);
+tl.fromTo('#c6',{scale:.6,opacity:0,y:40},{scale:1,opacity:1,y:0,duration:0.35,ease:'back.out(1.7)'},22.45);
+tl.to('#c6',{opacity:0,scale:.92,duration:0.12,ease:'power2.in'},23.437);
+tl.fromTo('#push,#push2',{scale:1},{scale:1.04,duration:1.26,ease:'power1.out',immediateRender:false},2.04);
+tl.to('#push,#push2',{scale:1,duration:.25,ease:'power1.inOut'},3.3);
+tl.fromTo('#push,#push2',{scale:1},{scale:1.04,duration:1.2,ease:'power1.out',immediateRender:false},5.1);
+tl.to('#push,#push2',{scale:1,duration:.25,ease:'power1.inOut'},6.3);
+tl.fromTo('#push,#push2',{scale:1},{scale:1.04,duration:2.264,ease:'power1.out',immediateRender:false},8.22);
+tl.to('#push,#push2',{scale:1,duration:.25,ease:'power1.inOut'},10.484);
+tl.fromTo('#push,#push2',{scale:1},{scale:1.04,duration:1.519,ease:'power1.out',immediateRender:false},10.554);
+tl.to('#push,#push2',{scale:1,duration:.25,ease:'power1.inOut'},12.073);
+tl.fromTo('#push,#push2',{scale:1},{scale:1.04,duration:0.851,ease:'power1.out',immediateRender:false},13.166);
+tl.to('#push,#push2',{scale:1,duration:.25,ease:'power1.inOut'},14.017);
+tl.fromTo('#push,#push2',{scale:1},{scale:1.04,duration:1.117,ease:'power1.out',immediateRender:false},22.45);
+tl.to('#push,#push2',{scale:1,duration:.25,ease:'power1.inOut'},23.567);
+tl.to('#c1-arc',{strokeDashoffset:30,duration:.7,ease:'power2.out'},2.32);
+tl.fromTo('#c1-needle',{rotation:-80,svgOrigin:'155 140'},{rotation:62,duration:.8,ease:'back.out(1.4)'},2.32);
+tl.to('#c1-needle',{rotation:56,duration:.25,yoyo:true,repeat:1,ease:'sine.inOut',svgOrigin:'155 140'},3.12);
+tl.to('#c2-mask',{strokeDashoffset:-320,duration:.8,ease:'power1.inOut'},5.35);
+tl.fromTo('#c2-pin',{scale:0,svgOrigin:'270 70'},{scale:1,duration:.3,ease:'back.out(2)'},6);
+tl.to('#c2-dot',{x:120,y:-80,duration:.4,ease:'power1.in'},5.35);tl.to('#c2-dot',{x:240,y:-50,duration:.4,ease:'power1.out'},5.75);
+tl.fromTo('#c3-pin',{y:-120,opacity:0},{y:0,opacity:1,duration:.4,ease:'bounce.out'},8.4);tl.fromTo('#c3-shadow',{scale:.2,svgOrigin:'230 96'},{scale:1,duration:.4,ease:'power2.out'},8.4);
+tl.to('#c4-t0',{strokeDashoffset:0,duration:.18,ease:'power2.out'},10.904);
+tl.to('#c4-t1',{strokeDashoffset:0,duration:.18,ease:'power2.out'},11.204);
+tl.to('#c4-t2',{strokeDashoffset:0,duration:.18,ease:'power2.out'},11.504);
+tl.fromTo('#c5-dots i',{y:0},{y:-8,duration:.15,yoyo:true,repeat:3,stagger:.08,ease:'sine.inOut'},13.266);
+tl.set('#c5-dots',{display:'none'},13.586);tl.fromTo('#c5-reply',{opacity:0,scale:.8},{opacity:1,scale:1,duration:.2,ease:'back.out(2)'},13.586);
+tl.fromTo('.c6-bar',{scaleY:0,transformOrigin:'50% 100%',transformBox:'fill-box'},{scaleY:1,duration:.25,stagger:.12,ease:'power2.out'},22.65);
+tl.to('#c6-arrow',{strokeDashoffset:0,duration:.4,ease:'power2.out'},23.11);
+tl.fromTo('#i1',{opacity:0},{opacity:1,duration:0.35,ease:'power2.out'},3.25);tl.fromTo('#i1-in',{scale:.96},{scale:1,duration:0.35,ease:'power2.out'},3.25);
+tl.to('#i1',{opacity:0,duration:0.3,ease:'power2.in'},4.75);
+tl.fromTo('#i2',{opacity:0},{opacity:1,duration:0.35,ease:'power2.out'},14.65);tl.fromTo('#i2-in',{scale:.96},{scale:1,duration:0.35,ease:'power2.out'},14.65);
+tl.to('#i2',{opacity:0,duration:0.3,ease:'power2.in'},19.45);
+tl.fromTo('#i3',{opacity:0},{opacity:1,duration:0.35,ease:'power2.out'},23.913999999999998);tl.fromTo('#i3-in',{scale:.96},{scale:1,duration:0.35,ease:'power2.out'},23.913999999999998);
+tl.set('#i1-a',{opacity:0},0);tl.set('#i1-a',{opacity:1},3.4);tl.fromTo('#i1-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},3.4);
+tl.set('#i1-b',{opacity:0},0);tl.set('#i1-b',{opacity:1},4.36);tl.fromTo('#i1-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},4.36);
+tl.fromTo('.i1-p',{scale:0,transformOrigin:'50% 50%',transformBox:'fill-box'},{scale:1,duration:.3,stagger:.08,ease:'back.out(2)'},4.6);
+tl.set('#i2-la',{opacity:0},0);tl.set('#i2-la',{opacity:1},15.014);tl.fromTo('#i2-la',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},15.014);
+tl.set('#i2-lb',{opacity:0},0);tl.set('#i2-lb',{opacity:1},16.414);tl.fromTo('#i2-lb',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},16.414);
+tl.set('#i2-a',{opacity:0},0);tl.set('#i2-a',{opacity:1},17.594);tl.fromTo('#i2-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},17.594);
+tl.fromTo('#i2-ga',{scale:0,svgOrigin:'250 900'},{scale:1,duration:.35,ease:'back.out(1.7)'},14.814);tl.fromTo('#i2-pl1',{scaleX:0,transformOrigin:'50% 50%',transformBox:'fill-box'},{scaleX:1,duration:.25,ease:'power2.out'},14.914);
+tl.fromTo('#i2-gb',{scale:0,svgOrigin:'830 900'},{scale:1,duration:.35,ease:'back.out(1.7)'},16.214);tl.fromTo('#i2-pl2',{scaleX:0,transformOrigin:'50% 50%',transformBox:'fill-box'},{scaleX:1,duration:.25,ease:'power2.out'},16.314);
+tl.to('#i2-bridge',{strokeDashoffset:0,duration:.7,ease:'power2.inOut'},17.594);tl.to('#i2-deck',{opacity:1,duration:.3},18.094);
+tl.fromTo('#i2-glyph',{opacity:0,scale:.3,svgOrigin:'0 0'},{opacity:1,scale:1,duration:.35,ease:'back.out(2)'},18.974);
+tl.set('#i3-a',{opacity:0},0);tl.set('#i3-a',{opacity:1},24.054);tl.fromTo('#i3-a',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},24.054);
+tl.set('#i3-b',{opacity:0},0);tl.set('#i3-b',{opacity:1},24.614);tl.fromTo('#i3-b',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},24.614);
+tl.set('#i3-c',{opacity:0},0);tl.set('#i3-c',{opacity:1},25.634);tl.fromTo('#i3-c',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out'},25.634);
+tl.fromTo('#i3-globe',{scale:0},{scale:1,duration:0.35,ease:'back.out(1.7)'},24.914);
+tl.to('#i3-arrow',{strokeDashoffset:0,duration:.6,ease:'power2.out'},25.634);
+tl.fromTo('#cap0 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},1.386);
+tl.fromTo('#cap1 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},1.973);
+tl.fromTo('#cap2 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},5.033);
+tl.fromTo('#cap3 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},6.333);
+tl.fromTo('#cap4 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},6.783);
+tl.fromTo('#cap5 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},7.273);
+tl.fromTo('#cap6 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},8.153);
+tl.fromTo('#cap7 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},8.907);
+tl.fromTo('#cap8 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},9.727);
+tl.fromTo('#cap9 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},10.127);
+tl.fromTo('#cap10 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},10.567);
+tl.fromTo('#cap11 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},11.066);
+tl.fromTo('#cap12 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},12.376);
+tl.fromTo('#cap13 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},12.706);
+tl.fromTo('#cap14 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},13.106);
+tl.fromTo('#cap15 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},13.466);
+tl.fromTo('#cap16 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},14.047);
+tl.fromTo('#cap17 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},15.167);
+tl.fromTo('#cap18 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},17.257);
+tl.fromTo('#cap19 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},18.437);
+tl.fromTo('#cap20 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},18.907);
+tl.fromTo('#cap21 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},19.733);
+tl.fromTo('#cap22 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},21.093);
+tl.fromTo('#cap23 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},22.443);
+tl.fromTo('#cap24 span',{scale:0.9},{scale:1,duration:0.133,ease:'power2.out',immediateRender:false},23.607);
+tl.set({}, {}, 26.2);
+window.__timelines=window.__timelines||{};window.__timelines['main']=tl;
+</script></body></html>

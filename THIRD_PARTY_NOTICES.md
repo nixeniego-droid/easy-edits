@@ -5,17 +5,17 @@ sound samples or footage are committed. `install.sh` and `npm ci` download the c
 machine from their official sources, under their own licences. If you redistribute a build that includes them,
 you take on their licence terms (for example the LGPL notices for FFmpeg and libvips, and the GSAP licence).
 
-Checked for Easy Edits v1.1.0 (v1.0.0 under its earlier name; same components) against `package-lock.json` and the packages `install.sh` installs. No component is
-under a licence that restricts using Easy Edits or the videos you make with it.
+Checked for AI Video Editor v1.1.0 (v1.0.0 under its earlier name; same components) against `package-lock.json` and the packages `install.sh` installs. No component is
+under a licence that restricts using AI Video Editor or the videos you make with it.
 
 ## Repository contents
 
 | Part | Origin | Licence |
 | --- | --- | --- |
-| `easy-edits/`, `bin/`, `install.sh`, `docs/`, tests | Easy Edits | MIT (`LICENSE`) |
+| `ai-video-editor/`, `bin/`, `install.sh`, `docs/`, tests | AI Video Editor | MIT (`LICENSE`) |
 | `style-library/`, `style-templates/` | Herk Edit Kit (Nate Herk) | MIT (`LICENSE`) + `licenses/PIPELINE-USE-PERMISSION.txt` |
-| Caption preset (`easy-edits/presets/captions-default.*`) | adapted from Herk Edit Kit | MIT |
-| Test fixtures (`easy-edits/**/test/fixtures/`) | word timings, short transcript snippets, face boxes and DOM samples measured by Easy Edits on its test clips; no audio, video or image frames | MIT |
+| Caption preset (`ai-video-editor/presets/captions-default.*`) | adapted from Herk Edit Kit | MIT |
+| Test fixtures (`ai-video-editor/**/test/fixtures/`) | word timings, short transcript snippets, face boxes and DOM samples measured by AI Video Editor on its test clips; no audio, video or image frames | MIT |
 
 Style-library notes (from Herk Edit Kit): "Vox" and "Kallaway" are aesthetic reference names only; the templates
 are not official brand assets and are not endorsed by those creators or organisations. Names, handles, figures and
@@ -27,10 +27,10 @@ font files are included.
 
 | Component | Licence | How it is obtained |
 | --- | --- | --- |
-| Node.js 22 | MIT (bundled third-party code under its own licences, see its LICENSE) | nodejs.org official build, sha256-checked, into `~/.easy-edits/node` (skipped if Node >= 22 is on PATH) |
+| Node.js 22 | MIT (bundled third-party code under its own licences, see its LICENSE) | nodejs.org official build, sha256-checked, into `~/.ai-video-editor/node` (skipped if Node >= 22 is on PATH) |
 | FFmpeg / ffprobe | LGPL-2.1+ / GPL-2+ depending on the build | your system package manager (apt / brew) |
 | Python 3 + venv | PSF-2.0 | your system package manager |
-| faster-whisper 1.2.1 | MIT | pip, into `~/.easy-edits/venv` |
+| faster-whisper 1.2.1 | MIT | pip, into `~/.ai-video-editor/venv` |
 | CTranslate2 | MIT | pip (faster-whisper dependency) |
 | PyAV (`av`) | BSD-3-Clause (wheels include FFmpeg libraries, LGPL) | pip (faster-whisper dependency) |
 | onnxruntime | MIT | pip (faster-whisper dependency, voice activity detection) |
@@ -38,10 +38,10 @@ font files are included.
 | numpy | BSD-3-Clause (and 0BSD / MIT / Zlib / CC0 parts) | pip |
 | opencv-python-headless 4.14 | Apache-2.0 (wheel includes FFmpeg, LGPL; Haar cascades, Intel BSD-style licence) | pip |
 | yt-dlp + yt-dlp-ejs (`yt-dlp[default]`) | Unlicense (yt-dlp-ejs: Unlicense AND MIT AND ISC) | pip, upgraded on each install |
-| `yt-dlp[default]` extras: brotli, certifi, mutagen, pycryptodomex, requests, urllib3, websockets | MIT, MPL-2.0, **GPL-2.0-or-later (mutagen)**, BSD / public domain, Apache-2.0, MIT, BSD-3-Clause | pip; mutagen is used by yt-dlp only, never linked into Easy Edits' code |
+| `yt-dlp[default]` extras: brotli, certifi, mutagen, pycryptodomex, requests, urllib3, websockets | MIT, MPL-2.0, **GPL-2.0-or-later (mutagen)**, BSD / public domain, Apache-2.0, MIT, BSD-3-Clause | pip; mutagen is used by yt-dlp only, never linked into AI Video Editor's code |
 | Other pip dependencies (anyio, click, filelock, fsspec, h11, httpx2 / httpcore2, idna, packaging, protobuf, PyYAML, tqdm, typing_extensions, flatbuffers, charset-normalizer, truststore) | MIT / BSD / Apache-2.0 / MPL-2.0 AND MIT (tqdm) / PSF-2.0 | pip |
-| Whisper models `small`, `medium` (CTranslate2 conversions by SYSTRAN of OpenAI Whisper) | MIT | Hugging Face Hub, into `~/.easy-edits/models` |
-| YuNet face detector `face_detection_yunet_2023mar.onnx` (OpenCV Zoo) | MIT | github.com/opencv/opencv_zoo, sha256-pinned, into `~/.easy-edits/models-cv` |
+| Whisper models `small`, `medium` (CTranslate2 conversions by SYSTRAN of OpenAI Whisper) | MIT | Hugging Face Hub, into `~/.ai-video-editor/models` |
+| YuNet face detector `face_detection_yunet_2023mar.onnx` (OpenCV Zoo) | MIT | github.com/opencv/opencv_zoo, sha256-pinned, into `~/.ai-video-editor/models-cv` |
 | Montserrat (Julieta Ulanovsky et al.) | SIL Open Font License 1.1 (OFL.txt installed next to it) | github.com/google/fonts at a pinned commit, sha256-checked, into your user fonts dir |
 | HyperFrames' headless Chrome (`chrome-headless-shell`) | Chromium: BSD-3-Clause plus bundled third-party licences | downloaded by `hyperframes browser ensure` |
 
@@ -52,10 +52,10 @@ font files are included.
 | Kokoro-82M TTS voice (via HyperFrames) | Apache-2.0 | explainer mode with a `.txt` script; downloaded on first use |
 | Openverse API (WordPress.org) | API terms of use; each track keeps its own licence | music beds: only **CC0** or **CC BY** tracks are accepted, fetched at render time, never bundled; every export with music gets a `CREDITS.txt` (title, creator, licence, licence URL, source) |
 | `claude` / `codex` CLIs | their vendors' terms | optional; only if you installed them yourself |
-| Piper TTS (`piper`) and its voice models | Piper: MIT (rhasspy/piper) or GPL-3.0 (piper1-gpl); each voice model has its own licence (check its model card) | optional `local` TTS engine, only if you installed `piper` and set `EASY_EDITS_PIPER_MODEL`; no voice is bundled or downloaded by Easy Edits |
+| Piper TTS (`piper`) and its voice models | Piper: MIT (rhasspy/piper) or GPL-3.0 (piper1-gpl); each voice model has its own licence (check its model card) | optional `local` TTS engine, only if you installed `piper` and set `AI_VIDEO_EDITOR_PIPER_MODEL`; no voice is bundled or downloaded by AI Video Editor |
 | eSpeak NG (`espeak-ng`) / eSpeak | GPL-3.0-or-later | optional `local` TTS fallback, run as a separate program if it is on PATH |
 | Flite (via FFmpeg's `flite` filter) | Flite: BSD-style (CMU) licence | optional `local` TTS fallback, only when your FFmpeg build includes libflite |
-| Hosted generation APIs you configure (`http-generic`) | each provider's terms | optional; only providers you add to `~/.easy-edits/providers.json`, with your own key |
+| Hosted generation APIs you configure (`http-generic`) | each provider's terms | optional; only providers you add to `~/.ai-video-editor/providers.json`, with your own key |
 
 Not used: Remotion (its licence is not plain open source for companies).
 

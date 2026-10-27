@@ -1,14 +1,14 @@
-Easy Edits credits
+AI Video Editor credits
 ===============
 
 Herk Edit Kit, by Nate Herk (MIT)
   https://github.com/nateherkai/herk-edit-kit
-  Easy Edits is built on Herk's kit: its editing playbook and house style, the caption preset (from Herk's
+  AI Video Editor is built on Herk's kit: its editing playbook and house style, the caption preset (from Herk's
   porter-clipper-short project), the style library and templates in style-library/ and style-templates/,
   and the HyperFrames render workflow. All credit for that work goes to Nate Herk.
 
-Everything else in this repository is Easy Edits' own work (MIT, see LICENSE). Easy Edits' icons
-(easy-edits/engine/icons.mjs) and sound effects (easy-edits/audio/sfx-synth.mjs) are original and generated locally.
+Everything else in this repository is AI Video Editor's own work (MIT, see LICENSE). AI Video Editor's icons
+(ai-video-editor/engine/icons.mjs) and sound effects (ai-video-editor/audio/sfx-synth.mjs) are original and generated locally.
 
 Third-party software that install.sh or npm installs on your machine (none of it is bundled in this repo) is
 listed with its licence in THIRD_PARTY_NOTICES.md.

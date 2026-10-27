@@ -1,7 +1,7 @@
 {
   "$schema": "../registry.schema.json",
   "id": "STYLE_ID",
-  "easyEditsStatus": "EXPERIMENTAL: not approved for Easy Edits. Only the Clean cut style (easy-edits/presets/clean-cut-default.json) is approved.",
+  "aiVideoEditorStatus": "EXPERIMENTAL: not approved for AI Video Editor. Only the Clean cut style (ai-video-editor/presets/clean-cut-default.json) is approved.",
   "name": "Human Readable Style Name",
   "number": "NN",
   "status": "draft",

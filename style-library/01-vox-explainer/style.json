@@ -1,7 +1,7 @@
 {
   "$schema": "../registry.schema.json",
   "id": "vox-explainer",
-  "easyEditsStatus": "EXPERIMENTAL: not approved for Easy Edits. Only the Clean cut style (easy-edits/presets/clean-cut-default.json) is approved.",
+  "aiVideoEditorStatus": "EXPERIMENTAL: not approved for AI Video Editor. Only the Clean cut style (ai-video-editor/presets/clean-cut-default.json) is approved.",
   "name": "Vox Explainer",
   "number": "01",
   "status": "draft",

@@ -5,7 +5,7 @@
 *.pem
 *.key
 cookies.txt
-node_modules/
+node_modules
 out/
 renders/
 video-projects/

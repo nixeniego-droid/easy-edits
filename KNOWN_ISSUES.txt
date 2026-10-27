@@ -1,10 +1,10 @@
-Easy Edits v1.4.0: known issues
+AI Video Editor v1.4.0: known issues
 ============================
 
 Install (macOS, fixed in 1.3.1)
 - In 1.3.0, `./install.sh --doctor` could FAIL caption-font and style-fonts on a Mac with Homebrew ffmpeg although
   the fonts were installed in ~/Library/Fonts (a Homebrew fc-list does not always index that folder), and
-  --style broadsheet / terminal were refused. The fonts were fine. Update to 1.3.1: `git pull` in the Easy Edits
+  --style broadsheet / terminal were refused. The fonts were fine. Update to 1.3.1: `git pull` in the AI Video Editor
   folder (if it says your local changes would be overwritten: `git checkout install.sh && git pull`).
 
 Timing / formats
@@ -15,9 +15,9 @@ Timing / formats
 Modes
 - explainer: tested on only one public-domain screen recording.
 - talking-head: the motion graphics are planned again for each new source; a re-run of the same source reuses
-  the pinned plan (~/.easy-edits/plans/). Use --plan-only first if you want to review or fix the plan.
-- The legacy one-shot agent edit (easy-edits/bin/edit.sh without --style) is experimental and needs Herk Edit Kit's
-  skills and docs, which are not bundled (see easy-edits/README.md).
+  the pinned plan (~/.ai-video-editor/plans/). Use --plan-only first if you want to review or fix the plan.
+- The legacy one-shot agent edit (ai-video-editor/bin/edit.sh without --style) is experimental and needs Herk Edit Kit's
+  skills and docs, which are not bundled (see ai-video-editor/README.md).
 
 Delivery check
 - no-repeat: a phrase the speaker says twice within 3 words ("so stop, stop it now. So stop, stop it now") FAILs
@@ -86,7 +86,7 @@ Tests
 - A few ASR-dependent tests depend on what faster-whisper hears on a given machine and can fail on a correct
   install (asr-disfluent, verbatim-final). They are skipped when their local test media is absent.
 
-New videos: easy-edits new (new in 1.4.0)
+New videos: ai-video-editor new (new in 1.4.0)
 - Tested with the mock backend and with the host flow fed test-pattern assets. The quality of real generated
   pictures (your assistant's, or a hosted backend's) is untested; read REVIEW.txt's WEAK SHOTS and watch the video.
 - story, music-video and presenter make one format per plan (re-plan for another aspect). Presenter is 9:16 only.

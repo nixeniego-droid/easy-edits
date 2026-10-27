@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# AI Video Editor CLI: ai-video-editor <mode> <input> -o <out-dir> [--format 9x16|1x1|16x9|all] [--notes "..."]  (ai-video-editor --help)
+# Works from any terminal or agent: loads ~/.ai-video-editor/env.sh (Node 22, the venv python, the model dir) when present,
+# else the pre-rename ~/.easy-edits/env.sh. AI_VIDEO_EDITOR_HOME (or the old EASY_EDITS_HOME) moves it.
+set -euo pipefail
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+REPO="$(cd "$(dirname "$SELF")/.." && pwd)"
+ENV_SH="${AI_VIDEO_EDITOR_HOME:-${EASY_EDITS_HOME:-$HOME/.ai-video-editor}}/env.sh"
+[ -f "$ENV_SH" ] || ENV_SH="$HOME/.easy-edits/env.sh"
+[ -f "$ENV_SH" ] && . "$ENV_SH"
+exec node "$REPO/ai-video-editor/cli/main.mjs" "$@"

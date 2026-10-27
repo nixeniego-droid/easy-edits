@@ -1,0 +1,19 @@
+{
+  "name": "captions-minimal",
+  "description": "AI Video Editor Clean cut captions (the reviewer's captions-minimal): sentence case as spoken, 1-2 lines, lower band inside the 9:16 safe zone, no keyword colour, no pop, Montserrat 700 68 px (installed locally; Inter is variable-only here) white with a thin dark edge (4 px stroke painted under the fill, so 2 px shows outside the glyph) and a soft drop shadow; no box. A scene whose face would be covered moves its captions to the upper band.",
+  "font": { "family": "Montserrat", "weight": 700, "size": 68, "lineHeight": 1.18, "letterSpacing": 0, "transform": "none", "color": "#fff" },
+  "shadow": "0 0 2px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.55),0 3px 12px rgba(0,0,0,.45)",
+  "stroke": "4px rgba(0,0,0,.55)",
+  "box": { "left": 90, "width": 900, "lines": 2 },
+  "grouping": { "maxWords": 7, "maxChars": 32, "maxGap": 0.5, "breakAfter": "[.,!?;:]$" },
+  "timing": { "leadFrames": 2, "holdAfterPause": 0.35, "pauseGap": 0.6, "tailHold": 0.5 },
+  "trimPunctuation": "[,.;:]+$",
+  "safeY": { "lower": 1400, "upper": 430 },
+  "faceMargin": 40,
+  "safeZone": { "top": 250, "bottom": 1500 },
+  "rules": [
+    "One size, one family, one colour for every caption; no keyword colour, no kinetic words, no pop or scale animation.",
+    "Caption text = the kept words verbatim (sentence case as transcribed; a trailing comma / full stop is dropped).",
+    "Lower band by default; a scene whose face keep-out (chin + faceMargin) reaches the lower band uses the upper band."
+  ]
+}

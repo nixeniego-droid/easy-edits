@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Easy Edits installer: one command, idempotent, safe to re-run. Installs or verifies everything Easy Edits needs:
-# Node 22 (official nodejs.org build in $EASY_EDITS_HOME/node unless a Node >= 22 is already on PATH; no nvm),
+# AI Video Editor installer: one command, idempotent, safe to re-run. Installs or verifies everything AI Video Editor needs:
+# Node 22 (official nodejs.org build in $AI_VIDEO_EDITOR_HOME/node unless a Node >= 22 is already on PATH; no nvm),
 # ffmpeg/ffprobe, a python venv with faster-whisper + OpenCV, the Whisper models (small + medium, ~2 GB, in a known dir),
 # the npm deps, HyperFrames' Chrome and the fonts (Montserrat for the captions; Playfair Display and JetBrains Mono
-# for the style packs; all OFL). Writes $EASY_EDITS_HOME/env.sh.
+# for the style packs; all OFL). Writes $AI_VIDEO_EDITOR_HOME/env.sh.
 #
 #   ./install.sh               install / verify everything
 #   ./install.sh --no-models   skip the Whisper model download (they then download on first use)
@@ -11,41 +11,52 @@
 #   ./install.sh --skill-only  only (re-)register the Claude Code skill (see install_skill)
 #
 # Env overrides:
-#   EASY_EDITS_HOME     (default ~/.easy-edits)          venv, node and env.sh live here
-#   EASY_EDITS_MODELS   (default $HF_HOME if set, else $EASY_EDITS_HOME/models)   Whisper model cache (HF_HOME layout)
-#   EASY_EDITS_WHISPER  (default "small medium")      which faster-whisper models to fetch
-#   FASTER_WHISPER_VERSION (default 1.2.1)
-#   CLAUDE_CONFIG_DIR   (default ~/.claude)               the skill goes to $CLAUDE_CONFIG_DIR/skills/easy-edits
-#   EASY_EDITS_NO_SKILL=1                                 don't register the Claude Code skill
+#   AI_VIDEO_EDITOR_HOME      (default ~/.ai-video-editor)   venv, node and env.sh live here
+#   AI_VIDEO_EDITOR_MODELS    (default $HF_HOME if set, else $AI_VIDEO_EDITOR_HOME/models)   Whisper model cache (HF_HOME layout)
+#   AI_VIDEO_EDITOR_WHISPER   (default "small medium")       which faster-whisper models to fetch
+#   FASTER_WHISPER_VERSION    (default 1.2.1)
+#   CLAUDE_CONFIG_DIR         (default ~/.claude)            the skill goes to $CLAUDE_CONFIG_DIR/skills/ai-video-editor
+#   AI_VIDEO_EDITOR_NO_SKILL=1                               don't register the Claude Code skill
+#
+# Renamed from Easy Edits (compat for one release): every old EASY_EDITS_<X> (EASY_EDITS_HOME, EASY_EDITS_MODELS,
+# EASY_EDITS_WHISPER, EASY_EDITS_NO_SKILL, ...) still works as AI_VIDEO_EDITOR_<X>; the new name wins when both are set.
+# With no AI_VIDEO_EDITOR_HOME / EASY_EDITS_HOME, an existing ~/.easy-edits is kept (no re-download) until
+# ~/.ai-video-editor exists; a new install uses ~/.ai-video-editor. The `easy-edits` command is an alias of `ai-video-editor`.
 set -euo pipefail
 # HyperFrames sends anonymous usage telemetry unless opted out; opt out before anything below can run it.
 # (env.sh exports the same, and install_npm also records the opt-out in ~/.hyperframes/config.json)
 export HYPERFRAMES_NO_TELEMETRY=1 DO_NOT_TRACK=1
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EASY_EDITS_HOME="${EASY_EDITS_HOME:-$HOME/.easy-edits}"
-VENV="$EASY_EDITS_HOME/venv"
-NODE_HOME="$EASY_EDITS_HOME/node"
+for _v in $(compgen -e | grep '^EASY_EDITS_' || true); do   # old EASY_EDITS_<X> -> AI_VIDEO_EDITOR_<X> unless set
+  _n="AI_VIDEO_EDITOR_${_v#EASY_EDITS_}"; [ -n "${!_n+x}" ] || export "$_n=${!_v}"
+done; unset _v _n
+if [ -z "${AI_VIDEO_EDITOR_HOME:-}" ] && [ ! -d "$HOME/.ai-video-editor" ] && [ -d "$HOME/.easy-edits" ]; then
+  AI_VIDEO_EDITOR_HOME="$HOME/.easy-edits"   # an install from before the rename: keep its venv, node and models
+fi
+AI_VIDEO_EDITOR_HOME="${AI_VIDEO_EDITOR_HOME:-$HOME/.ai-video-editor}"
+VENV="$AI_VIDEO_EDITOR_HOME/venv"
+NODE_HOME="$AI_VIDEO_EDITOR_HOME/node"
 NODE_MAJOR=22
 FASTER_WHISPER_VERSION="${FASTER_WHISPER_VERSION:-1.2.1}"
 OPENCV_VERSION="${OPENCV_VERSION:-4.14.0.94}"
 YUNET_COMMIT="main"   # the file is pinned by its sha256 below
 YUNET_SHA="8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
-LOCK_STAMP="$REPO/node_modules/.easy-edits-lock.sha256"
+LOCK_STAMP="$REPO/node_modules/.ai-video-editor-lock.sha256"
 # an earlier env.sh records the model dir; keep it on re-runs
 PREV_MODELS=""   # (a missing env.sh must not trip set -e/pipefail: the fresh-user install died here silently)
-[ -f "$EASY_EDITS_HOME/env.sh" ] && PREV_MODELS="$(sed -n 's/^export EASY_EDITS_MODELS="\(.*\)"$/\1/p' "$EASY_EDITS_HOME/env.sh" | head -n1)" || true
-EASY_EDITS_MODELS="${EASY_EDITS_MODELS:-${PREV_MODELS:-${HF_HOME:-$EASY_EDITS_HOME/models}}}"
-EASY_EDITS_WHISPER="${EASY_EDITS_WHISPER:-small medium}"
+[ -f "$AI_VIDEO_EDITOR_HOME/env.sh" ] && PREV_MODELS="$(sed -n 's/^export \(AI_VIDEO_EDITOR\|EASY_EDITS\)_MODELS="\(.*\)"$/\2/p' "$AI_VIDEO_EDITOR_HOME/env.sh" | head -n1)" || true
+AI_VIDEO_EDITOR_MODELS="${AI_VIDEO_EDITOR_MODELS:-${PREV_MODELS:-${HF_HOME:-$AI_VIDEO_EDITOR_HOME/models}}}"
+AI_VIDEO_EDITOR_WHISPER="${AI_VIDEO_EDITOR_WHISPER:-small medium}"
 # nvm and npm refuse to work together when these are set; npm ci here is project-local
 unset NPM_CONFIG_PREFIX npm_config_prefix 2>/dev/null || true
 
-log()  { printf '[easy-edits] %s\n' "$*"; }
-die()  { printf '[easy-edits] ERROR: %s\n' "$*" >&2; exit 1; }
+log()  { printf '[ai-video-editor] %s\n' "$*"; }
+die()  { printf '[ai-video-editor] ERROR: %s\n' "$*" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
 node_major() { have node && node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0; }
 
-# Put a Node >= 22 on PATH: one already on PATH, else Easy Edits' own ($EASY_EDITS_HOME/node).
+# Put a Node >= 22 on PATH: one already on PATH, else AI Video Editor's own ($AI_VIDEO_EDITOR_HOME/node).
 load_node() {
   [ "$(node_major)" -ge "$NODE_MAJOR" ] && return 0
   [ -x "$NODE_HOME/bin/node" ] && export PATH="$NODE_HOME/bin:$PATH"
@@ -89,7 +100,7 @@ install_ffmpeg() {
   elif have brew; then brew install ffmpeg
   else
     cat >&2 <<'MSG'
-[easy-edits] ffmpeg/ffprobe missing and no root/sudo available. Install them, then re-run ./install.sh:
+[ai-video-editor] ffmpeg/ffprobe missing and no root/sudo available. Install them, then re-run ./install.sh:
     Debian/Ubuntu:  sudo apt-get install -y ffmpeg
     Fedora:         sudo dnf install -y ffmpeg
     macOS:          brew install ffmpeg
@@ -136,7 +147,7 @@ install_python() {
     "$py" -c 'import venv, ensurepip' >/dev/null 2>&1 \
       || die "$py ($("$py" --version 2>&1)) can't create a venv: its venv/ensurepip module is missing; install it (e.g. python3-venv or python3.12-venv) and re-run"
     log "creating venv $VENV ($("$py" --version 2>&1))"
-    mkdir -p "$EASY_EDITS_HOME"
+    mkdir -p "$AI_VIDEO_EDITOR_HOME"
     "$py" -m venv "$VENV" || die "creating the venv $VENV with $py failed (see the error above)"
   fi
   if "$VENV/bin/python" -c "import faster_whisper,sys; sys.exit(faster_whisper.__version__!='$FASTER_WHISPER_VERSION')" 2>/dev/null; then
@@ -150,12 +161,12 @@ install_python() {
   # source-prep silently fell back to a centre crop and the finalface gate crashed (exit 3) (found by a fresh-user install test).
   if "$VENV/bin/python" -c "import cv2, numpy" 2>/dev/null; then log "opencv OK"
   else log "installing opencv-python-headless $OPENCV_VERSION into venv"; "$VENV/bin/python" -m pip install -q "opencv-python-headless==$OPENCV_VERSION"; fi
-  # yt-dlp (URL input, easy-edits/bin/fetch-input.sh; docs/URL_INPUT.md). Unpinned and upgraded on every run: YouTube
+  # yt-dlp (URL input, ai-video-editor/bin/fetch-input.sh; docs/URL_INPUT.md). Unpinned and upgraded on every run: YouTube
   # changes often and an old yt-dlp stops working. [default] adds yt-dlp-ejs (YouTube's JS challenges, run with Node).
   log "yt-dlp: install / upgrade into venv"
   "$VENV/bin/python" -m pip install -q -U "yt-dlp[default]" || log "WARNING: yt-dlp install failed (URL input unavailable; local files still work)"
-  # YuNet face model (OpenCV Zoo, MIT) for the easy-edits face track (engine/facetrack.py); Haar is the fallback
-  local yd="$EASY_EDITS_HOME/models-cv" yf="face_detection_yunet_2023mar.onnx"
+  # YuNet face model (OpenCV Zoo, MIT) for the ai-video-editor face track (engine/facetrack.py); Haar is the fallback
+  local yd="$AI_VIDEO_EDITOR_HOME/models-cv" yf="face_detection_yunet_2023mar.onnx"
   if [ -f "$yd/$yf" ]; then log "YuNet face model OK"
   else
     log "downloading the YuNet face model"; mkdir -p "$yd"
@@ -165,18 +176,18 @@ install_python() {
   fi
 }
 
-# Whisper models into $EASY_EDITS_MODELS (Hugging Face cache layout; env.sh exports HF_HOME there), so a reboot,
+# Whisper models into $AI_VIDEO_EDITOR_MODELS (Hugging Face cache layout; env.sh exports HF_HOME there), so a reboot,
 # a cleared ~/.cache or the first edit never waits on a 1.5 GB download.
 install_models() {
-  [ "${NO_MODELS:-0}" = 1 ] && { log "Whisper models: skipped (--no-models; they download on first use into $EASY_EDITS_MODELS)"; return; }
-  mkdir -p "$EASY_EDITS_MODELS"
+  [ "${NO_MODELS:-0}" = 1 ] && { log "Whisper models: skipped (--no-models; they download on first use into $AI_VIDEO_EDITOR_MODELS)"; return; }
+  mkdir -p "$AI_VIDEO_EDITOR_MODELS"
   local m
-  for m in $EASY_EDITS_WHISPER; do
-    if HF_HOME="$EASY_EDITS_MODELS" HF_HUB_OFFLINE=1 "$VENV/bin/python" -c "from faster_whisper.utils import download_model; download_model('$m')" >/dev/null 2>&1; then
-      log "whisper $m OK ($EASY_EDITS_MODELS)"
+  for m in $AI_VIDEO_EDITOR_WHISPER; do
+    if HF_HOME="$AI_VIDEO_EDITOR_MODELS" HF_HUB_OFFLINE=1 "$VENV/bin/python" -c "from faster_whisper.utils import download_model; download_model('$m')" >/dev/null 2>&1; then
+      log "whisper $m OK ($AI_VIDEO_EDITOR_MODELS)"
     else
-      log "downloading whisper $m into $EASY_EDITS_MODELS"
-      HF_HOME="$EASY_EDITS_MODELS" "$VENV/bin/python" -c "from faster_whisper.utils import download_model; download_model('$m')" >/dev/null \
+      log "downloading whisper $m into $AI_VIDEO_EDITOR_MODELS"
+      HF_HOME="$AI_VIDEO_EDITOR_MODELS" "$VENV/bin/python" -c "from faster_whisper.utils import download_model; download_model('$m')" >/dev/null \
         || die "whisper $m download failed (network?); re-run ./install.sh, or ./install.sh --no-models"
     fi
   done
@@ -200,19 +211,23 @@ install_npm() {
 
 write_env() {
   load_node || die "node $NODE_MAJOR not available"
-  mkdir -p "$EASY_EDITS_HOME"
+  mkdir -p "$AI_VIDEO_EDITOR_HOME"
   local nd; nd="$(dirname "$(command -v node)")"
-  cat > "$EASY_EDITS_HOME/env.sh" <<ENV
-# Easy Edits toolchain (written by install.sh; re-run it to update). Source it:  . "$EASY_EDITS_HOME/env.sh"
+  cat > "$AI_VIDEO_EDITOR_HOME/env.sh" <<ENV
+# AI Video Editor toolchain (written by install.sh; re-run it to update). Source it:  . "$AI_VIDEO_EDITOR_HOME/env.sh"
 # Node $(node -v):
 case ":\$PATH:" in *":$nd:"*) ;; *) export PATH="$nd:\$PATH" ;; esac
-# the easy-edits command (this checkout's bin/):
+# the ai-video-editor command (this checkout's bin/):
 case ":\$PATH:" in *":$REPO/bin:"*) ;; *) export PATH="$REPO/bin:\$PATH" ;; esac
-export EASY_EDITS_HOME="$EASY_EDITS_HOME"
-export EASY_EDITS_PYTHON="$VENV/bin/python"
+export AI_VIDEO_EDITOR_HOME="$AI_VIDEO_EDITOR_HOME"
+export AI_VIDEO_EDITOR_PYTHON="$VENV/bin/python"
 # Whisper models (faster-whisper / Hugging Face cache):
-export EASY_EDITS_MODELS="$EASY_EDITS_MODELS"
-export HF_HOME="$EASY_EDITS_MODELS"
+export AI_VIDEO_EDITOR_MODELS="$AI_VIDEO_EDITOR_MODELS"
+export HF_HOME="$AI_VIDEO_EDITOR_MODELS"
+# the pre-rename names, for one release (scripts that still read EASY_EDITS_*):
+export EASY_EDITS_HOME="$AI_VIDEO_EDITOR_HOME"
+export EASY_EDITS_PYTHON="$VENV/bin/python"
+export EASY_EDITS_MODELS="$AI_VIDEO_EDITOR_MODELS"
 # no HyperFrames usage telemetry:
 export HYPERFRAMES_NO_TELEMETRY=1
 export DO_NOT_TRACK=1
@@ -220,33 +235,39 @@ ENV
 }
 
 # ---------------------------------------------------------------- Claude Code skill
-# The repo skill (.claude/skills/easy-edits) only loads in a Claude Code session started inside this checkout. An
-# assistant that cloned the repo from another folder ("Install Easy Edits from <url>") and every later session
+# The repo skill (.claude/skills/ai-video-editor) only loads in a Claude Code session started inside this checkout. An
+# assistant that cloned the repo from another folder ("Install AI Video Editor from <url>") and every later session
 # started elsewhere never see it, so the Skill tool can't load it. Register a personal copy in
-# $CLAUDE_CONFIG_DIR/skills/easy-edits (loaded by every new session) that names this checkout. A copy, not a
+# $CLAUDE_CONFIG_DIR/skills/ai-video-editor (loaded by every new session) that names this checkout. A copy, not a
 # symlink: it tells the assistant where the checkout is; re-running ./install.sh (e.g. after git pull) refreshes it.
 # A SKILL.md there without our marker line is the user's own and is left alone.
-SKILL_MARK="<!-- easy-edits: installed by install.sh; re-run ./install.sh to refresh -->"
-skill_dir() { printf '%s/skills/easy-edits' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; }
+SKILL_MARK="<!-- ai-video-editor: installed by install.sh; re-run ./install.sh to refresh -->"
+OLD_SKILL_MARK="<!-- easy-edits: installed by install.sh; re-run ./install.sh to refresh -->"   # before the rename
+skill_dir() { printf '%s/skills/ai-video-editor' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; }
 install_skill() {
-  [ "${EASY_EDITS_NO_SKILL:-0}" = 1 ] && { log "Claude Code skill: skipped (EASY_EDITS_NO_SKILL=1)"; return 0; }
-  local src="$REPO/.claude/skills/easy-edits/SKILL.md" d; d="$(skill_dir)"
+  [ "${AI_VIDEO_EDITOR_NO_SKILL:-0}" = 1 ] && { log "Claude Code skill: skipped (AI_VIDEO_EDITOR_NO_SKILL=1)"; return 0; }
+  local src="$REPO/.claude/skills/ai-video-editor/SKILL.md" d; d="$(skill_dir)"
   [ -f "$src" ] || { log "WARNING: $src missing; Claude Code skill not registered"; return 0; }
   if [ -f "$d/SKILL.md" ] && ! grep -qxF "$SKILL_MARK" "$d/SKILL.md"; then
     log "Claude Code skill: $d/SKILL.md is not ours; left alone"; return 0
   fi
   mkdir -p "$d"
   # the frontmatter stays first; the note goes right after it
-  awk -v mark="$SKILL_MARK" -v repo="$REPO" -v home="$EASY_EDITS_HOME" '
+  awk -v mark="$SKILL_MARK" -v repo="$REPO" -v home="$AI_VIDEO_EDITOR_HOME" '
     { print }
     /^---$/ && ++n == 2 {
       print ""; print mark
-      print "> This copy was registered by `" repo "/install.sh`. Easy Edits is already cloned at `" repo "`:"
+      print "> This copy was registered by `" repo "/install.sh`. AI Video Editor is already cloned at `" repo "`:"
       print "> skip the `git clone` in section 1, run `./install.sh` / `./install.sh --doctor` in that folder, and"
-      print "> `. " home "/env.sh` before any `easy-edits` command. The rest of this skill applies as written."
+      print "> `. " home "/env.sh` before any `ai-video-editor` command. The rest of this skill applies as written."
     }' "$src" > "$d/SKILL.md.part"
   mv "$d/SKILL.md.part" "$d/SKILL.md"
-  log "Claude Code skill registered: $d/SKILL.md (new Claude Code sessions can load it: /easy-edits)"
+  # the copy an install from before the rename registered as skills/easy-edits (ours only: it has the old marker)
+  local old; old="$(dirname "$d")/easy-edits"
+  if [ -f "$old/SKILL.md" ] && grep -qxF "$OLD_SKILL_MARK" "$old/SKILL.md"; then
+    rm -f "$old/SKILL.md"; rmdir "$old" 2>/dev/null || true; log "Claude Code skill: removed the old $old (now ai-video-editor)"
+  fi
+  log "Claude Code skill registered: $d/SKILL.md (new Claude Code sessions can load it: /ai-video-editor)"
 }
 
 # ---------------------------------------------------------------- caption font
@@ -265,7 +286,7 @@ have_montserrat() {
 }
 install_font() {
   if have_montserrat; then log "font Montserrat OK"; return 0; fi
-  local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
+  local d="$HOME/.local/share/fonts/ai-video-editor"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
   local base="https://raw.githubusercontent.com/google/fonts/$FONT_COMMIT/ofl/montserrat"
   mkdir -p "$d"; log "installing font Montserrat (OFL) into $d"
   curl -fsSL -o "$d/$MONTSERRAT_FILE.part" "$base/Montserrat%5Bwght%5D.ttf" || die "font download failed"
@@ -276,7 +297,7 @@ install_font() {
 }
 
 # ---------------------------------------------------------------- style pack fonts
-# The style packs (easy-edits/styles/packs) also use Playfair Display (Broadsheet) and JetBrains Mono (Terminal); the
+# The style packs (ai-video-editor/styles/packs) also use Playfair Display (Broadsheet) and JetBrains Mono (Terminal); the
 # renderer refuses a pack whose fonts are missing. Same source, pinned commit and checksums as Montserrat (SIL OFL 1.1).
 #   family|google/fonts dir|file|sha256
 STYLE_FONTS="Playfair Display|playfairdisplay|PlayfairDisplay[wght].ttf|c40f2293766a503bc70cce9e512ef844a4ccb7cbcde792fe2ea31d191917d8d6
@@ -287,7 +308,7 @@ have_family() {
   have fc-list && fc-list : family | tr ',' '\n' | grep -x "$1" >/dev/null
 }
 install_style_fonts() {
-  local d="$HOME/.local/share/fonts/easy-edits"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
+  local d="$HOME/.local/share/fonts/ai-video-editor"; [ "$(uname)" = Darwin ] && d="$HOME/Library/Fonts"
   local fam dir file sha url added=0
   while IFS='|' read -r fam dir file sha; do
     if have_family "$fam" "$file"; then log "font $fam OK"; continue; fi
@@ -317,10 +338,10 @@ c_ffmpeg()  { ffmpeg -hide_banner -version | head -n1; }
 c_ffprobe() { ffprobe -hide_banner -version | head -n1; }
 c_python()  { [ -x "$VENV/bin/python" ] && py_ok "$VENV/bin/python" && { "$VENV/bin/python" --version; return; }; echo "venv python missing or not 3.$PY_MIN-3.$PY_MAX (run ./install.sh)"; return 1; }
 c_fw()      { "$VENV/bin/python" -c 'import faster_whisper,ctranslate2; print("faster-whisper", faster_whisper.__version__, "ctranslate2", ctranslate2.__version__)'; }
-c_yunet()   { f="$EASY_EDITS_HOME/models-cv/face_detection_yunet_2023mar.onnx"; [ -f "$f" ] && echo "$f"; }
+c_yunet()   { f="$AI_VIDEO_EDITOR_HOME/models-cv/face_detection_yunet_2023mar.onnx"; [ -f "$f" ] && echo "$f"; }
 c_ytdlp()   { "$VENV/bin/yt-dlp" --version | sed 's/^/yt-dlp /'; }
 c_cv2()     { "$VENV/bin/python" -c "import cv2; print(\"opencv\", cv2.__version__)"; }
-c_models()  { local m; for m in $EASY_EDITS_WHISPER; do HF_HOME="$EASY_EDITS_MODELS" HF_HUB_OFFLINE=1 "$VENV/bin/python" -c "from faster_whisper.utils import download_model; download_model('$m')" >/dev/null 2>&1 || { echo "whisper $m not in $EASY_EDITS_MODELS (run ./install.sh)"; return 1; }; done; echo "$EASY_EDITS_WHISPER in $EASY_EDITS_MODELS"; }
+c_models()  { local m; for m in $AI_VIDEO_EDITOR_WHISPER; do HF_HOME="$AI_VIDEO_EDITOR_MODELS" HF_HUB_OFFLINE=1 "$VENV/bin/python" -c "from faster_whisper.utils import download_model; download_model('$m')" >/dev/null 2>&1 || { echo "whisper $m not in $AI_VIDEO_EDITOR_MODELS (run ./install.sh)"; return 1; }; done; echo "$AI_VIDEO_EDITOR_WHISPER in $AI_VIDEO_EDITOR_MODELS"; }
 c_deps()    { load_node && cd "$REPO" && npm ls --depth=0 >/dev/null && echo "node_modules matches package.json"; }
 c_hf()      { load_node && cd "$REPO" && node_modules/.bin/hyperframes --version; }
 c_gsap()    { load_node && cd "$REPO" && node -p 'require("gsap/package.json").version'; }
@@ -329,12 +350,13 @@ font_where() { [ "$(uname)" = Darwin ] && echo "~/Library/Fonts, /Library/Fonts 
 c_font()    { have_montserrat && echo "Montserrat (Clean cut captions)" || { echo "Montserrat not found in $(font_where): captions would fall back (run ./install.sh)"; return 1; }; }
 c_sfonts()  { local fam dir file sha miss=(); while IFS='|' read -r fam dir file sha; do have_family "$fam" "$file" || miss+=("$fam"); done <<< "$STYLE_FONTS"
               [ ${#miss[@]} -eq 0 ] && echo "Playfair Display, JetBrains Mono (style packs)" || { echo "not found in $(font_where): ${miss[*]}: style packs that use them are refused (run ./install.sh)"; return 1; }; }
-c_cli()     { load_node && "$REPO/bin/easy-edits" --help | head -n1; }
-c_env()     { [ -f "$EASY_EDITS_HOME/env.sh" ] && echo "$EASY_EDITS_HOME/env.sh"; }
-c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$EASY_EDITS_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
-c_backends() { load_node && node "$REPO/easy-edits/cli/backends.mjs" --doctor; }   # key present: yes/no only, never a key
+c_cli()     { load_node && "$REPO/bin/ai-video-editor" --help | head -n1; }
+c_alias()   { [ -x "$REPO/bin/easy-edits" ] && "$REPO/bin/easy-edits" --help >/dev/null && echo "easy-edits (alias of ai-video-editor)"; }
+c_env()     { [ -f "$AI_VIDEO_EDITOR_HOME/env.sh" ] && echo "$AI_VIDEO_EDITOR_HOME/env.sh"; }
+c_telem()   { grep -qx 'export HYPERFRAMES_NO_TELEMETRY=1' "$AI_VIDEO_EDITOR_HOME/env.sh" 2>/dev/null || { echo "env.sh does not opt out of HyperFrames telemetry (run ./install.sh)"; return 1; }; echo "HyperFrames telemetry off (HYPERFRAMES_NO_TELEMETRY=1)"; }
+c_backends() { load_node && node "$REPO/ai-video-editor/cli/backends.mjs" --doctor; }   # key present: yes/no only, never a key
 c_skill()   { local d; d="$(skill_dir)"
-              if [ "${EASY_EDITS_NO_SKILL:-0}" = 1 ]; then echo "skipped (EASY_EDITS_NO_SKILL=1)"
+              if [ "${AI_VIDEO_EDITOR_NO_SKILL:-0}" = 1 ]; then echo "skipped (AI_VIDEO_EDITOR_NO_SKILL=1)"
               elif [ -f "$d/SKILL.md" ] && grep -qF "$REPO" "$d/SKILL.md"; then echo "$d/SKILL.md"
               elif [ -f "$d/SKILL.md" ] && ! grep -qxF "$SKILL_MARK" "$d/SKILL.md"; then echo "$d/SKILL.md (your own copy)"
               elif ! have claude && [ ! -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" ]; then echo "Claude Code not found (skill not needed)"
@@ -342,7 +364,7 @@ c_skill()   { local d; d="$(skill_dir)"
 c_agent()   { local a=(); for b in claude codex; do have "$b" && a+=("$b"); done; echo "optional agent CLIs on PATH: ${a[*]:-none} (Clean cut runs without one: --no-review)"; }
 
 doctor() {
-  echo "Easy Edits doctor ($REPO)"
+  echo "AI Video Editor doctor ($REPO)"
   check "node>=$NODE_MAJOR" c_node
   check npm c_npm
   check ffmpeg c_ffmpeg
@@ -361,7 +383,8 @@ doctor() {
   check style-fonts c_sfonts
   check env.sh c_env
   check telemetry-off c_telem
-  check easy-edits-cli c_cli
+  check ai-video-editor-cli c_cli
+  check easy-edits-alias c_alias
   check claude-skill c_skill
   check agent c_agent
   check backends c_backends
@@ -386,5 +409,5 @@ done
 if [ "$MODE" = doctor ]; then doctor; exit; fi
 if [ "$MODE" = skill ]; then install_skill; exit; fi
 install_node; install_ffmpeg; install_python; install_models; install_npm; install_font; install_style_fonts; write_env; install_skill
-log "done. In each new shell:  . $EASY_EDITS_HOME/env.sh     Verify:  ./install.sh --doctor"
-log "first edit:  easy-edits talk.mp4 -o out/        (easy-edits --help lists every mode)"
+log "done. In each new shell:  . $AI_VIDEO_EDITOR_HOME/env.sh     Verify:  ./install.sh --doctor"
+log "first edit:  ai-video-editor talk.mp4 -o out/        (ai-video-editor --help lists every mode)"

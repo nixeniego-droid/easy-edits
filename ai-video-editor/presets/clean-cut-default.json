@@ -1,0 +1,20 @@
+{
+  "name": "clean-cut-default",
+  "description": "Locked default for the Clean cut style ONLY (approved 2026-10-18): clean mode, captions-minimal. Use: ai-video-editor/bin/edit.sh --style clean-cut <source> <project> <out.mp4>. Other styles (creator talking head, explainer, podcast, etc.) are EXPERIMENTAL and not approved.",
+  "style": "clean-cut",
+  "cutMode": "clean",
+  "captions": "styles/clean-cut/captions.json",
+  "look": "styles/clean-cut/look.json",
+  "deadAir": {
+    "trimAbove": 0.8,
+    "trimTo": 0.45
+  },
+  "slips": "stutters, false starts and repeats (not across a sentence end) cut; self-corrections removed by the review pass, whole words only, never invented",
+  "aspect": "native (portrait sources stay 9:16 full frame)",
+  "loudness": {
+    "integratedLUFS": -14,
+    "truePeakDBTP": -1
+  },
+  "lockedAt": "7dba2b1",
+  "referenceRender": "approved internal reference edit, 2026-10-18 (Clean cut v2, clean mode, commit 7dba2b1)"
+}
